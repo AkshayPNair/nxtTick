@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customers</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 flex flex-col min-h-screen">
+  <div class="flex flex-1">
+    <!-- Sidebar -->
+    {{> sideBar}}
+
+    <main class="flex-grow bg-white">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-5 shadow-md p-5 bg-white">
+        <h1 class="font-bold text-lg">Customers</h1>
+        <button class="bg-blue-600 text-white py-2 px-4 rounded-lg">Admin</button>
+      </div>
+
+      <!-- Breadcrumbs -->
+      <div class="mb-5 px-5">
+        <nav class="text-gray-600 text-sm">
+          <a href="dashboard" class="hover:text-blue-600">Dashboard</a> &gt;
+          <a href="customers" class="hover:text-blue-600">Customers</a> &gt;
+          <span class="font-bold">All Customers</span>
+        </nav>
+      </div>
+
+      <!-- Customers Listing -->
+      <div class="pl-5 pr-5">
+        <div class="flex justify-between items-center mb-5">
+          <h2 class="text-lg font-bold">All Customers</h2>
+        </div>
+
+        <!-- Search -->
+        <div class="flex items-center justify-between bg-gray-100 p-4 rounded-md shadow-sm mb-5">
+          <input type="text" id="search" placeholder="Search customer..." class="flex-grow border p-2 rounded-l-md">
+          <button class="bg-gray-200 px-4 py-2 rounded-r-lg">Search</button>
+        </div>
+
+        <!-- Customers Table -->
+        <div class="overflow-x-auto rounded-md shadow-md">
+          <table class="min-w-full table-auto bg-white border rounded-lg  coustmer-table">
+            <thead class="bg-gray-100 text-left">
+              <tr>
+                <th class="py-3 px-4 text-sm text-gray-600">Name</th>
+                <th class="py-3 px-4 text-sm text-gray-600">Email</th>
+                <th class="py-3 px-4 text-sm text-gray-600">Status</th>
+                <th class="py-3 px-4 text-sm text-gray-600">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y">
+              <!-- Sample Row 1 -->
+              {{#each users}}
+              <tr>
+                <td class="py-3 px-4 flex items-center gap-3">
+                  {{!-- <img src="/images/captin-america.jpg" class="w-10 h-10 rounded" alt="Customer"> --}}
+                  <span>{{this.name}}</span>
+                </td>
+                <td class="py-3 px-4">{{this.email}}</td>
+                <td class="py-3 px-4">
+                  {{#if this.isBlock}}
+                    <span class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm">Inactive</span>
+                  {{else}}
+                    <span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm">Active</span> 
+                  {{/if}}   
+                </td>
+                <td class="py-3 px-4 flex justify-center gap-2">
+                    <button id="block-button" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600" onclick="toggleStatus(this)">
+                      Block
+                    </button>
+                  </td>
+              </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex justify-end items-center  mt-5">
+          
+          <div class="flex gap-2">
+            <button class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded">&lt;</button>
+            <button class="px-4 py-2 bg-blue-600 text-white rounded">1</button>
+            <button class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded">2</button>
+            <button class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded">3</button>
+            <button class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded">&gt;</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-gray-50 text-center py-4">
+    <p>2024 <span class="font-bold text-blue-600">nxtTick</span>. All rights reserved</p>
+  </footer>
+
+  <script>
+
+    document.getElementById('search').addEventListener("keyup",function() {
+      const query= this.value.toLowerCase();
+      const rows=document.querySelectorAll(".coustmer-table tbody tr");
+
+      rows.forEach(row=>{
+        const name =row.querySelector('td:nth-child(1)').textContent.toLowerCase();
+        if(name.includes(query)){
+          row.style.display='';
+        }else {
+          row.style.display='none';
+        }
+      });
+    });
+
+    function toggleStatus(button) {
+      // Check the current status based on the button text
+      if (button.innerText === "Block") {
+        button.innerText = "Unblock";
+        button.classList.remove("bg-red-500", "hover:bg-red-600");
+        button.classList.add("bg-green-500", "hover:bg-green-600");
+      } else {
+        button.innerText = "Block";
+        button.classList.remove("bg-green-500", "hover:bg-green-600");
+        button.classList.add("bg-red-500", "hover:bg-red-600");
+      }
+    }
+  </script>
+  
+</body>
+</html>

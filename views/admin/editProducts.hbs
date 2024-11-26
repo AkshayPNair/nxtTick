@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Product</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 flex flex-col min-h-screen">
+  <div class="flex">
+    <!-- Sidebar -->
+    {{> sideBar}}
+
+    <!-- Main Content -->
+    <main class="flex-1 bg-white p-5">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-5">
+        <h1 class="font-bold text-xl">Edit Product</h1>
+        <button class="bg-blue-600 text-white py-2 px-4 rounded-lg">Admin</button>
+      </div>
+
+      <!-- Breadcrumbs -->
+      <div class="text-sm text-gray-500 mb-5">
+        <span>Dashboard</span> > <span>All Products</span> > <span class="text-blue-600">Edit Product</span>
+      </div>
+
+      <!-- Form Section -->
+      <form id="product-form" action="/admin/editProducts/{{product._id}}" method="POST" enctype="multipart/form-data">
+        <input type="hidden" id="productId" name="productId" />
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Form Inputs -->
+          <div class="lg:col-span-2 bg-gray-50 p-5 rounded shadow">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium">Product Name</label>
+                <input type="text" id="productName" name="productName" value="{{product.name}}" placeholder="Product Name..." class="w-full border p-2 rounded" required>
+              </div>
+              <div>
+                <label class="block text-sm font-medium">Description</label>
+                <textarea name="description" id="description" placeholder="Product description" class="w-full border p-2 rounded h-24" required>{{product.description}}</textarea>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium">Category</label>
+                  <input type="text" name="category" value="{{product.category}}" id="category" placeholder="Product category" class="w-full border p-2 rounded" required>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium">Brand Name</label>
+                  <input type="text" name="brand" id="brand" value="{{product.brand}}" placeholder="Brand name" class="w-full border p-2 rounded">
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium">Stock Quantity</label>
+                  <input type="number" name="stock" id="stock" value="{{product.stock}}" placeholder="quantity" class="w-full border p-2 rounded" required min="1" step="1">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium">Sale Price</label>
+                  <input type="number" name="price" id="price" value="{{product.price}}" placeholder="sale price" class="w-full border p-2 rounded" required min="1" step="1">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product Gallery -->
+          <div class="bg-gray-50 p-5 rounded shadow">
+            <div>
+              <label class="block text-sm font-medium">Product Gallery</label>
+              <div class="space-y-4">
+                <!-- Image Upload Option -->
+                <div>
+                  <input type="file" name="images" id="images1" onchange="previewImage(this)" class="w-full border p-2 rounded" />
+                  <input type="file" name="images" id="images2" onchange="previewImage(this)" class="w-full border p-2 rounded mt-2" />
+                  <input type="file" name="images" id="images3" onchange="previewImage(this)" class="w-full border p-2 rounded mt-2" />
+                  <input type="file" name="images" id="images4" onchange="previewImage(this)" class="w-full border p-2 rounded mt-2" />
+                </div>
+
+                <!-- Display Images Below Gallery -->
+                <div id="image-gallery" class="flex flex-wrap mt-4">
+                  <!-- Loop through existing images and display them -->
+                  {{#each product.images}}
+                    <div class="w-32 h-32 bg-gray-200 flex items-center justify-center m-2 rounded-lg">
+                      <img src="{{this}}" alt="Product Image" class="w-full h-full rounded-lg object-cover" />
+                    </div>
+                  {{/each}}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex justify-end gap-4 mt-6">
+          <button type="submit" class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded">SAVE CHANGES</button>
+          <button type="button" class="bg-gray-300 hover:bg-gray-200 px-6 py-2 rounded" onclick="window.location.href='/admin/allProducts'">CANCEL</button>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-gray-50 text-center py-4">
+    <p>2024 <span class="font-bold text-blue-600">nxtTick</span>. All rights reserved</p>
+  </footer>
+
+  <script>
+    // Optional: Handle the form submission with fetch for better UX
+    document.getElementById('product-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const form = event.target;
+      const formData = new FormData(form);
+      const productId = "{{product._id}}";
+
+      try {
+        const response = await fetch(`/admin/editProducts/${productId}`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (data.status) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Product Updated',
+            text: data.message,
+          }).then(() => {
+            window.location.href = '/admin/allProducts'; // Redirect to the products list
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: data.message || 'Something went wrong!',
+          });
+        }
+      } catch (error) {
+        console.error(error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Server Error',
+          text: 'Failed to update product.',
+        });
+      }
+    });
+  </script>
+</body>
+</html>

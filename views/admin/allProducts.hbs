@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Products</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 flex flex-col min-h-screen">
+  <div class="flex flex-1">
+    {{!-- Sidebar --}}
+    {{> sideBar}}
+
+    <main class="flex-grow bg-white">
+      <!-- Header -->
+      <div class="flex items-center justify-between p-5 shadow-md">
+        <h1 class="font-bold text-lg">Product</h1>
+        <button class="bg-blue-600 text-white py-2 px-4 rounded-lg">Admin</button>
+      </div>
+
+      <!-- Product Listing -->
+      <div class="p-5">
+        <div class="flex justify-between items-center mb-5">
+          <h2 class="text-lg font-bold">All Products</h2>
+          <div class="flex items-center gap-3">
+           <a href="addProducts"><button class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded">+ Add Product</button></a> 
+          </div>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="flex items-center justify-between bg-gray-100 p-4 shadow-sm rounded-md mb-5">
+          <input type="text" placeholder="Search product..." class="flex-grow border p-2 rounded-l-md">
+          <div class="flex gap-3">
+            <button class="bg-gray-200 px-4 py-2 rounded-r-lg">Search</button>
+          </div>
+        </div>
+
+        <!-- Product Table -->
+        <div class="overflow-x-auto rounded-md shadow-md">
+          <table class="min-w-full table-auto bg-white border rounded ">
+            <thead class="bg-gray-100 text-left">
+              <tr>
+                <th class="py-3 px-4 text-start w-1/6">Product</th>
+                <th class="py-3 px-4 text-start w-1/6">Category</th>
+                <th class="py-3 px-4 text-start w-1/6">Stock</th>
+                <th class="py-3 px-4 text-start w-1/6">Price</th>
+                <th class="py-3 px-4 text-start w-1/6">Status</th>
+                <th class="py-3 px-4 text-center w-1/6">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y">
+              {{#if products.length}}
+                {{#each products}}
+                  <tr>
+                    <td class="py-3 px-4 flex items-center gap-3">
+                      <img src="{{getImage this.images 0}}" class="w-10 h-10 rounded " alt="Product">
+                      <span>{{this.name}}</span>
+                    </td>
+                    <td class="py-3 px-4">{{this.category}}</td>
+                    <td class="py-3 px-4">{{this.stock}}</td>
+                    <td class="py-3 px-4"><span class="text-red-600 font-semibold">{{this.price}}</span></td>
+                    <td class="py-3 px-4">
+                      {{#if (gte this.stock 11)}}
+                        <span class="bg-green-200 text-green-600 px-2 py-1 rounded-lg">In Stock</span>
+                      {{else}}
+                        <span class="bg-red-200 text-red-600 px-2 py-1 rounded-lg">Low Stock</span>
+                      {{/if}}
+                    </td>
+                    <td class="py-3 px-4 flex items-center justify-center gap-2">
+                        <a href="editProducts/{{this._id}}">
+                            <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Edit</button>
+                        </a>
+                        <a href="deleteProduct/{{this._id}}">
+                            <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Delete</button>
+                        </a>
+                    </td>
+                  </tr>
+                {{/each}}
+              {{else}}
+                <tr>
+                  <td colspan="7" class="text-center py-5 text-gray-500">No products found</td>
+                </tr>
+              {{/if}}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-gray-50 text-center py-4">
+    <p>2024 <span class="font-bold text-blue-600">nxtTick</span>. All rights reserved</p>
+  </footer>
+</body>
+</html>
