@@ -1,6 +1,7 @@
 const express=require("express")
 const router=express.Router();
 const userController=require("../controller/userController")
+const userAuth=require('../middleware/userAuth')
 const passport=require("passport")
 
 //user signup
@@ -15,31 +16,28 @@ router.post('/verify-otp',userController.verifyOtp)
 router.post('/resend-otp',userController.resendOtp)
 
 //user login  
-router.get('/login',userController.loadLogin)
+router.get('/login',userAuth.isLogin,userController.loadLogin)
 router.post('/login',userController.loginUser)
 
 //home page
-router.get('/home',userController.loadHome)
+router.get('/home',userAuth.checkSession, userController.loadHome)
+
+//product view
+router.get("/productView/:productId",userAuth.checkSession,userController.loadproductView)
+
+//shop page
+router.get("/shop",userController.loadShopPage);
 
 
-// Google login route
-// router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-
-// // Google callback route
-// router.get(
-//   '/auth/google/callback',
-//   passport.authenticate('google', { failureRedirect: '/user/login' }),
-//   (req, res) => {
-//     // Successful authentication
-//     res.redirect('/user/home');
-//   }
-// );
 
 router.get('/auth/google',passport.authenticate('google',{scope:['profile','email']}));
 
 router.get('/auth/google/callback',passport.authenticate('google',{failureRedirect:'/user/login'}),(req,res)=>{
     res.redirect('/user/home')
 })
+
+//logout
+router.get('/logout',userAuth.checkSession,userController.loadLogout)
 
 
 

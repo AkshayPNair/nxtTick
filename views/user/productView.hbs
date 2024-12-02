@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Details Page</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    {{!-- header section --}}
+    {{>header}}
+  <div class="container mx-auto py-8 px-4">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start bg-gray-100 rounded-lg ">
+      <!-- Left Section: Images -->
+      <div class="flex flex-col items-center  lg:items-center">
+        <!-- Main Image -->
+        <div class="w-full lg:w-3/4 mb-6 main-image-container">
+            <img id="main-image" src="{{data.images.[0]}}" alt="Main Product Image" class="w-full rounded-lg">
+        </div>
+        <!-- Thumbnails -->
+        <div class="flex space-x-4">
+            <img src="{{data.images.[0]}}" alt="Thumbnail 1" class="w-16 h-16 rounded-lg border border-gray-300 cursor-pointer" onclick="changeImage('{{data.images.[0]}}')">
+            <img src="{{data.images.[1]}}" alt="Thumbnail 2" class="w-16 h-16 rounded-lg border border-gray-300 cursor-pointer" onclick="changeImage('{{data.images.[1]}}')">
+            <img src="{{data.images.[2]}}" alt="Thumbnail 3" class="w-16 h-16 rounded-lg border border-gray-300 cursor-pointer" onclick="changeImage('{{data.images.[2]}}')">
+            <img src="{{data.images.[3]}}" alt="Thumbnail 4" class="w-16 h-16 rounded-lg border border-gray-300 cursor-pointer" onclick="changeImage('{{data.images.[3]}}')">
+        </div>
+      </div>
+
+      <!-- Right Section: Details -->
+      <div class="px-6  lg:px-8">
+        <!-- Product Title -->
+        <h1 class="text-2xl lg:text-3xl font-bold text-gray-800 mb-4">
+         {{data.name}}
+        </h1>
+         <!-- Price -->
+         <div class="mt-4 flex items-center">
+          <span class="text-red-500 text-2xl font-semibold">Rs. {{data.price}}</span>
+          <span class="ml-4 text-gray-400 line-through text-lg">Rs. 45,000.00</span>
+        </div>
+        <!-- Ratings -->
+        <div class="mt-3 flex items-center">
+          <div class="flex text-yellow-400 text-xl">
+            ★★★★☆
+          </div>
+          <span class="ml-2 text-gray-500">(5 Customer Reviews)</span>
+        </div>
+        <!-- Quantity Selector -->
+        <div class="mb-6 mt-6">
+          <label class="block text-gray-700 font-medium mb-2 ">Quantity</label>
+          <div class="flex items-center border rounded-lg w-32 bg-white">
+            <button class="px-3 py-2 text-gray-500 hover:text-gray-700">-</button>
+            <span class="flex-1 text-center">1</span>
+            <button class="px-3 py-2 text-gray-500 hover:text-gray-700">+</button>
+          </div>
+        </div>
+        <!-- Description -->
+        <div class="mb-6 ">
+          <h2 class="text-lg font-bold text-gray-800">Description</h2>
+          <p class="text-gray-600 text-sm leading-relaxed mt-6">
+            {{data.description}}
+          </p>
+        </div>
+        <!-- Action Buttons -->
+        <div class="mt-10 flex space-x-4">
+          <button class="flex-1 bg-black text-white py-3 px-4 rounded-md hover:bg-gray-800">Add to Cart</button>
+          <button class="flex-1 bg-blue-500 text-white py-3 px-4 rounded-md hover:bg-blue-600">Buy Now</button>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+  <section class="  px-4 sm:px-6 bg-gray-50 lg:px-8 py-12">
+        <!-- Section Title -->
+        <h1 class="text-center text-4xl font-bold text-gray-800 mb-10">Similar Products</h1>
+         <!-- Cards Container -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <!-- Card 1 -->
+          {{#each find}}
+          <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <img src="{{this.images.[0]}}" onclick="load('{{this._id}}')" alt="product-img" class="w-full h-70 object-cover">
+            <div class="p-4 ">
+              <h2 class="text-lg font-bold text-gray-800">{{this.name}}</h2>
+              <p class="text-sm text-gray-600">Sixth Scale Action Figure </p>
+              <p class="text-red-600 font-bold mt-2">Rs.{{this.price}} </p>
+            </div>
+          </div>
+          {{/each}}
+          
+        </div>
+    
+    
+        <!-- Show More Button -->
+        <div class="flex justify-center mt-10">
+          <button class="w-48 px-6 py-2 bg-white border border-gray-200 font-semibold rounded-md text-gray-800 hover:bg-gray-100 shadow-lg">
+            Show More
+          </button>
+        </div>
+      </section>
+      {{!-- footer section  --}}
+      {{>footer}}
+
+      <script>
+        function changeImage(newSrc) {
+            const mainImage = document.getElementById('main-image');
+            mainImage.src = newSrc;
+        }
+        const mainImage = document.getElementById("main-image");
+        const imageContainer = mainImage.parentElement;
+
+        imageContainer.addEventListener("mousemove", (e) => {
+            const rect = imageContainer.getBoundingClientRect();
+            const x = e.clientX - rect.left; // Mouse X position relative to image container
+            const y = e.clientY - rect.top;  // Mouse Y position relative to image container
+            const width = imageContainer.offsetWidth;
+            const height = imageContainer.offsetHeight;
+
+        // Calculate the transform origin based on mouse position
+            const xPercent = (x / width) * 100;
+            const yPercent = (y / height) * 100;
+
+        // Apply zoom effect
+            mainImage.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+            mainImage.style.transform = "scale(1.5)";
+        });
+
+        imageContainer.addEventListener("mouseleave", () => {
+            // Reset image zoom on mouse leave
+            mainImage.style.transform = "scale(1)";
+            mainImage.style.transformOrigin = "center center";
+  });
+
+    function load(productId){
+      window.location.href=`/user/productView/${productId}`
+    }
+
+      </script>
+
+      <style>
+        .main-image-container {
+            position: relative;
+            overflow: hidden;
+        }
+
+        #main-image {
+            transition: transform 0.2s ease-out;
+            transform-origin: center center; /* Ensure smooth zooming */
+        }
+      </style>
+  
+</body>
+</html>

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>All Category</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-gray-100 font-sans text-gray-800 flex flex-col min-h-screen">
   <div class="flex flex-1">
@@ -31,67 +32,57 @@
 
         <!-- Search and Filters -->
         <div class="flex items-center justify-between bg-gray-100 p-4 rounded-md shadow-sm mb-5">
-          <input type="text" placeholder="Search product..." class="flex-grow border p-2 rounded-l-md">
+          <input type="text" id="search" placeholder="Search category..." class="flex-grow border p-2 rounded-l-md">
           <button class="bg-gray-200 px-4 py-2 rounded-r-lg">Search</button>
         </div>
 
         <!-- Product Table -->
         <div class="overflow-x-auto rounded-md shadow-md">
-          <table class="min-w-full table-auto bg-white border rounded-lg ">
+          <table class="min-w-full table-auto bg-white border rounded-lg category-table">
             <thead class="bg-gray-100 text-left">
               <tr>
                 <th class="py-3 px-4 text-sm  text-gray-600">Category</th>
-                <th class="py-3 px-4 text-sm  text-gray-600">Sales</th>
-                <th class="py-3 px-4 text-sm  text-gray-600">Stock</th>
-                <th class="py-3 px-4 text-sm  text-gray-600">Added</th>
+                <th class="py-3 px-4 text-sm  text-gray-600">Status</th>
                 <th class="py-3 px-4 text-sm  text-gray-600">Action</th>
               </tr>
             </thead>
             <tbody class="divide-y">
+              {{#if category.length}}
+                {{#each category}}
+              
               <tr>
                 <td class="py-3 px-4 flex items-center gap-3">
-                  <img src="/images/captin america.jpg" class="w-10 h-10 rounded" alt="Product">
-                  <span>Marvel</span>
+                  <img src={{getImage this.image 0}} class="w-10 h-10 rounded" alt="Product">
+                  <span>{{this.name}}</span>
                 </td>
-                <td class="py-3 px-4">901</td>
-                <td class="py-3 px-4">10</td>
-                <td class="py-3 px-4">29 Dec 2024</td>
+                <td class="py-3 px-4">
+                  {{#if this.isBlock}}
+                    <span class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm">Inactive</span>
+                  {{else}}
+                    <span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm">Active</span> 
+                  {{/if}}
+                </td>
                 <td class="py-3 px-4 flex items-center justify-start gap-2">
-                  <a href="editCategory">
+                  <a href="editCategory/{{this._id}}">
                     <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
                       Edit
                     </button>
                   </a>
                   <a href="#">
-                    <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
-                      Block
-                    </button>
+                  <button id="block-button-{{this._id}}" class="{{#if this.isBlock}}bg-green-500 hover:bg-green-600{{else}}bg-red-500 hover:bg-red-600{{/if}} text-white px-4 py-2 rounded" onclick="toggleStatus(this,'{{this._id}}')">
+                      {{#if this.isBlock}}Unblock{{else}}Block{{/if}}
+                  </button>
                   </a>
                 </td>
               </tr>
-              <!-- Add similar rows here for other products -->
-              <!-- Example: -->
-              <tr>
-                <td class="py-3 px-4 flex items-center gap-3">
-                  <img src="/images/ironman.jpg" class="w-10 h-10 rounded" alt="Product">
-                  <span>DC Comics</span>
-                </td>
-                <td class="py-3 px-4">150</td>
-                <td class="py-3 px-4">50</td>
-                <td class="py-3 px-4">15 Nov 2024</td>
-                <td class="py-3 px-4 flex items-center justify-start gap-2">
-                  <a href="editCategory">
-                    <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                      Edit
-                    </button>
-                  </a>
-                  <a href="#">
-                    <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
-                      Block
-                    </button>
-                  </a>
-                </td>
-              </tr>
+              {{/each}}
+              {{else}}
+                <tr>
+                  <td colspan="7" class="text-center py-5 text-gray-500">No Categories found</td>
+                </tr>
+              {{/if}}
+
+              
             </tbody>
           </table>
         </div>
@@ -103,5 +94,87 @@
   <footer class="bg-gray-50 text-center py-4">
     <p>2024 <span class="font-bold text-blue-600">nxtTick</span>. All rights reserved</p>
   </footer>
+
+  <script>
+    document.getElementById('search').addEventListener("keyup", function() {
+        const query = this.value.toLowerCase();
+        const rows = document.querySelectorAll(".category-table tbody tr");
+
+        rows.forEach(row => {
+            const name = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
+            if (name.includes(query)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+
+    function toggleStatus(button, categoryId) {
+        const action = button.innerText === "Block" ? "block" : "unblock";
+
+        // Ask for confirmation with SweetAlert
+        Swal.fire({
+            title: `Are you sure you want to ${action} this category?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: `Yes, ${action} it!`,
+        }).then((result) => {
+            if (result.isConfirmed) {
+              
+                fetch(`/admin/block-unblock-category/${categoryId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status) {
+                        if (action === "block") {
+                            button.innerText = "Unblock";
+                            button.classList.remove("bg-red-500", "hover:bg-red-600");
+                            button.classList.add("bg-green-500", "hover:bg-green-600");
+                        } else {
+                            button.innerText = "Block";
+                            button.classList.remove("bg-green-500", "hover:bg-green-600");
+                            button.classList.add("bg-red-500", "hover:bg-red-600");
+                        }
+
+                        const statusCell = button.parentElement.parentElement.querySelector(
+                            "td:nth-child(3) span"
+                        );
+
+                        // Show success message with SweetAlert
+                        Swal.fire({
+                            icon: 'success',
+                            title: action === "block" ? 'Category Blocked' : 'Category Unblocked',
+                            text: action === "block" ? 'The category has been blocked successfully.' : 'The category has been unblocked successfully.',
+                        }).then(()=> {
+                           window.location.reload()
+                        })
+                    } else {
+                        // Show error message with SweetAlert
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: data.message || 'Something went wrong. Please try again.',
+                        })
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'An error occurred while updating the category status.',
+                    });
+                });
+            }
+        });
+    }
+</script>
+
 </body>
 </html>

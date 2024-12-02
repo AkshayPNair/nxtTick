@@ -1,12 +1,14 @@
 const adminSchema=require("../model/adminModel");
 const userSchema=require("../model/userModel");
 const productSchema=require("../model/productSchema");
+const categorySchema=require("../model/categorySchema")
 const bcrypt=require("bcrypt");
 
 module.exports={
     //load admin login
     loadLogin:(req,res)=>{
         try {
+            
           res.render('admin/login')  
         } catch (error) {
             res.status(500).send("error occured")
@@ -28,6 +30,8 @@ module.exports={
             if(!match){
                 return res.status(400).json({status:false,message:"Password doesn't match"})
             }
+            
+            req.session.admin=admin.id;
 
             return res.status(200).json({status:true,message:"Login successfully"})
 
@@ -38,14 +42,20 @@ module.exports={
 
     loadDashBoard:(req,res)=>{
         try {
-            res.render('admin/dashBoard')
+            const admin=req.session.admin
+            if(!admin){
+                res.redirect('/admin/login')
+            }else {
+                res.render('admin/dashBoard')
+            }
+            
         } catch (error) {
             res.status(500).send("Error Occured")
         }
     },
     loadAllProducts:async (req,res)=>{
         try {
-            const products= await productSchema.find({})
+            const products= await productSchema.find({isDeleted:false}).populate('category','name')
             res.render("admin/allProducts",{products})
         } catch (error) {
             console.error("Error fetching customers:", error)
@@ -53,32 +63,43 @@ module.exports={
         }
     },
 
-    loadAddProducts:(req,res)=>{
+    loadAddProducts:async(req,res)=>{
         try {
-            res.render("admin/addProducts")
+            const categories=await categorySchema.find()
+            res.render("admin/addProducts",{categories})
         } catch (error) {
-            res.status(500).send("Error Occured")
+            console.error("Error loading addProducts page:", error);
+            res.status(500).send("Error loading the page");
         }
     },
 
     loadEditProducts:async (req,res)=>{
         try {
             const productId=req.params.id;
-            const product= await productSchema.findById(productId);
+            
+            const product= await productSchema.findById(productId).populate('category','_id name');
+            
 
             if(!product){
                 return res.status(404).send("Product not found")
             }
-            res.render('admin/editProducts',{product});
+            const categories=await categorySchema.find({isBlock:false})
+
+            console.log("Product:", product);
+            console.log("Categories:", categories);
+
+            res.render('admin/editProducts',{product,categories});
         } catch (error) {
             console.error(error);
             res.status(500).send("Error Occured")
         }
     },
 
-    loadAllCategory:(req,res)=>{
+    loadAllCategory:async (req,res)=>{
         try {
-            res.render("admin/allCategory")
+            const category= await categorySchema.find({})
+
+            res.render("admin/allCategory",{category})
         } catch (error) {
             res.status(500).send("Error Occured")
         }
@@ -92,10 +113,17 @@ module.exports={
         }
     },
 
-    loadEditCategory:(req,res)=>{
+    loadEditCategory: async(req,res)=>{
         try {
-            res.render("admin/editCategory")
+            const categoryId=req.params.id
+            const category=await categorySchema.findById(categoryId)
+            
+            if(!category){
+                res.status(400).send("Category not found")
+            }
+            res.render('admin/editCategory',{category})
         } catch (error) {
+            console.error(error)
             res.status(500).send("Error Occured")
         }
     },
@@ -110,6 +138,76 @@ module.exports={
             res.status(500).send("Error Occured")
         }
     },
+    blockandUnblockuser: async (req,res)=>{
+        try {
+            const userId = req.params.id;
+            const { isBlock } = req.body;
+
+            const user = await userSchema.findByIdAndUpdate(userId, { isBlock }, { new: true });
+
+            if (user) {
+                return res.status(200).json({ status: true, message: 'User status updated successfully' });
+            }
+
+            res.status(404).json({ status: false, message: 'User not found' });
+        } catch (error) {
+            console.error('Error updating user status:', error);
+            res.status(500).json({ status: false, message: 'Internal server error' });
+        }
+    },
+
+    blockandUnblockCategory:async (req,res)=>{
+        try {
+            const categoryId=req.params.id;
+            const category=await categorySchema.findById(categoryId)
+
+            if(!category){
+                res.status(400).json({status:false,message:"Category not found"})
+            }
+            category.isBlock=!category.isBlock
+            await category.save()
+
+            res.status(200).json({ status: true, message: category.isBlock ? "Category blocked" : "Category unblocked" });
+        } catch (error) {
+            console.error('Error blocking/unblocking category:', error);
+            res.status(500).json({ status: false, message: 'Internal server error' });
+        }
+    },
+    loadDeletedProducts: async (req,res)=>{
+        try {
+            const products=await productSchema.find({isDeleted:true}).populate('category','name')
+            res.render("admin/deletedProducts",{products})
+        } catch (error) {
+            console.log(error)
+            res.status(500).send("Error Occured")
+        }
+    },
+    undoDeleteProducts: async(req,res)=>{
+        try {
+            const productId = req.params.id;
+
+            const product= await productSchema.findByIdAndUpdate( productId ,{isDeleted:false},{new:true});
+
+            if(product){
+                return res.status(200).json({status:true,message:"Undo Delete Successfully"})
+            }
+
+            res.status(400).json({status:false,message:"Product not found"});
+
+        } catch (error) {
+            console.error('Error updating user status:', error);
+            res.status(500).json({ status: false, message: 'Internal server error' });
+        }
+    },
+    loadLogout:(req,res)=>{
+        try {
+            req.session.admin=null;
+            res.redirect("/admin/login")
+        } catch (error) {
+            console.log(error)
+            res.status(500).send("Error occured")
+        }
+    }
 
     
 

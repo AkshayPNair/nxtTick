@@ -1,0 +1,86 @@
+<header class="bg-white shadow-sm py-4 shadow-lg">
+  <div class="container mx-auto flex items-center justify-between px-4 lg:px-8">
+    <!-- Logo -->
+    <div class="flex items-center space-x-4 mx-10">
+      <img 
+        src="/images/logo nxtTick.png" 
+        alt="Logo" 
+        class="h-[36px] w-[160px] object-contain"
+      />
+    </div>
+
+    {{!-- searchBar --}}
+    <div class="mx-4 hidden md:flex">
+      <input
+        type="text"
+        placeholder="Search"
+        class="w-96 h-15 rounded-lg border border-black px-4 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
+
+    {{!-- navigation --}}
+    <nav class="hidden md:flex space-x-10 text-sm font-medium text-gray-800">
+      <a href="home" class="hover:text-blue-500">Home</a>
+      <a href="shop" class="hover:text-blue-500">Shop</a>
+      <a href="#" class="hover:text-blue-500">Contact</a>
+    </nav>
+
+    <!-- icons -->
+    <div class="flex items-center space-x-8">
+      {{!-- wishlistIcon --}}
+      <a href="#" class="text-gray-600 hover:text-blue-500">
+        <img src="/images/heart.png" class="w-6 h-6" alt=""> 
+      </a>
+
+      {{!-- cartIcon --}}
+      <a href="#" class="text-gray-600 hover:text-blue-500">
+        <img src="/images/cart.png" class="w-6 h-6" alt=""/>
+      </a>
+
+      {{!-- profileIcon --}}
+      <img
+        src="https://randomuser.me/api/portraits/men/32.jpg"
+        alt="User Profile"
+        class="w-8 h-8 rounded-full border border-gray-300"
+      />
+
+      {{!-- logoutIcon --}}
+      <a href="/user/logout" id="logout" class="flex items-center">
+        <img 
+          src="https://img.icons8.com/ios-filled/50/000000/logout-rounded-left.png" 
+          alt="Logout" 
+          class="w-6 h-6 hover:scale-110 hover:brightness-75 transition-transform duration-300"
+        />
+      </a>
+    </div>
+
+    {{!-- optionIcon --}}
+    <div class="flex md:hidden items-center ml-auto">
+      <button id="hamburger" class="text-gray-600 hover:text-blue-500">
+        <img src="/images/menu-icon.png" class="w-6 h-6" alt="Menu"/>
+      </button>
+    </div>
+  </div>
+</header>
+
+
+
+      <script>
+
+        
+        const hamburger = document.getElementById('hamburger');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const closeMenu = document.getElementById('close-menu');
+    
+        hamburger.addEventListener('click', () => {
+          mobileMenu.classList.remove('hidden');
+        });
+    
+        closeMenu.addEventListener('click', () => {
+          mobileMenu.classList.add('hidden');
+        });
+
+       
+
+
+      </script>

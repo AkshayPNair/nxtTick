@@ -22,6 +22,10 @@ hbs.registerHelper('gte', function (value1, value2) {
     return value1 >= value2;
 });
 
+hbs.registerHelper('eq', (a, b) => {
+    if (!a || !b) return false; // Return false if either value is undefined or null
+    return a.toString() === b.toString();
+});
 hbs.registerHelper('getImage', function (images, index) {
     return images && images[index];
 });
@@ -41,7 +45,9 @@ app.use(session({
     resave:false,
     saveUninitialized:true,
     cookie:{
-        maxAge:1000 * 60 * 60 * 24
+        maxAge: 24 * 60 * 60 * 1000, 
+        secure: false, 
+        httpOnly: true 
     }
 }));
 app.use(passport.initialize());
@@ -62,7 +68,7 @@ app.use('/admin',adminRoutes);
 
 
 app.get('/',(req,res)=>{
-    res.send("Hey Programmers");
+    res.redirect('/user/login')
 })
 
 

@@ -1,8 +1,11 @@
 const userSchema=require("../model/userModel");
+const productSchema=require("../model/productSchema")
 const bcrypt=require("bcrypt");
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const router = require("../routes/user");
+const product = require("../model/productSchema");
+const category = require("../model/categorySchema");
 const saltrounds=10;
 require('dotenv').config();
 let otpStore = {};  // To temporarily store OTPs 
@@ -70,8 +73,9 @@ module.exports={
             if(user.isBlock){
                 return res.status(400).json({status:false,isBlock:true,messsage:"User is Blocked by admin"})
             }
-
+            req.session.user=user.id;
             return res.status(200).json({status:true, isBlock:false,message:"Login Successfully"})
+            
         } catch (error) {
              res.status(500).json({status:false,message:"Error Occured"})
         }
@@ -80,7 +84,7 @@ module.exports={
     //loadotp page
     loadOtp:(req,res)=>{
         try {
-            const {email} = req.query; //get email from query parameter
+            const {email} = req.query; 
             res.render('user/verifyOtp',{email}) //load otp page
             
         } catch (error) {
@@ -103,17 +107,16 @@ module.exports={
 
         if (otpStore[email] && otpStore[email].otp == otp) {
             const timeElapsed = Date.now() - otpStore[email].time;
-            if (timeElapsed < 1 * 60 * 1000) { // OTP valid for 1 minutes
+            if (timeElapsed < 1 * 60 * 1000) { // otp valid for 1 minutes
                 //create user in database
                 const { name, password } = otpStore[email];
                 const hashedPassword = await bcrypt.hash(password, saltrounds);
                 const newUser = new userSchema({ name, email, password: hashedPassword, status: true });
                 await newUser.save();
 
-                // Clear OTP store for the user
+                // clear otp store
                 delete otpStore[email];
-
-                // Redirect to  homepage
+                // redirect to home
                 return res.status(200).json({ status: true, message: "OTP verified successfully, user created!" });
             } else {
                 return res.status(400).json({ status: false, message: "OTP expired. Please request a new one." });
@@ -132,7 +135,7 @@ module.exports={
       try{  
         const { email } = req.body;
         const currentTime = Date.now();
-        const resendCooldown = 60 * 1000;  // 1 minute cooldown
+        const resendCooldown = 60 * 1000;  
 
         if (otpStore[email]) {
             const timeElapsed = currentTime - otpStore[email].time;
@@ -142,10 +145,10 @@ module.exports={
             }
         }
 
-        // Generate new OTP and send email
+        
         const otp = crypto.randomInt(1000, 10000);
         otpStore[email] = { ...otpStore[email],otp: otp, time: currentTime };
-        //send new OTP
+        
         sendOtpEmail(email, otp);
 
         res.status(200).json({ status: true, message: "OTP resent successfully." });
@@ -158,24 +161,101 @@ module.exports={
      }
    },
 
-    loadHome:(req,res)=>{
+    loadHome:async (req,res)=>{
         try {
-            res.render("user/home")
+            const products= await productSchema.find({isDeleted:false}).populate({path:'category',match: {isBlock:false}}).exec();
+
+            const filterProduct= products.filter(product=> product.category !==null)
+
+            const Obj=filterProduct.map((data)=>{
+                return{
+                    _id:data._id,
+                    name:data.name,
+                    description:data.description,
+                    category:data.category,
+                    brand:data.brand,
+                    price:data.price,
+                    images:data.images
+                }
+            })
+            res.render("user/home",{data:Obj})
         } catch (error) {
             res.status(500).send("Error Occured")
         }
     },
+    loadproductView:async(req,res)=>{
+        try {
+            const findProduct=await productSchema.findById(req.params.productId)
 
+            const products=await productSchema.find({isDeleted:false}).populate({path:"category",match:{isBlock:false}}).exec()
+            const filterProduct=products.filter(product=> product.category!==null)
+
+            const Obj=filterProduct.map((find)=>{
+                return{
+                    _id:find._id,
+                    name:find.name,
+                    description:find.description,
+                    category:find.category,
+                    brand:find.brand,
+                    price:find.price,
+                    images:find.images
+                }
+            })
+            
+           res.render("user/productView",{data:findProduct,find:Obj}) 
+        } catch (error) {
+            res.status(500).send("Error Occured")
+        }
+    },
+    //loadShopPage
+    loadShopPage:async (req,res)=>{
+        try {
+            
+            const products=await productSchema.find({isDeleted:false}).populate({path:"category", match:{isBlock:false}}).exec()
+
+            const filterProduct=products.filter(product=> product.category!==null)
+
+            const Obj=filterProduct.map((data)=>{
+                return{
+                    _id:data._id,
+                    name:data.name,
+                    description:data.description,
+                    category:data.category,
+                    brand:data.brand,
+                    price:data.price,
+                    images:data.images
+                }
+                
+            })
+
+            res.render("user/shop",{data:Obj})
+        } catch (error) {
+            console.log(error)
+            res.status(500).send("Error occured")
+        }
+     },
+
+    //load logout
+    loadLogout:(req,res)=>{
+        try {
+            req.session.destroy();
+            res.redirect('/user/login')
+        } catch (error) {
+            console.log(error)
+            res.status(500).send("Error occured")
+        }
+    }
+     
     
 };
 
-// Function to send OTP email
+// function to send otp to email
 function sendOtpEmail(email, otp) {
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-            user:process.env.EMAIL, //  your email
-            pass:process.env.PASS, //  your app password
+            user:process.env.EMAIL, 
+            pass:process.env.PASS,
         },
     });
 

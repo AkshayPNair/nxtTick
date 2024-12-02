@@ -43,7 +43,13 @@
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-medium">Category</label>
-                  <input type="text" name="category" id="category" placeholder="Product category" class="w-full border p-2 rounded" required>
+                  {{!-- <input type="text" name="category" id="category" placeholder="Product category" class="w-full border p-2 rounded" required> --}}
+                  <select name="category" id="category" class="w-full border p-2 rounded" required>
+                    <option value="">Select a Category</option>
+                    {{#each categories}}
+                    <option value="{{this._id}}">{{this.name}}</option>
+                    {{/each}}
+                  </select>
                 </div>
                 <div>
                   <label class="block text-sm font-medium">Brand Name</label>

@@ -26,8 +26,8 @@
       </div>
 
       <!-- Form Section -->
-      <form id="product-form" action="/admin/editProducts/{{product._id}}" method="POST" enctype="multipart/form-data">
-        <input type="hidden" id="productId" name="productId" />
+      <form id="product-form">
+        <input type="hidden" id="productId" name="productId" value="{{product._id}}" />
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <!-- Form Inputs -->
           <div class="lg:col-span-2 bg-gray-50 p-5 rounded shadow">
@@ -43,7 +43,11 @@
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-medium">Category</label>
-                  <input type="text" name="category" value="{{product.category}}" id="category" placeholder="Product category" class="w-full border p-2 rounded" required>
+                  {{!-- <input type="text" name="category" value="{{product.category}}" id="category" placeholder="Product category" class="w-full border p-2 rounded" required> --}}
+                  <select name="category" id="category" class="w-full border p-2 rounded" required>
+                  {{#each categories}}
+                      <option value="{{this._id}}" {{#if (eq this._id ../product.category._id)}}selected{{/if}}>{{this.name}}</option>
+                  {{/each}}
                 </div>
                 <div>
                   <label class="block text-sm font-medium">Brand Name</label>
@@ -109,9 +113,35 @@
     document.getElementById('product-form').addEventListener('submit', async (event) => {
       event.preventDefault();
 
-      const form = event.target;
-      const formData = new FormData(form);
-      const productId = "{{product._id}}";
+    
+      var formData = new FormData();
+
+      const productId=document.getElementById("productId").value
+      const productName=document.getElementById("productName").value 
+      const description=document.getElementById("description").value 
+      const category=document.getElementById("category").value 
+      const brand=document.getElementById("brand").value 
+      const stock=document.getElementById("stock").value
+      const price=document.getElementById("price").value
+      const images1=document.getElementById('images1').files[0]
+      const images2=document.getElementById('images2').files[1]
+      const images3=document.getElementById('images3').files[2]
+      const images4=document.getElementById('images4').files[3]
+
+      formData.append("productId",productId)
+      formData.append("productName",productName)
+      formData.append("description",description)
+      formData.append("category",category)
+      formData.append("brand",brand)
+      formData.append("stock",stock)
+      formData.append("price",price)
+
+      if (images1) formData.append("images", images1);
+      if (images2) formData.append("images", images2);
+      if (images3) formData.append("images", images3);
+      if (images4) formData.append("images", images4);
+
+      console.log(formData)
 
       try {
         const response = await fetch(`/admin/editProducts/${productId}`, {
@@ -127,7 +157,7 @@
             title: 'Product Updated',
             text: data.message,
           }).then(() => {
-            window.location.href = '/admin/allProducts'; // Redirect to the products list
+            window.location.href = '/admin/allProducts'; 
           });
         } else {
           Swal.fire({

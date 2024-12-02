@@ -10,8 +10,9 @@ const productSchema = new mongoose.Schema({
     required: true,
   },
   category: {
-    type: String,
-    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "category",
+    required:true,
   },
   brand: {
     type: String,
@@ -33,6 +34,14 @@ const productSchema = new mongoose.Schema({
   status:{
     type:Boolean,
     default:true,
+  },
+  isDeleted:{
+    type:Boolean,
+    default:false,
+  },
+  deletedAt:{
+    type:Date,
+    default:Date.now
   },
   createdAt: {
      type: Date, 

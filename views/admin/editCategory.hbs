@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Edit Category</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Add Category</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.tailwindcss.com"></script> 
 </head>
 <body class="bg-gray-100 font-sans text-gray-800 flex flex-col min-h-screen">
 
@@ -23,48 +24,57 @@
 
       <!-- Breadcrumb -->
       <div class="text-sm text-gray-500 mb-6">
-        <span>Dashboard</span> > <span>Categories</span> > <span class="text-blue-600">Edit Category</span>
+        <span>Dashboard</span> > <span>Categories</span> > <span class="text-blue-600">Add Category</span>
       </div>
 
-      <!-- Add Category Section -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Thumbnail Section -->
-        <div class="bg-gray-50 p-5 rounded shadow">
-          <h2 class="font-medium text-gray-700 mb-4">Thumbnail</h2>
-          <div class="border border-dashed border-gray-400 p-6 rounded flex flex-col justify-center items-center">
-            <!-- Image Preview -->
-            <div id="imagePreview" class="w-32 h-32 bg-gray-200 flex justify-center items-center mb-4">
-              <span class="text-gray-500">Edit Image</span>
+      <!-- Add Category Form -->
+      <form id="categoryForm"  enctype="multipart/form-data" class="space-y-6">
+        <input type="hidden" id="categoryId" name="categoryId" value="{{category._id}}" />
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Thumbnail Section -->
+          <div class="bg-gray-50 p-5 rounded shadow">
+            <h2 class="font-medium text-gray-700 mb-4">Image</h2>
+            <div class="border border-dashed border-gray-400 p-6 rounded flex flex-col justify-center items-center">
+              <!-- Image Preview -->
+              <div id="imagePreview" class="w-32 h-32 bg-gray-200 flex justify-center items-center mb-4">
+                {{#if category.image}}
+                  <img src="{{category.image}}" class="w-full h-full object-cover rounded" alt="Existing Image">
+                {{else}}
+                  <span class="text-gray-500">No Image</span>
+                {{/if}}    
+              </div>
+              <!-- File Input -->
+              <input type="file" id="categoryImage" name="categoryImage" class="hidden" accept="image/*" required>
+              <label for="categoryImage" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded cursor-pointer">
+                Add Image
+              </label>
+              <p id="imageError" class="text-red-500 text-sm mt-2 hidden">Image is required.</p>
             </div>
-            <!-- File Input -->
-            <input type="file" id="imageUpload" class="hidden" accept="image/*">
-            <label for="imageUpload" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded cursor-pointer">
-              Edit Image
-            </label>
+          </div>
+
+          <!-- General Information Section -->
+          <div class="lg:col-span-2 bg-gray-50 p-5 rounded shadow">
+            <h2 class="font-medium text-gray-700 mb-4">General Information</h2>
+            <div class="space-y-4">
+              <div>
+                <label for="category-name" class="block text-sm font-medium text-gray-700">Category name</label>
+                <input id="categoryName" name="categoryName" type="text" value="{{category.name}}" placeholder="Type category name here..."  class="w-full border p-2 rounded" required>
+                <p id="nameError" class="text-red-500 text-sm mt-2 hidden">Name is required.</p>
+              </div>
+              <div>
+                <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                <textarea id="description" name="description"  placeholder="Type category description here..." class="w-full border p-2 rounded h-24">{{category.description}}</textarea>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- General Information Section -->
-        <div class="lg:col-span-2 bg-gray-50 p-5 rounded shadow">
-          <h2 class="font-medium text-gray-700 mb-4">General Information</h2>
-          <div class="space-y-4">
-            <div>
-              <label for="category-name" class="block text-sm font-medium text-gray-700">Category Name</label>
-              <input id="category-name" type="text" placeholder="Type category name here..." class="w-full border p-2 rounded">
-            </div>
-            <div>
-              <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
-              <textarea id="description" placeholder="Type category description here..." class="w-full border p-2 rounded h-24"></textarea>
-            </div>
-          </div>
+        <!-- Actions -->
+        <div class="flex justify-end gap-4">
+          <button type="button" class="bg-gray-300 hover:bg-gray-200 text-gray-700 px-6 py-2 rounded" onclick="window.history.back()">Cancel</button>
+          <button type="submit" class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded">+ Update Category</button>
         </div>
-      </div>
-
-      <!-- Actions -->
-      <div class="flex justify-end gap-4 mt-6">
-        <button class="bg-gray-300 hover:bg-gray-200 text-gray-700 px-6 py-2 rounded">Cancel</button>
-        <button class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded"> Update Category</button>
-      </div>
+      </form>
     </main>
   </div>
 
@@ -73,24 +83,95 @@
     <p>2024 <span class="font-bold text-blue-600">nxtTick</span>. All rights reserved</p>
   </footer>
 
-  <!-- Script for Image Upload -->
+  <!-- Script for Validation -->
   <script>
-    const imageUpload = document.getElementById('imageUpload');
-    const imagePreview = document.getElementById('imagePreview');
+  const form = document.getElementById('categoryForm');
+  const categoryNameInput = document.getElementById('categoryName');
+  const descriptionInput = document.getElementById('description');
+  const categoryImageInput = document.getElementById('categoryImage');
+  const imagePreview = document.getElementById('imagePreview');
+  const nameError = document.getElementById('nameError');
+  const imageError = document.getElementById('imageError');
 
-    imageUpload.addEventListener('change', function (event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          imagePreview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover rounded">`;
-        };
-        reader.readAsDataURL(file);
+  // Handle Image Preview
+  categoryImageInput.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        imagePreview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover rounded" alt="Image Preview">`;
+      };
+      reader.readAsDataURL(file);
+    } else {
+      imagePreview.innerHTML = '<span class="text-gray-500">No Image</span>';
+    }
+  });
+
+  // Handle Form Submission
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    let isValid = true;
+
+    // Validate Category Name
+    if (!categoryNameInput.value.trim()) {
+      nameError.classList.remove('hidden');
+      isValid = false;
+    } else {
+      nameError.classList.add('hidden');
+    }
+
+
+    if (!isValid) return; // Stop if validation fails
+
+    // Prepare Form Data
+    const formData = new FormData();
+    formData.append('categoryName', categoryNameInput.value.trim());
+    formData.append('description', descriptionInput.value.trim());
+    
+    if (categoryImageInput.files.length) {
+      formData.append('categoryImage', categoryImageInput.files[0]);
+    }
+
+    // Extract categoryId from hidden input
+    const categoryId = document.getElementById('categoryId').value;
+
+    try {
+      // Send Update Request
+      const response = await fetch(`/admin/editCategory/${categoryId}`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.status) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: data.message,
+          confirmButtonText: 'OK',
+        }).then(() => {
+          window.location.href = '/admin/allcategory'; // Redirect to category list
+        });
       } else {
-        imagePreview.innerHTML = '<span class="text-gray-500">No Image</span>';
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: data.message || 'Something went wrong!',
+        });
       }
-    });
-  </script>
+    } catch (error) {
+      console.error('Error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Server Error',
+        text: 'Something went wrong!',
+      });
+    }
+  });
+</script>
+
 
 </body>
 </html>

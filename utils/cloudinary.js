@@ -10,6 +10,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+
 // Use CloudinaryStorage with Multer
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,

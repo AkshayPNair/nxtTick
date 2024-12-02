@@ -5,14 +5,32 @@ const categorySchema=new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
-        trim: true, // Removes extra whitespace
       },
       description: {
         type: String,
         required: false,
-        trim: true,
+      },
+      status:{
+        type:Boolean,
+        default:true,
+      },
+      isBlock:{
+        type:Boolean,
+        default:false,
       },
       image:[{
         type:String
-      }]
+      }],
+      createdAt: {
+        type: Date, 
+        default: Date.now 
+     },
+     updatedAt:{
+       type:Date,
+       default:Date.now
+     }
 })
+
+const category=mongoose.model("category",categorySchema);
+
+module.exports= category;
