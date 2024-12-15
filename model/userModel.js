@@ -31,7 +31,15 @@ const userSchema = new mongoose.Schema({
   isBlock:{
     type:Boolean,
     default:false
-  }
+  },
+  gender: {
+    type: String, 
+    enum: ['male', 'female', 'other',],
+  },
+  profileImage: {
+    type: String, 
+    default: null,
+  },
 });
 
 module.exports = mongoose.model("user", userSchema);

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Addresses</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Header -->
+    {{>header}}
+
+    <div class="flex">
+        <!-- Sidebar -->
+        {{>profilebar}}
+
+        <!-- Main Content -->
+        <main class="flex-grow p-6 ">
+            <h1 class="text-2xl font-semibold mb-4">Manage Addresses</h1>
+
+            <!-- Add New Address Button -->
+            <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 mb-4" id="addAddressButton" data-modal-toggle="addAddressModal">
+                Add New Address
+            </button>
+
+            <!-- Saved Addresses -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {{#each addresses}}
+                <div class="bg-white p-4 rounded shadow-md">
+                    <h2 class="text-xl font-semibold">{{name}}</h2>
+                    <p class="mt-2 text-gray-700">
+                        {{addressLine1}}, {{addressLine2}}<br>
+                        {{city}}, {{state}}, {{pinCode}}<br>
+                        {{country}}<br>
+                        <strong>Phone:</strong> {{phone}}
+                    </p>
+                    {{#if isDefault}}
+                    <span class="inline-block mt-2 bg-green-500 text-white px-2 py-1 rounded text-sm">Default</span>
+                    {{/if}}
+                    <div class="flex justify-end space-x-2 mt-4">
+                        <!-- Edit button -->
+                        <button 
+                            class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600" 
+                            data-modal-toggle="editAddressModal" 
+                            onclick="openEditModal({{json this}})"
+                        >
+                            Edit
+                        </button>
+                        
+                        <!-- Delete button -->
+                        <button 
+                            class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                            onclick="deleteAddress('{{_id}}')"
+                        >
+                            Delete
+                        </button>
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Add Address Modal -->
+    <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden" id="addAddressModal">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 class="text-xl font-semibold mb-4">Add New Address</h2>
+            <form id="addAddressForm" class="space-y-4">
+                <input type="text" placeholder="Name" name="name" class="w-full p-2 border rounded" required>
+                <input type="text" placeholder="Phone" name="phone" class="w-full p-2 border rounded" required>
+                <input type="text" placeholder="Pin Code" name="pinCode" class="w-full p-2 border rounded" required>
+                <input type="text" placeholder="Address Line 1" name="addressLine1" class="w-full p-2 border rounded" required>
+                <input type="text" placeholder="Address Line 2" name="addressLine2" class="w-full p-2 border rounded">
+                <input type="text" placeholder="City" name="city" class="w-full p-2 border rounded" required>
+                <input type="text" placeholder="State" name="state" class="w-full p-2 border rounded" required>
+                <input type="text" placeholder="Country" name="country" class="w-full p-2 border rounded" required>
+                <label class="flex items-center">
+                    <input type="checkbox" name="isDefault" class="mr-2">
+                    Set as Default
+                </label>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" class="bg-gray-300 px-4 py-2 rounded" data-modal-close="addAddressModal">Cancel</button>
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Save Address</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{!-- edit address model --}}
+   <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden" id="editAddressModal">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 class="text-xl font-semibold mb-4">Edit Address</h2>
+            <form id="editAddressForm" class="space-y-4">
+                <input type="hidden" name="id" id="edit-id">
+                <input type="text" id="edit-name" name="name" class="w-full p-2 border rounded" required>
+                <input type="text" id="edit-phone" name="phone" class="w-full p-2 border rounded" required>
+                <input type="text" id="edit-pinCode" name="pinCode" class="w-full p-2 border rounded" required>
+                <input type="text" id="edit-addressLine1" name="addressLine1" class="w-full p-2 border rounded" required>
+                <input type="text" id="edit-addressLine2" name="addressLine2" class="w-full p-2 border rounded">
+                <input type="text" id="edit-city" name="city" class="w-full p-2 border rounded" required>
+                <input type="text" id="edit-state" name="state" class="w-full p-2 border rounded" required>
+                <input type="text" id="edit-country" name="country" class="w-full p-2 border rounded" required>
+                <label class="flex items-center">
+                    <input type="checkbox" id="edit-isDefault" name="isDefault" class="mr-2">
+                    Set as Default
+                </label>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" class="bg-gray-300 px-4 py-2 rounded" data-modal-close="editAddressModal">Cancel</button>
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Update Address</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        
+
+        // Toggle modal visibility
+        document.getElementById('addAddressButton').addEventListener('click', () => {
+            const modal = document.getElementById('addAddressModal');
+            modal.classList.remove('hidden'); // Show the modal
+        });
+
+        // Close modal logic for Add Address Modal
+        document.querySelectorAll('[data-modal-close]').forEach(button => {
+            button.addEventListener('click', () => {
+                button.closest('.fixed').classList.add('hidden'); // Hide the modal
+            });
+        });
+
+        document.getElementById('addAddressForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            try {
+                const response = await fetch('/user/address', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    Swal.fire({title:'Success', text:'Address added successfully', icon:'success',confirmButtonText:'OK'}).then(()=>{
+                       window.location.reload(); 
+                    });
+                     
+                } else {
+                    const error = await response.json();
+                    Swal.fire('Error', error.message, 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
+            }
+        });
+
+        // Edit modal handling
+        function openEditModal(address) {
+            document.getElementById('edit-id').value = address._id;
+            document.getElementById('edit-name').value = address.name;
+            document.getElementById('edit-phone').value = address.phone;
+            document.getElementById('edit-pinCode').value = address.pinCode;
+            document.getElementById('edit-addressLine1').value = address.addressLine1;
+            document.getElementById('edit-addressLine2').value = address.addressLine2;
+            document.getElementById('edit-city').value = address.city;
+            document.getElementById('edit-state').value = address.state;
+            document.getElementById('edit-country').value = address.country;
+            document.getElementById('edit-isDefault').checked = address.isDefault;
+
+            document.getElementById('editAddressModal').classList.remove('hidden');
+        }
+
+        // Delete Address
+        async function deleteAddress(id) {
+            const confirmed = await Swal.fire({
+                title: 'Are you sure?',
+                text: 'You won\'t be able to revert this!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'No, cancel!'
+            });
+
+            if (confirmed.isConfirmed) {
+                try {
+                    const response = await fetch(`/user/address/${id}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        Swal.fire('Deleted!', 'The address has been deleted.', 'success');
+                        window.location.reload();
+                    } else {
+                        const error = await response.json();
+                        Swal.fire('Error', error.message, 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
+                }
+            }
+        }
+
+        // Edit Address Form Submit
+        document.getElementById('editAddressForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            try {
+                const response = await fetch(`/user/address/${data.id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    Swal.fire('Success', 'Address updated successfully', 'success');
+                    window.location.reload(); // Reload to fetch updated address list
+                } else {
+                    const error = await response.json();
+                    Swal.fire('Error', error.message, 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
+            }
+        });
+    </script>
+</body>
+</html>

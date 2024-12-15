@@ -1,12 +1,14 @@
-<header class="bg-white shadow-sm py-4 shadow-lg">
+<header class="bg-white shadow-sm py-4 shadow-lg " >
   <div class="container mx-auto flex items-center justify-between px-4 lg:px-8">
     <!-- Logo -->
     <div class="flex items-center space-x-4 mx-10">
+      <a href="/user/home">
       <img 
         src="/images/logo nxtTick.png" 
         alt="Logo" 
         class="h-[36px] w-[160px] object-contain"
       />
+      </a>
     </div>
 
     {{!-- searchBar --}}
@@ -20,8 +22,8 @@
 
     {{!-- navigation --}}
     <nav class="hidden md:flex space-x-10 text-sm font-medium text-gray-800">
-      <a href="home" class="hover:text-blue-500">Home</a>
-      <a href="shop" class="hover:text-blue-500">Shop</a>
+      <a href="/user/home" class="hover:text-blue-500">Home</a>
+      <a href="/user/shop" class="hover:text-blue-500">Shop</a>
       <a href="#" class="hover:text-blue-500">Contact</a>
     </nav>
 
@@ -33,16 +35,17 @@
       </a>
 
       {{!-- cartIcon --}}
-      <a href="#" class="text-gray-600 hover:text-blue-500">
+      <a href="/user/cart" class="text-gray-600 hover:text-blue-500">
         <img src="/images/cart.png" class="w-6 h-6" alt=""/>
       </a>
 
       {{!-- profileIcon --}}
+      <a href="/user/profile">
       <img
-        src="https://randomuser.me/api/portraits/men/32.jpg"
+        src="{{user.profileImage}}"
         alt="User Profile"
         class="w-8 h-8 rounded-full border border-gray-300"
-      />
+      /></a>
 
       {{!-- logoutIcon --}}
       <a href="/user/logout" id="logout" class="flex items-center">

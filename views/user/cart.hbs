@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Responsive Cart</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/notyf/notyf.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf/notyf.min.css">
+</head>
+<body class="bg-white-50">
+
+  {{!-- header section --}}
+  {{>header}}
+
+  <!-- Mobile Menu -->
+  <div id="mobile-menu" class="md:hidden fixed inset-0 bg-gray-800 bg-opacity-75 z-50 hidden">
+    <div class="flex justify-end p-4">
+      <button id="close-menu" class="text-white">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="flex flex-col items-center space-y-6 text-white py-10">
+      <a href="home" class="text-lg hover:text-blue-400">Home</a>
+      <a href="shop" class="text-lg hover:text-blue-400">Shop</a>
+      <a href="#" class="text-lg hover:text-blue-400">Contact</a>
+    </div>
+  </div>
+
+  {{!-- herosection --}}
+  <section class="relative w-full h-[300px] bg-cover bg-center" style="background-image: url('/images/mrvl gng.jpg');">
+    <div class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center text-center">
+      <div class="text-white">
+        <h1 class="text-4xl md:text-7xl font-bold mb-4">Cart</h1>
+        <nav class="text-sm md:text-base">
+          <ol class="inline-flex space-x-2">
+            <li><a href="/user/home" class="text-gray-300 hover:text-white">Home</a></li>
+            <li><span class="text-gray-300">/</span></li>
+            <li><a href="/user/cart" class="text-gray-300 hover:text-white">Cart</a></li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </section>
+
+  <div class="container mx-auto p-4 mt-10 mb-10">
+    <div class="flex flex-col lg:flex-row gap-6">
+      
+      <!-- Cart Table -->
+      <div class="flex-1 bg-white shadow-md rounded-lg p-4">
+        <table class="w-full text-left">
+          <thead class="bg-blue-100">
+            <tr>
+              <th class="p-4">Product</th>
+              <th class="p-4">Details</th>
+              <th class="p-4">Price</th>
+              <th class="p-4">Quantity</th>
+              <th class="p-4">Subtotal</th>
+              <th class="p-4"></th>
+            </tr>
+          </thead>
+          <tbody>
+  {{#if cartItems.length}}
+  {{#each cartItems}}
+  <tr class="border-b">
+    <td class="p-4">
+      <img src="{{this.product.images.[0]}}" alt="Product Image" class="w-12 h-12">
+    </td>
+    <td class="p-4 text-gray-600">{{this.product.name}}</td>
+    <td class="p-4 text-gray-600">Rs. {{this.product.price}}</td>
+    <td class="p-4">
+      <!-- Quantity input with onchange handler -->
+      <input
+          type="number"
+          value="{{this.quantity}}"
+          class="w-12 border border-gray-300 rounded p-1"
+          min="1"
+          onchange="updateSubtotal(this, {{this.product.price}}, 'subtotal-{{this.product._id}}', '{{this.product._id}}')"/>
+
+    </td>
+    <!-- Subtotal element with unique ID -->
+    <td class="p-4 text-red-500 font-semibold subtotal" id="subtotal-{{this.product._id}}">
+      Rs. {{multiply this.product.price this.quantity}}
+    </td>
+    <td class="p-4">
+      <button onclick="removeFromCart('{{this.product._id}}')" class="text-black hover:text-red-500">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7L5 7M10 11V17M14 11V17M5 7L7 21H17L19 7H5Z" />
+        </svg>
+      </button>
+    </td>
+  </tr>
+  {{/each}}
+  {{else}}
+  <tr>
+    <td colspan="6" class="text-center font-semibold p-4 text-gray-600">Your cart is empty.</td>
+  </tr>
+  {{/if}}
+</tbody>
+
+        </table>
+      </div>
+
+      <!-- Cart Totals -->
+      <div class="bg-blue-50 shadow-md rounded-lg p-6 w-full lg:w-1/4">
+        <h2 class="text-2xl text-center font-bold text-black mb-8">Cart Totals</h2>
+        <div class="flex justify-between items-center mb-4">
+          <span class="text-gray-600 font-medium">Subtotal</span>
+          <span  class="text-gray-600 font-medium">Rs. {{total}}</span>
+        </div>
+        <div class="flex justify-between items-center mb-6">
+          <span class="text-black font-semibold">Total</span>
+          <span id="total" class="text-red-500 font-semibold">Rs. {{total}}</span>
+        </div>
+        <button class="mt-3 bg-blue-500 text-white font-semibold text-xl px-6 py-3 rounded-full w-full hover:bg-blue-600 transition-all" onclick="validateCart()">
+          Check Out
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  {{!-- footer section --}}
+  {{>footer}}
+
+  <script>
+    async function removeFromCart(productId) {
+      try {
+        const response = await fetch('/user/removeFromCart', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ productId: productId }),
+        });
+
+        if (response.ok) {
+          location.reload();
+        } else {
+          const errorData = await response.json();
+          alert(errorData.message || 'Error removing item from cart');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while removing the product from the cart.');
+      }
+    }
+
+  
+
+  // Function to update the subtotal for a single product
+function updateSubtotal(input, price, subtotalElementId, productId) {
+  const quantity = parseInt(input.value);
+  if (quantity > 0) {
+    const subtotal = price * quantity;
+    document.getElementById(subtotalElementId).innerText = `Rs. ${subtotal}`;
+    updateTotal(); // Recalculate total price
+
+    // Save the updated quantity to the backend
+    saveUpdatedQuantity(productId, quantity);
+  } else {
+    alert("Quantity must be 1 or more.");
+    input.value = 1; // Reset to minimum value
+    saveUpdatedQuantity(productId, 1); // Save the reset value
+  }
+}
+
+// Function to recalculate the total price
+function updateTotal() {
+  const subtotalElements = document.querySelectorAll('.subtotal'); // Get all subtotal elements
+  let total = 0;
+
+  subtotalElements.forEach((element) => {
+    const subtotal = parseInt(element.innerText.replace('Rs. ', '')) || 0;
+    total += subtotal;
+  });
+
+  // Update the total price in the cart totals section
+  document.getElementById('total').innerText = `Rs. ${total}`;
+}
+
+// Function to save the updated quantity to the backend
+async function saveUpdatedQuantity(productId, quantity) {
+  console.log('Saving quantity:', { productId, quantity }); // Debug
+  try {
+    const response = await fetch('/user/updateCartQuantity', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ productId, quantity }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Error saving quantity:', errorData.message || 'Unknown error');
+      notyf.error(errorData.message || 'Error saving quantity.');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    notyf.error('An error occurred while saving the updated quantity.');
+  }
+}
+
+function validateCart(){
+  const cartItems = {{cartItems.length}};
+  if(cartItems>0){
+    window.location.href='/user/checkout'
+  }else{
+    notyf.error('Your cart is empty. Please add products to proceed to checkout.')
+  }
+}
+const notyf = new Notyf({
+    duration: 3000, // Duration of the notification
+    position: {
+      x: 'right', // Notify position (right or left)
+      y: 'top', // Notify position (top or bottom)
+    },
+    types: [
+      {
+        type: 'success',
+        background: 'green',
+        duration: 3000,
+      },
+      {
+        type: 'error',
+        background: 'red',
+        duration: 3000,
+      },
+      {
+        type: 'info',
+        background: 'blue',
+        duration:3000,
+      },
+    ],
+  });
+
+  </script>
+
+</body>
+</html>

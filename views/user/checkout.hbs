@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout Page</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/notyf/notyf.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf/notyf.min.css">
+</head>
+<body class="bg-gray-100">
+  {{>header}}
+  <div class="container mx-auto px-4 py-8">
+    <div class="flex flex-col lg:flex-row gap-8">
+      <!-- Left Section: Product Details & Address -->
+      <div class="flex-grow">
+        <!-- Product Details -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+          <h2 class="text-xl font-semibold mb-4">Product Details</h2>
+          {{#each cartItems}}
+          <div class="flex items-center space-x-4 mb-5 border-b">
+            <img src="{{this.product.images.[0]}}" alt="Product" class="w-20 h-20 object-cover rounded-md">
+            <div class="flex-1">
+              <h3 class="text-lg font-semibold">{{this.product.name}}</h3>
+              <p class="text-gray-500">Quantity : {{this.quantity}}</p>
+              <p class="text-lg font-bold text-red-600 mb-5">Rs. {{this.subtotal}}</p>
+            </div>
+          </div>
+          {{/each}}
+        </div>
+
+        <!-- Address Selection -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h2 class="text-xl font-semibold mb-4">Select Address</h2>
+          <!-- Begin Form -->
+          <form id="checkoutForm">
+            <div class="grid grid-cols-1 gap-4">
+              {{#each address}}  
+              <label class="block border border-gray-300 rounded-lg p-4 flex items-start space-x-4 cursor-pointer">
+                <input type="radio" name="addressId" value="{{_id}}" class="mt-1 mr-2" required>
+                <div>
+                  <p class="text-sm font-medium">{{name}}</p>
+                  <p class="text-sm text-gray-500">
+                    {{addressLine1}}, {{addressLine2}}<br>
+                    {{city}}, {{state}}, {{pinCode}}<br>
+                    {{country}}<br>
+                    <strong>Phone:</strong> {{phone}}
+                  </p>
+                </div>
+              </label>
+              {{/each}}
+            </div>
+            <a href="/user/addresses">
+              <button type="button" class="bg-blue-600 text-white px-4 py-2 mt-4 rounded-lg hover:bg-blue-700">
+                Add New Address
+              </button>
+            </a>
+        </div>
+      </div>
+
+      <!-- Right Section: Order Summary -->
+      <div class="lg:w-1/3 flex-shrink-0">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h2 class="text-xl font-semibold mb-4">Order Summary</h2>
+
+          <!-- Discount Code -->
+          <div class="mb-4">
+            <label for="coupon-code" class="block text-sm font-medium">Discount Code</label>
+            <div class="flex items-center mt-1">
+              <input type="text" id="coupon-code" name="couponCode" class="block w-full border border-gray-300 rounded-l-lg p-2" placeholder="Coupon Code">
+              <button type="button" class="bg-blue-600 text-white px-4 py-2 rounded-r-lg hover:bg-blue-700">Apply</button>
+            </div>
+          </div>
+
+          <!-- Pricing Details -->
+          <div class="border-t border-gray-300 pt-4 mb-4">
+            <div class="flex justify-between mb-2">
+              <span>Subtotal</span>
+              <span>Rs. {{total}}</span>
+            </div>
+            <div class="flex justify-between text-lg font-semibold text-red-600">
+              <span>Total</span>
+              <span>Rs. {{total}}</span>
+            </div>
+          </div>
+
+          <!-- Payment Options -->
+          <div>
+            <p class="text-sm mb-2">Select Payment Method:</p>
+            <label class="block text-sm font-medium mb-2">
+              <input type="radio" name="paymentMethod" value="Wallet" class="mr-2" required>
+              Wallet
+            </label>
+            <label class="block text-sm font-medium mb-2">
+              <input type="radio" name="paymentMethod" value="Razorpay" class="mr-2" required>
+              Razorpay
+            </label>
+            <label class="block text-sm font-medium">
+              <input type="radio" name="paymentMethod" value="COD" class="mr-2" required>
+              Cash on Delivery
+            </label>
+          </div>
+
+          <!-- Place Order Button -->
+          <button type="submit" class="bg-blue-600 text-white w-full mt-6 py-2 rounded-lg hover:bg-blue-700" onclick="submitOrder()">
+            Place Order
+          </button>
+        </div>
+      </div>
+      </form> <!-- End Form -->
+    </div>
+  </div>
+  <script>
+    async function submitOrder() {
+        event.preventDefault();
+      const form = document.getElementById('checkoutForm');
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      try {
+        const response = await fetch('/user/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        const result = await response.json();
+
+        if (response.ok) {
+          Swal.fire({
+            title: result.message,
+            text: 'Thank you for shopping with us.',
+            icon: 'success',
+            confirmButtonText: 'OK',
+          }).then(() => {
+            window.location.href = '/user/orders'; // Redirect to the orders page
+          });
+        } else {
+          notyf.error(result.message)
+        }
+      } catch (error) {
+        Swal.fire({
+          title: 'Error',
+          text: 'Unable to place the order. Please try again later.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+        });
+      }
+    }
+    const notyf = new Notyf({
+    duration: 3000, // Duration of the notification
+    position: {
+      x: 'right', // Notify position (right or left)
+      y: 'bottom', // Notify position (top or bottom)
+    },
+    types: [
+      {
+        type: 'success',
+        background: 'green',
+        duration: 3000,
+      },
+      {
+        type: 'error',
+        background: 'red',
+        duration: 3000,
+      },
+      {
+        type: 'info',
+        background: 'blue',
+        duration:3000,
+      },
+    ],
+  });
+  </script>
+</body>
+</html>

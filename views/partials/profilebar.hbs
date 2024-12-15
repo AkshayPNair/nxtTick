@@ -1,0 +1,23 @@
+<aside class="w-48 bg-blue-100 text-gray-800 h-screen">
+    <nav class="flex-1  mt-10">
+        <ul class="space-y-3 ">
+            <li><a href="/user/profile" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold" id="profile-link">My Profile</a></li>
+            <li><a href="/user/orders" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold" id="all-orders-link">My Orders</a></li>
+            <li><a href="/user/addresses" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold" id="address-link">Saved Address</a></li>
+            <li><a href="#" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold" id="wallet-link">My Wallet</a></li>
+            <li><a href="#" class="block px-4 py-2 text-black hover:bg-red-300 rounded font-semibold" id="logout-link">Logout</a></li>
+        </ul>
+    </nav>
+</aside>
+
+<script>
+    // Highlight active sidebar link
+        const currentPath = window.location.pathname;
+        const links = document.querySelectorAll('aside nav ul li a');
+        links.forEach(link => {
+            if (link.getAttribute('href') === currentPath) {
+                link.classList.add('bg-blue-600', 'text-white');
+                link.classList.remove('hover:bg-blue-200');
+            }
+        });
+</script>

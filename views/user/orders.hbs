@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    {{>header}}
+
+    <div class="flex">
+        <!-- Sidebar -->
+            {{>profilebar}}
+
+        <!-- Page Content -->
+        <div class="flex-1 p-6">
+            <h1 class="text-2xl font-semibold text-gray-800 mb-6">My Orders</h1>
+
+            <!-- Orders List -->
+            <div class="space-y-6">
+                <!-- Single Order Card -->
+                {{#if orders.length}} 
+                {{#each orders}}
+                <div class="bg-white shadow-md rounded-lg overflow-hidden">
+                    {{#each this.items}}
+                    <div class="flex items-center p-4">
+                        <!-- Product Image -->
+                        <img src="{{this.product.images.[0]}}" alt="Product Image" class="w-20 h-20 object-cover rounded-lg border">
+                        
+                        <!-- Product Details -->
+                        
+                        <div class="ml-4 flex-1">
+                            <h2 class="text-lg font-semibold text-gray-800">{{this.product.name}}</h2>
+
+                            <!-- Horizontal Details -->
+                            <div class="flex items-center space-x-8 mt-2">
+                                <p class="text-sm text-gray-600">Quantity : <span class="font-medium text-black-500">{{this.quantity}}</span></p>
+                                <p class="text-sm text-gray-600">Order Price : <span class="font-medium text-red-500"> Rs. {{this.subtotal}}</span></p>
+                                <p class="text-sm text-gray-600">
+                                    Status : 
+                                    <span class="font-medium text-white rounded-xl px-1 
+                                        {{#if (eq ../status 'Pending')}}bg-orange-200 text-orange-500{{/if}}
+                                        {{#if (eq ../status 'Shipped')}}bg-blue-200 text-blue-500{{/if}}
+                                        {{#if (eq ../status 'Out for Delivery')}}bg-yellow-100 text-yellow-500{{/if}}
+                                        {{#if (eq ../status 'Delivered')}}bg-green-200 text-green-500{{/if}}">
+                                        {{../status}}
+                                    </span>
+                                </p>
+
+                            </div>
+                        </div>
+                        
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="flex justify-end  items-center px-4 py-2 bg-gray-100">
+                        {{!-- <button  class="text-sm font-semibold text-red-600 hover:text-red-800">Cancel Order</button> --}}
+                        <a href="/user/orderView/{{this._id}}" class="text-sm font-semibold text-blue-600 hover:text-blue-800">View Details</a>
+                    </div>
+                    {{/each}}
+                </div>
+                {{/each}}
+                {{else}}
+                    <p class="text-center text-3xl  font-semibold">No Orders Found.</p>
+                {{/if}}
+                
+                <!-- End Single Order Card -->
+
+                <!-- Repeat the above card structure for each order dynamically -->
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,18 +1,31 @@
- <aside class="w-54 bg-[#EBF2FF] text-white flex flex-col h-screen"> 
-      <div class="p-4 flex items-center">
-        <img src="/images/logo nxtTick.png" alt="Logo" class="h-10 mr-2">
-      </div>
-      <nav class="flex-1 mt-4">
-        <ul class="space-y-3">
-          <li><a href="dashBoard" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold">Dashboard</a></li>
-          <li><a href="allProducts" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold">All Products</a></li>
-          <li><a href="#" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold">Order List</a></li>
-          <li><a href="allCategory" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold">Category</a></li>
-          <li><a href="#" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold">Coupon</a></li>
-          <li><a href="#" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold">Banner</a></li>
-          <li><a href="#" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold">Offer</a></li>
-          <li><a href="coustmers" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold">Customers</a></li>
-          <li><a href="/admin/logout" class="block px-4 py-2 text-black hover:bg-red-300 rounded font-semibold">Logout</a></li>
-        </ul>
-      </nav>
-    </aside>
+<aside class="w-54 bg-[#EBF2FF] text-white flex flex-col h-screen"> 
+  <div class="p-4 flex items-center">
+    <img src="/images/logo nxtTick.png" alt="Logo" class="h-10 mr-2">
+  </div>
+  <nav class="flex-1 mt-4">
+    <ul class="space-y-3">
+      <li><a href="/admin/dashBoard" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold" id="dashboard-link">Dashboard</a></li>
+      <li><a href="/admin/allProducts" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold" id="all-products-link">All Products</a></li>
+      <li><a href="/admin/orders" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold" id="order-list-link">Order List</a></li>
+      <li><a href="/admin/allCategory" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold" id="all-category-link">Category</a></li>
+      <li><a href="#" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold" id="coupon-link">Coupon</a></li>
+      <li><a href="#" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold" id="banner-link">Banner</a></li>
+      <li><a href="#" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold" id="offer-link">Offer</a></li>
+      <li><a href="/admin/coustmers" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold" id="customers-link">Customers</a></li>
+      <li><a href="/admin/logout" class="block px-4 py-2 text-black hover:bg-red-300 rounded font-semibold" id="logout-link">Logout</a></li>
+    </ul> 
+  </nav>
+</aside>
+
+<script>
+  // JavaScript to add active class to the selected menu item
+  const currentPath = window.location.pathname; // Get the current path
+  const links = document.querySelectorAll('aside nav ul li a'); // Select all sidebar links
+
+  links.forEach(link => {
+    if (link.getAttribute('href') === currentPath) {
+      link.classList.add('bg-blue-600', 'text-white'); // Add active class (blue background, white text)
+      link.classList.remove('hover:bg-blue-200')
+    }
+  });
+</script>

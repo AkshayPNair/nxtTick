@@ -6,6 +6,11 @@
   <title>Admin Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Cropper.js CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.12/dist/cropper.min.css" rel="stylesheet">
+  <!-- Cropper.js JS -->
+  <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.12/dist/cropper.min.js"></script>
+
   
 </head>
 <body class="bg-gray-100 font-sans text-gray-800 flex flex-col min-h-screen">
@@ -34,17 +39,17 @@
             <div class="space-y-4">
               <div>
                 <label class="block text-sm font-medium">Product Name</label>
-                <input type="text" id="productName" name="productName" placeholder="Product Name..." class="w-full border p-2 rounded" required>
+                <input type="text" id="productName" name="productName" placeholder="Product Name..." class="w-full border p-2 rounded" >
               </div>
               <div>
                 <label class="block text-sm font-medium">Description</label>
-                <textarea name="description" id="description" placeholder="Product description" class="w-full border p-2 rounded h-24" required></textarea>
+                <textarea name="description" id="description" placeholder="Product description" class="w-full border p-2 rounded h-24" ></textarea>
               </div>
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-medium">Category</label>
                   {{!-- <input type="text" name="category" id="category" placeholder="Product category" class="w-full border p-2 rounded" required> --}}
-                  <select name="category" id="category" class="w-full border p-2 rounded" required>
+                  <select name="category" id="category" class="w-full border p-2 rounded" >
                     <option value="">Select a Category</option>
                     {{#each categories}}
                     <option value="{{this._id}}">{{this.name}}</option>
@@ -59,11 +64,11 @@
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-medium">Stock Quantity</label>
-                  <input type="number" name="stock" id="stock" placeholder="quantity" class="w-full border p-2 rounded" required min="1" step="1">
+                  <input type="number" name="stock" id="stock" placeholder="quantity" class="w-full border p-2 rounded" >
                 </div>
                 <div>
                   <label class="block text-sm font-medium">Sale Price</label>
-                  <input type="number" name="price" id="price" placeholder="sale price" class="w-full border p-2 rounded" required min="1" step="1">
+                  <input type="number" name="price" id="price" placeholder="sale price" class="w-full border p-2 rounded" >
                 </div>
               </div>
             </div>
@@ -76,10 +81,10 @@
               <div class="space-y-4">
                 <!-- Image Upload Option -->
                 <div>
-                  <input type="file" name="images" id="images1" onchange="previewImage(this)" class="w-full border p-2 rounded" required />
-                  <input type="file" name="images" id="images2" onchange="previewImage(this)" class="w-full border p-2 rounded mt-2" required />
-                  <input type="file" name="images" id="images3" onchange="previewImage(this)" class="w-full border p-2 rounded mt-2" required />
-                  <input type="file" name="images" id="images4" onchange="previewImage(this)" class="w-full border p-2 rounded mt-2" required />
+                  <input type="file" name="images" id="images1" onchange="previewImage(this)" class="w-full border p-2 rounded" />
+                  <input type="file" name="images" id="images2" onchange="previewImage(this)" class="w-full border p-2 rounded mt-2"  />
+                  <input type="file" name="images" id="images3" onchange="previewImage(this)" class="w-full border p-2 rounded mt-2"  />
+                  <input type="file" name="images" id="images4" onchange="previewImage(this)" class="w-full border p-2 rounded mt-2"  />
                 </div>
 
                 <!-- Display Images Below Gallery -->
@@ -107,71 +112,162 @@
   </footer>
 
   <script>
+  // JavaScript to handle image preview display
+  function previewImage(input) {
+    const galleryContainer = document.getElementById("image-gallery");
+    const file = input.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const imgElement = document.createElement("img");
+        imgElement.src = e.target.result;
+        imgElement.classList.add("w-20", "h-20", "rounded", "shadow-lg", "mr-2", "mt-2");
+        galleryContainer.appendChild(imgElement);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
 
-    // JavaScript to handle image preview display
-    function previewImage(input) {
-      const galleryContainer = document.getElementById("image-gallery");
-      const file = input.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          const imgElement = document.createElement("img");
-          imgElement.src = e.target.result;
-          imgElement.classList.add("w-20", "h-20", "rounded", "shadow-lg", "mr-2", "mt-2");
-          galleryContainer.appendChild(imgElement);
-        };
-        reader.readAsDataURL(file);
+  // JavaScript to reset the gallery
+  function resetGallery() {
+    document.getElementById("image-gallery").innerHTML = "";
+    document.getElementById("product-images").reset();
+  }
+
+  // Validate image format when a file is selected
+  function validateImageFormat(input) {
+    const allowedExtensions = ["jpg", "jpeg", "png", "gif"];
+    const file = input.files[0];
+
+    if (file) {
+      const fileExtension = file.name.split(".").pop().toLowerCase();
+      if (!allowedExtensions.includes(fileExtension)) {
+        Swal.fire({
+          icon: "error",
+          title: "Invalid Image Format",
+          text: "This image must be in jpg, jpeg, png format.",
+        });
+
+        // Clear the input field to prevent the invalid file from being selected
+        input.value = ""; // Reset the input field
       }
     }
+  }
 
-    // JavaScript to reset the gallery
-    function resetGallery() {
-      document.getElementById("image-gallery").innerHTML = "";
-      document.getElementById("product-images").reset();
+  // Validate form data
+  function validateForm() {
+    const productName = document.getElementById("productName").value.trim();
+    const description = document.getElementById("description").value.trim();
+    const category = document.getElementById("category").value;
+    const stock = document.getElementById("stock").value.trim();
+    const price = document.getElementById("price").value.trim();
+    const imageInputs = [
+      document.getElementById("images1"),
+      document.getElementById("images2"),
+      document.getElementById("images3"),
+      document.getElementById("images4"),
+    ];
+
+    // Validate Product Name
+    if (productName === "") {
+      Swal.fire({
+        icon: "error",
+        title: "Product Name Required",
+        text: "Please provide a product name.",
+      });
+      return false;
+    } else if (productName.length < 4) {
+      Swal.fire({
+        icon: "error",
+        title: "Invalid Product Name",
+        text: "Product name must be at least 4 characters long.",
+      });
+      return false;
+    } else if (!/^[A-Za-z\s]+$/.test(productName)) {
+      Swal.fire({
+        icon: "error",
+        title: "Invalid Product Name",
+        text: "Product name must contain only alphabets.",
+      });
+      return false;
     }
 
-    // Validate that the input values for stock and price are positive numbers
-    function validateForm() {
-      const stock = document.querySelector('input[name="stock"]').value;
-      const salePrice = document.querySelector('input[name="salePrice"]').value;
-      const images = document.querySelectorAll('input[type="file"]');
+    // Validate Description
+    if (description === "") {
+      Swal.fire({
+        icon: "error",
+        title: "Description Required",
+        text: "Please provide a description for the product.",
+      });
+      return false;
+    }
 
-      // Validate stock
-      if (stock <= 0) {
-        alert("Stock quantity must be a positive number.");
+    // Validate Category
+    if (category === "") {
+      Swal.fire({
+        icon: "error",
+        title: "Category Required",
+        text: "Please select a product category.",
+      });
+      return false;
+    }
+
+    // Validate Stock
+    if (stock === "") {
+      Swal.fire({
+        icon: "error",
+        title: "Stock Required",
+        text: "Please provide the stock quantity.",
+      });
+      return false;
+    } else if (stock <= 0 || !Number.isInteger(+stock)) {
+      Swal.fire({
+        icon: "error",
+        title: "Invalid Stock",
+        text: "Stock must be a positive integer.",
+      });
+      return false;
+    }
+
+    // Validate Price
+    if (price === "") {
+      Swal.fire({
+        icon: "error",
+        title: "Price Required",
+        text: "Please provide the price of the product.",
+      });
+      return false;
+    } else if (price <= 0 || !Number.isInteger(+price)) {
+      Swal.fire({
+        icon: "error",
+        title: "Invalid Price",
+        text: "Price must be a positive integer.",
+      });
+      return false;
+    }
+
+    // Validate Images
+    for (let i = 0; i < imageInputs.length; i++) {
+      const file = imageInputs[i].files[0];
+      if (!file) {
+        Swal.fire({
+          icon: "error",
+          title: "Missing Image",
+          text: `Please upload image ${i + 1}.`,
+        });
         return false;
       }
-
-      // Validate sale price
-      if (salePrice <= 0) {
-        alert("Sale price must be a positive number.");
-        return false;
-      }
-
-      // Validate image files
-      for (let i = 0; i < images.length; i++) {
-        if (!images[i].files[0]) {
-          alert("All image fields are required.");
-          return false;
-        }
-      }
-
-      return true;
     }
-    const productName=document.getElementById("productName").value
-    const description=document.getElementById("description").value
-    const category=document.getElementById("category").value
-    const brand=document.getElementById("brand").value
-    const stock=document.getElementById("stock").value
-    const price=document.getElementById("price").value
-    const images1=document.getElementById('images1').files[0]
-    const images2=document.getElementById('images2').files[1]
-    const images3=document.getElementById('images3').files[2]
-    const images4=document.getElementById('images4').files[3]
 
-    document.querySelector("#product-images").addEventListener("submit", async (event) => {
+    // If all validations pass
+    return true;
+  }
+
+  // Event listener for form submission
+  document.querySelector("#product-images").addEventListener("submit", async (event) => {
     event.preventDefault();
-  
+    if (!validateForm()) return;
+
     const form = event.target;
     const formData = new FormData(form);
 
@@ -179,36 +275,42 @@
       const response = await fetch("/admin/addProducts", {
         method: "POST",
         body: formData,
-    });
-
-    const data = await response.json();
-
-    if (data.status) {
-      Swal.fire({
-        icon: "success",
-        title: "Success",
-        text: data.message,
-        confirmButtonText: "OK",
-      }).then(() => {
-        window.location.href = "/admin/allProducts"; // Redirect after clicking "OK"
       });
-    } else {
+
+      const data = await response.json();
+
+      if (data.status) {
+        Swal.fire({
+          icon: "success",
+          title: "Success",
+          text: data.message,
+          confirmButtonText: "OK",
+        }).then(() => {
+          window.location.href = "/admin/allProducts"; // Redirect after clicking "OK"
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: data.message || "Something went wrong!",
+        });
+      }
+    } catch (error) {
+      console.error("Error:", error);
       Swal.fire({
         icon: "error",
         title: "Oops...",
-        text: data.message || "Something went wrong!",
+        text: "Something went wrong!",
       });
     }
-  } catch (error) {
-    console.error("Error:", error);
-    Swal.fire({
-      icon: "error",
-      title: "Oops...",
-      text: "Something went wrong!",
-    });
-  }
-});
+  });
 
-  </script>
+  // Add event listeners for image input fields
+  document.getElementById("images1").addEventListener("change", (event) => validateImageFormat(event.target));
+  document.getElementById("images2").addEventListener("change", (event) => validateImageFormat(event.target));
+  document.getElementById("images3").addEventListener("change", (event) => validateImageFormat(event.target));
+  document.getElementById("images4").addEventListener("change", (event) => validateImageFormat(event.target));
+</script>
+
 </body>
 </html>

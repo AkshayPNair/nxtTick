@@ -49,6 +49,11 @@ router.put("/users/:id/toggle-block",adminAuth.checkSession,adminController.bloc
 router.get('/deletedProducts',adminAuth.checkSession,adminController.loadDeletedProducts);
 router.post('/undo-delete-product/:id',adminController.undoDeleteProducts);
 
+//load orders
+router.get('/orders',adminAuth.checkSession,adminController.loadOrders)
+router.get('/orderDetail/:id',adminAuth.checkSession,adminController.loadOrderDetail);
+router.patch('/orderDetail/:id/status',adminAuth.checkSession,adminController.updateOrderStatus);
+
 //logout
 router.get('/logout',adminAuth.checkSession,adminController.loadLogout);
 

@@ -34,17 +34,17 @@
             <div class="space-y-4">
               <div>
                 <label class="block text-sm font-medium">Product Name</label>
-                <input type="text" id="productName" name="productName" value="{{product.name}}" placeholder="Product Name..." class="w-full border p-2 rounded" required>
+                <input type="text" id="productName" name="productName" value="{{product.name}}" placeholder="Product Name..." class="w-full border p-2 rounded" >
               </div>
               <div>
                 <label class="block text-sm font-medium">Description</label>
-                <textarea name="description" id="description" placeholder="Product description" class="w-full border p-2 rounded h-24" required>{{product.description}}</textarea>
+                <textarea name="description" id="description" placeholder="Product description" class="w-full border p-2 rounded h-24" >{{product.description}}</textarea>
               </div>
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-medium">Category</label>
                   {{!-- <input type="text" name="category" value="{{product.category}}" id="category" placeholder="Product category" class="w-full border p-2 rounded" required> --}}
-                  <select name="category" id="category" class="w-full border p-2 rounded" required>
+                  <select name="category" id="category" class="w-full border p-2 rounded" >
                   {{#each categories}}
                       <option value="{{this._id}}" {{#if (eq this._id ../product.category._id)}}selected{{/if}}>{{this.name}}</option>
                   {{/each}}
@@ -57,11 +57,11 @@
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-medium">Stock Quantity</label>
-                  <input type="number" name="stock" id="stock" value="{{product.stock}}" placeholder="quantity" class="w-full border p-2 rounded" required min="1" step="1">
+                  <input type="number" name="stock" id="stock" value="{{product.stock}}" placeholder="quantity" class="w-full border p-2 rounded" >
                 </div>
                 <div>
                   <label class="block text-sm font-medium">Sale Price</label>
-                  <input type="number" name="price" id="price" value="{{product.price}}" placeholder="sale price" class="w-full border p-2 rounded" required min="1" step="1">
+                  <input type="number" name="price" id="price" value="{{product.price}}" placeholder="sale price" class="w-full border p-2 rounded" >
                 </div>
               </div>
             </div>
@@ -109,72 +109,203 @@
   </footer>
 
   <script>
-    // Optional: Handle the form submission with fetch for better UX
-    document.getElementById('product-form').addEventListener('submit', async (event) => {
-      event.preventDefault();
+  // Optional: Handle the form submission with fetch for better UX
+  document.getElementById('product-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
 
-    
-      var formData = new FormData();
+    // Validate the form before submission
+    function validateForm() {
+      const productName = document.getElementById("productName").value.trim();
+      const description = document.getElementById("description").value.trim();
+      const category = document.getElementById("category").value;
+      const stock = document.getElementById("stock").value.trim();
+      const price = document.getElementById("price").value.trim();
+      const imageInputs = [
+        document.getElementById("images1"),
+        document.getElementById("images2"),
+        document.getElementById("images3"),
+        document.getElementById("images4"),
+      ];
 
-      const productId=document.getElementById("productId").value
-      const productName=document.getElementById("productName").value 
-      const description=document.getElementById("description").value 
-      const category=document.getElementById("category").value 
-      const brand=document.getElementById("brand").value 
-      const stock=document.getElementById("stock").value
-      const price=document.getElementById("price").value
-      const images1=document.getElementById('images1').files[0]
-      const images2=document.getElementById('images2').files[1]
-      const images3=document.getElementById('images3').files[2]
-      const images4=document.getElementById('images4').files[3]
-
-      formData.append("productId",productId)
-      formData.append("productName",productName)
-      formData.append("description",description)
-      formData.append("category",category)
-      formData.append("brand",brand)
-      formData.append("stock",stock)
-      formData.append("price",price)
-
-      if (images1) formData.append("images", images1);
-      if (images2) formData.append("images", images2);
-      if (images3) formData.append("images", images3);
-      if (images4) formData.append("images", images4);
-
-      console.log(formData)
-
-      try {
-        const response = await fetch(`/admin/editProducts/${productId}`, {
-          method: 'POST',
-          body: formData,
+      // Validate Product Name
+      if (productName === "") {
+        Swal.fire({
+          icon: "error",
+          title: "Product Name Required",
+          text: "Please provide a product name.",
         });
+        return false;
+      } else if (productName.length < 4) {
+        Swal.fire({
+          icon: "error",
+          title: "Invalid Product Name",
+          text: "Product name must be at least 4 characters long.",
+        });
+        return false;
+      } else if (!/^[A-Za-z\s\(\)\[\]]+$/.test(productName)) {
+        Swal.fire({
+          icon: "error",
+          title: "Invalid Product Name",
+          text: "Product name must contain only alphabets.",
+        });
+        return false;
+      }
 
-        const data = await response.json();
+      // Validate Description
+      if (description === "") {
+        Swal.fire({
+          icon: "error",
+          title: "Description Required",
+          text: "Please provide a description for the product.",
+        });
+        return false;
+      }
 
-        if (data.status) {
+      // Validate Category
+      if (category === "") {
+        Swal.fire({
+          icon: "error",
+          title: "Category Required",
+          text: "Please select a product category.",
+        });
+        return false;
+      }
+
+      // Validate Stock
+      if (stock === "") {
+        Swal.fire({
+          icon: "error",
+          title: "Stock Required",
+          text: "Please provide the stock quantity.",
+        });
+        return false;
+      } else if (!Number.isInteger(+stock) || stock < 0) {
+        Swal.fire({
+          icon: "error",
+          title: "Invalid Stock",
+          text: "Stock must be a positive integer.",
+        });
+        return false;
+      }
+
+      // Validate Price
+      if (price === "") {
+        Swal.fire({
+          icon: "error",
+          title: "Price Required",
+          text: "Please provide the price of the product.",
+        });
+        return false;
+      } else if (price <= 0 || !Number.isInteger(+price)) {
+        Swal.fire({
+          icon: "error",
+          title: "Invalid Price",
+          text: "Price must be a positive integer.",
+        });
+        return false;
+      }
+
+      // Only validate images if new images are uploaded
+      for (let i = 0; i < imageInputs.length; i++) {
+        const file = imageInputs[i].files[0];
+        if (file && !file.type.startsWith('image/')) {
           Swal.fire({
-            icon: 'success',
-            title: 'Product Updated',
-            text: data.message,
-          }).then(() => {
-            window.location.href = '/admin/allProducts'; 
+            icon: "error",
+            title: `Invalid Image ${i + 1}`,
+            text: "Please upload a valid image file (e.g., .jpg, .jpeg, .png, .gif).",
           });
-        } else {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: data.message || 'Something went wrong!',
-          });
+          return false;
         }
-      } catch (error) {
-        console.error(error);
+      }
+
+      // If all validations pass
+      return true;
+    }
+
+    if (!validateForm()) return;
+
+    var formData = new FormData();
+
+    const productId = document.getElementById("productId").value;
+    const productName = document.getElementById("productName").value;
+    const description = document.getElementById("description").value;
+    const category = document.getElementById("category").value;
+    const brand = document.getElementById("brand").value;
+    const stock = document.getElementById("stock").value;
+    const price = document.getElementById("price").value;
+    const images1 = document.getElementById('images1').files[0];
+    const images2 = document.getElementById('images2').files[1];
+    const images3 = document.getElementById('images3').files[2];
+    const images4 = document.getElementById('images4').files[3];
+
+    formData.append("productId", productId);
+    formData.append("productName", productName);
+    formData.append("description", description);
+    formData.append("category", category);
+    formData.append("brand", brand);
+    formData.append("stock", stock);
+    formData.append("price", price);
+
+    if (images1) formData.append("images", images1);
+    if (images2) formData.append("images", images2);
+    if (images3) formData.append("images", images3);
+    if (images4) formData.append("images", images4);
+
+    console.log(formData);
+
+    try {
+      const response = await fetch(`/admin/editProducts/${productId}`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.status) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Product Updated',
+          text: data.message,
+        }).then(() => {
+          window.location.href = '/admin/allProducts'; 
+        });
+      } else {
         Swal.fire({
           icon: 'error',
-          title: 'Server Error',
-          text: 'Failed to update product.',
+          title: 'Error',
+          text: data.message || 'Something went wrong!',
         });
       }
-    });
-  </script>
+    } catch (error) {
+      console.error(error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Server Error',
+        text: 'Failed to update product.',
+      });
+    }
+  });
+
+  // Add event listeners for image input fields for immediate format validation
+  document.getElementById("images1").addEventListener("change", (event) => validateImageFormat(event.target));
+  document.getElementById("images2").addEventListener("change", (event) => validateImageFormat(event.target));
+  document.getElementById("images3").addEventListener("change", (event) => validateImageFormat(event.target));
+  document.getElementById("images4").addEventListener("change", (event) => validateImageFormat(event.target));
+
+  function validateImageFormat(input) {
+    const file = input.files[0];
+    if (file && !file.type.startsWith('image/')) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Image Format',
+        text: 'This image must be in jpg, jpeg, png format.',
+      });
+      input.value = ''; // Clear the input if invalid image
+    }
+  }
+</script>
+
+
+
 </body>
 </html>

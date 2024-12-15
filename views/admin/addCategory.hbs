@@ -39,7 +39,7 @@
                 <span class="text-gray-500">No Image</span>
               </div>
               <!-- File Input -->
-              <input type="file" id="categoryImage" name="categoryImage" class="hidden" accept="image/*" required>
+              <input type="file" id="categoryImage" name="categoryImage" class="hidden" accept="image/*" >
               <label for="categoryImage" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded cursor-pointer">
                 Add Image
               </label>
@@ -53,8 +53,7 @@
             <div class="space-y-4">
               <div>
                 <label for="category-name" class="block text-sm font-medium text-gray-700">Category Name</label>
-                <input id="categoryName" name="categoryName" type="text" placeholder="Type category name here..." class="w-full border p-2 rounded" required>
-                <p id="nameError" class="text-red-500 text-sm mt-2 hidden">Name is required.</p>
+                <input id="categoryName" name="categoryName" type="text" placeholder="Type category name here..." class="w-full border p-2 rounded" >
               </div>
               <div>
                 <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
@@ -79,101 +78,136 @@
   </footer>
 
   <!-- Script for Validation -->
-  <script>
-  
+<script>
   const form = document.getElementById('categoryForm');
   const categoryName = document.getElementById('categoryName');
   const categoryImage = document.getElementById('categoryImage');
   const imagePreview = document.getElementById('imagePreview');
-  const nameError = document.getElementById('nameError');
-  const imageError = document.getElementById('imageError');
 
-  
-  categoryImage.addEventListener('change', function (event) {
-    const file = event.target.files[0]; 
+  // Allowed image formats
+  const allowedExtensions = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
 
+  // Preview Image on Change and Validate Format
+  categoryImage.addEventListener('change', async function (event) {
+    const file = event.target.files[0];
     if (file) {
+      const fileType = file.type;
+
+      // Check if file type is valid
+      if (!allowedExtensions.includes(fileType)) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Invalid File Format',
+          text: 'Only image files (JPEG, PNG, JPG, GIF) are supported!',
+        });
+        categoryImage.value = ''; // Clear the input
+        imagePreview.innerHTML = '<span class="text-gray-500">No Image</span>'; // Reset preview
+        return;
+      }
+
+      // Display image preview if valid
       const reader = new FileReader();
-
       reader.onload = function (e) {
-       
         imagePreview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover rounded" alt="Image Preview">`;
-        imageError.classList.add('hidden');
       };
-
-      reader.readAsDataURL(file); 
+      reader.readAsDataURL(file);
     } else {
-      
       imagePreview.innerHTML = '<span class="text-gray-500">No Image</span>';
-      imageError.classList.remove('hidden'); 
     }
   });
 
-  
+  // Form Submission with Validation
   form.addEventListener('submit', async (event) => {
-    event.preventDefault(); 
+    event.preventDefault(); // Prevent default form submission
     let valid = true;
 
-    
+    // Validate Category Name
+    const nameRegex = /^[A-Za-z\s]+$/; // Regex for alphabets and spaces
     if (!categoryName.value.trim()) {
       valid = false;
-      nameError.classList.remove('hidden');
-    } else {
-      nameError.classList.add('hidden');
+      await Swal.fire({
+        icon: 'error',
+        title: 'Category name is required!',
+
+      });
+      return;
+    } else if (!nameRegex.test(categoryName.value.trim())) {
+      valid = false;
+      await Swal.fire({
+        icon: 'error',
+        title: 'Category name can only contain alphabets!',
+      });
+      return;
+    }else if(categoryName.value.trim().length < 4){
+      valid=false;
+      await Swal.fire({
+        icon: 'error',
+        title: 'Category name at least 4 characters long.',
+      });
     }
 
-    
+    // Validate Category Image
     if (!categoryImage.files.length) {
       valid = false;
-      imageError.classList.remove('hidden');
-    } else {
-      imageError.classList.add('hidden');
-    }
-
-    
-    if (!valid) {
-      return;
-    }
-
-   
-    const formData = new FormData(form);
-
-    try {
-      
-      const response = await fetch("/admin/addCategory", {
-        method: "POST",
-        body: formData,
+      await Swal.fire({
+        icon: 'error',
+        title: 'Category image is required!',
       });
-
-      const data = await response.json(); 
-
-      
-      if (data.status) {
-        Swal.fire({
-          icon: "success",
-          title: "Success",
-          text: data.message,
-          confirmButtonText: "OK",
-        }).then(() => {
-          window.location.href = "/admin/allcategory"; 
+      return;
+    } else {
+      const allowedExtensions = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+      const fileType = categoryImage.files[0].type;
+      if (!allowedExtensions.includes(fileType)) {
+        valid = false;
+        await Swal.fire({
+          icon: 'error',
+          title: 'Only image files (JPEG, PNG, JPG, GIF) are allowed!',
         });
-      } else {
+        return;
+      }
+    }
+
+    // If Validation Passes, Submit Form Data
+    if (valid) {
+      const formData = new FormData(form);
+      try {
+        const response = await fetch("/admin/addCategory", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        // SweetAlert for Success/Failure
+        if (data.status) {
+          Swal.fire({
+            icon: "success",
+            title: "Success",
+            text: data.message,
+            confirmButtonText: "OK",
+          }).then(() => {
+            window.location.href = "/admin/allcategory";
+          });
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: data.message || "Something went wrong!",
+          });
+        }
+      } catch (error) {
+        console.error("Error Occurred:", error);
         Swal.fire({
           icon: "error",
           title: "Oops...",
-          text: data.message || "Something went wrong!",
+          text: "Something went wrong!",
         });
       }
-    } catch (error) {
-      console.error("Error Occurred:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "Something went wrong!",
-      });
     }
   });
 </script>
+
+
 
 </body>
 </html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Products</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 flex flex-col min-h-screen">
+  <div class="flex flex-1">
+    {{!-- Sidebar --}}
+    {{> sideBar}}
+
+    <main class="flex-grow bg-white">
+      <!-- Header -->
+      <div class="flex items-center justify-between p-5 shadow-md">
+        <h1 class="font-bold text-lg">Orders</h1>
+        <button class="bg-blue-600 text-white py-2 px-4 rounded-lg">Admin</button>
+      </div>
+
+      <!-- Product Listing -->
+      <div class="p-5">
+        <div class="flex justify-between items-center mb-5">
+          <h2 class="text-lg font-bold">All Orders</h2>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="flex items-center justify-between bg-gray-100 p-4 shadow-sm rounded-md mb-5">
+          <input type="text" placeholder="Search product..." id="search" class="flex-grow border p-2 rounded-l-md">
+          <div class="flex gap-3">
+            <button class="bg-gray-200 px-4 py-2 rounded-r-lg " >Search</button>
+          </div>
+        </div>
+
+        <!-- Product Table -->
+        <div class="overflow-x-auto rounded-md shadow-md">
+          <table class="min-w-full table-auto bg-white border rounded product-table">
+            <thead class="bg-gray-100 text-left">
+              <tr>
+                <th class="py-3 px-4 text-center w-1/6">Product</th>
+                <th class="py-3 px-4 text-center w-1/6">Order ID</th>
+                <th class="py-3 px-4 text-center w-1/6">Quantity</th>
+                <th class="py-3 px-4 text-start w-1/6">Price</th>
+                <th class="py-3 px-4 text-start w-1/6">Status</th>
+                <th class="py-3 px-4 text-center w-1/6">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y">
+  {{#if orders.length}}
+    {{#each orders}}
+      <tr>
+        <td class="py-3 px-4 flex items-center gap-3">
+          <img src="{{this.items.0.product.images.[0]}}" class="w-10 h-10 rounded " alt="Product">
+          <span>{{this.items.0.product.name}}</span>
+        </td>
+        <td class="py-3 px-4">{{this._id}}</td>
+        <td class="py-3 px-4 text-center">{{this.items.0.quantity}}</td>
+        <td class="py-3 px-4"><span class="text-red-600 font-semibold">{{this.total}}</span></td>
+        <td class="py-3 px-4">
+          {{#if (eq this.status "Pending")}}
+          <span class="bg-yellow-200 text-yellow-600 px-2 py-1 rounded-lg">Pending</span>
+          {{else if (eq this.status "Shipped")}}
+          <span class="bg-blue-200 text-blue-600 px-2 py-1 rounded-lg">Shipped</span>
+          {{else if (eq this.status "Delivered")}}
+          <span class="bg-green-200 text-green-600 px-2 py-1 rounded-lg">Delivered</span>
+          {{else if (eq this.status "Cancelled")}}
+          <span class="bg-red-200 text-red-600 px-2 py-1 rounded-lg">Cancelled</span>
+          {{else}}
+          <span class="bg-gray-200 text-gray-600 px-2 py-1 rounded-lg">Unknown</span>
+          {{/if}}
+        </td>
+        <td class="py-3 px-4 flex items-center justify-center gap-2">
+          <a href="orderDetail/{{this._id}}">
+            <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">View Details</button>
+          </a>
+        </td>
+      </tr>
+    {{/each}}
+  {{else}}
+    <tr>
+      <td colspan="5" class="text-center py-5 text-gray-500">No orders found</td>
+    </tr>
+  {{/if}}
+</tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-gray-50 text-center py-4">
+    <p>2024 <span class="font-bold text-blue-600">nxtTick</span>. All rights reserved</p>
+  </footer>
+
+ <script>
+    document.getElementById('search').addEventListener("keyup",function() {
+      const query= this.value.toLowerCase();
+      const rows=document.querySelectorAll(".product-table tbody tr");
+
+      rows.forEach(row=>{
+        const name =row.querySelector('td:nth-child(1)').textContent.toLowerCase();
+        if(name.includes(query)){
+          row.style.display='';
+        }else {
+          row.style.display='none';
+        }
+      });
+    });
+
+     </script>
+</body>
+</html>
+ 

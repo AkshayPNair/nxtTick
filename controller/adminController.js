@@ -1,7 +1,8 @@
 const adminSchema=require("../model/adminModel");
 const userSchema=require("../model/userModel");
 const productSchema=require("../model/productSchema");
-const categorySchema=require("../model/categorySchema")
+const categorySchema=require("../model/categorySchema");
+const orderSchema=require('../model/orderSchema');
 const bcrypt=require("bcrypt");
 
 module.exports={
@@ -197,6 +198,46 @@ module.exports={
         } catch (error) {
             console.error('Error updating user status:', error);
             res.status(500).json({ status: false, message: 'Internal server error' });
+        }
+    },
+    
+    loadOrders:async(req,res)=>{
+        try {
+            const orders=await orderSchema.find({}).populate("items.product").sort({createdAt:-1})
+            console.log(orders)
+            res.render('admin/allOrders',{orders})
+        } catch (error) {
+            console.log(error);
+            res.status(500).send("Error Occured :",error)
+        }
+    },
+    loadOrderDetail:async (req,res)=>{
+        try {
+            const orderId=req.params.id;
+            const order=await orderSchema.findById(orderId).populate('items.product')
+            res.render('admin/orderDetail',{order})
+        } catch (error) {
+            console.log(error);
+            res.status(500).send("Error Occured :",error)
+        }
+    },
+    updateOrderStatus:async(req,res)=>{
+        const { status } = req.body;
+        try {
+            
+            const order = await orderSchema.findByIdAndUpdate(
+                req.params.id,
+                { status },
+                { new: true } // Return the updated document
+            );
+
+            if (!order) {
+                return res.status(404).json({ message: "Order not found" });
+            }
+            res.json({ message: "Order status updated successfully", order });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ message: "Error updating order status" });
         }
     },
     loadLogout:(req,res)=>{

@@ -2,6 +2,7 @@ const  express=require("express");
 const app=express();
 const path=require("path");
 const hbs=require("hbs");
+const moment = require('moment');
 
 const port= process.env.PORT || 1111 ;
 
@@ -22,13 +23,57 @@ hbs.registerHelper('gte', function (value1, value2) {
     return value1 >= value2;
 });
 
-hbs.registerHelper('eq', (a, b) => {
-    if (!a || !b) return false; // Return false if either value is undefined or null
-    return a.toString() === b.toString();
+// hbs.registerHelper('eq', (a, b) => {
+//     if (!a || !b) return false; // Return false if either value is undefined or null
+//     return a.toString() === b.toString();
+// });
+
+hbs.registerHelper('json', function(context) {
+    return JSON.stringify(context);
 });
+
+hbs.registerHelper('eq', (a, b) => {
+    return Number(a) === Number(b);
+});
+hbs.registerHelper('eq', function(a, b, options) {
+    if (a === b) {
+      return options.fn(this);
+    } else {
+      return options.inverse(this);
+    }
+});
+
+hbs.registerHelper('eq', (a, b) => a === b);
+
+hbs.registerHelper('gt', function (a, b) {
+    return a > b;
+});
+  
+hbs.registerHelper('lte', function (a, b) {
+    return a <= b;
+});
+
+hbs.registerHelper('formatDate', function (date) {
+    return moment(date).format('DD/MM/YYYY');
+  });
+  
+hbs.registerHelper('and', function () {
+    return Array.prototype.every.call(arguments, Boolean);
+});
+
 hbs.registerHelper('getImage', function (images, index) {
     return images && images[index];
 });
+
+
+hbs.registerHelper('multiply', function(price, quantity) {
+    return price * quantity;
+});
+
+hbs.registerHelper('calculateSubtotal', function(price, quantity) {
+    return price * quantity;
+});
+
 
 //view engine setup
 app.set('views',path.join(__dirname,'views'));
