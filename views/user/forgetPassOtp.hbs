@@ -27,7 +27,7 @@
         </div>
 
         <!-- OTP Verification Form Section -->
-        <div class="w-full lg:w-[35%] max-w-md bg-white p-8 rounded-lg">
+        <div class="w-full lg:w-[35%] max-w-md bg-white p-8 ">
             <h2 class="text-3xl font-bold text-gray-800 mb-6">OTP Verification</h2>
             <p class="text-lg text-blue-600 mb-4">Enter OTP</p>
             <form class="space-y-5" id="otpForm">
@@ -53,15 +53,19 @@
         const urlParams = new URLSearchParams(window.location.search);
         const email = urlParams.get("email");
 
-        // OTP input handling
-        const otpInputs = [
-            document.getElementById('otp1'),
-            document.getElementById('otp2'),
-            document.getElementById('otp3'),
-            document.getElementById('otp4')
-        ];
+        if (!email) {
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: "Email not found! Please restart the password reset process."
+            }).then(() => {
+                window.location.href = '/user/forgetPasswordEmail';
+            });
+            return;
+        }
 
-        // Auto-focus and input handling
+        // Auto-focus and input handling for OTP fields
+        const otpInputs = Array.from(document.querySelectorAll("#otpForm input[type=text]"));
         otpInputs.forEach((input, index) => {
             input.addEventListener('keyup', (e) => {
                 if (e.key >= '0' && e.key <= '9') {
@@ -70,7 +74,7 @@
                     }
                 } else if (e.key === 'Backspace') {
                     if (index > 0) {
-                        otpInputs[index -1].focus();
+                        otpInputs[index - 1].focus();
                     }
                 }
             });
@@ -80,20 +84,6 @@
                 e.target.value = e.target.value.replace(/[^0-9]/g, '');
             });
         });
-
-        // Focus first input on page load
-        otpInputs[0].focus();
-
-        if (!email) {
-            Swal.fire({
-                icon: "error",
-                title: "Oops...",
-                text: "Email not found! Please restart the signup process."
-            }).then(() => {
-                window.location.href = '/user/signup';
-            });
-            return;
-        }
 
         // Timer variables
         let timer = 60;
@@ -129,7 +119,7 @@
             }
 
             try {
-                const response = await fetch("/user/resend-otp", {
+                const response = await fetch("/user/forgetPasswordEmail", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ email }),
@@ -182,8 +172,7 @@
             }
 
             try {
-                // Send OTP to server for verification
-                const response = await fetch("/user/verify-otp", {
+                const response = await fetch("/user/verifyForgetPassOtp", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ email, otp }),
@@ -195,22 +184,21 @@
                     Swal.fire({
                         icon: "success",
                         title: "Success",
-                        text: data.message,
+                        text: "OTP verified successfully!",
                         showConfirmButton: false,
                         timer: 1500
                     }).then(() => {
-                        window.location.href = "/user/home";
+                        window.location.href = `/user/forgetPassword?email=${email}`;
                     });
                 } else {
                     Swal.fire({
                         icon: "error",
                         title: "Error",
                         text: data.message || "Invalid OTP"
-                    }).then(() => {
-                        // Clear OTP inputs on error and focus first input
-                        otpInputs.forEach(input => input.value = '');
-                        otpInputs[0].focus();
                     });
+                    // Clear OTP inputs on error
+                    otpInputs.forEach(input => input.value = '');
+                    otpInputs[0].focus();
                 }
             } catch (error) {
                 console.error("Error verifying OTP:", error);
@@ -218,10 +206,6 @@
                     icon: "error",
                     title: "Oops...",
                     text: "Failed to verify OTP. Please try again later."
-                }).then(() => {
-                    // Clear OTP inputs on error and focus first input
-                    otpInputs.forEach(input => input.value = '');
-                    otpInputs[0].focus();
                 });
             }
         });

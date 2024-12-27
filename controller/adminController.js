@@ -3,6 +3,8 @@ const userSchema=require("../model/userModel");
 const productSchema=require("../model/productSchema");
 const categorySchema=require("../model/categorySchema");
 const orderSchema=require('../model/orderSchema');
+const couponSchema=require('../model/couponSchema');
+const offerSchema=require('../model/offerSchema');
 const bcrypt=require("bcrypt");
 
 module.exports={
@@ -41,17 +43,72 @@ module.exports={
         }
     },
 
-    loadDashBoard:(req,res)=>{
+    loadDashBoard:async (req, res) => {
         try {
-            const admin=req.session.admin
-            if(!admin){
-                res.redirect('/admin/login')
-            }else {
-                res.render('admin/dashBoard')
+            const admin = req.session.admin;
+            if (!admin) {
+                return res.redirect('/admin/login');
             }
+
+            // Fetch orders with user details and product offers
+            const orders = await orderSchema.find({
+                status: { $nin: ['Cancelled', 'Returned'] }
+            })
+                .populate('userId', 'name')
+                .populate({
+                    path: 'items.product',
+                    populate: [
+                        { path: 'offer' },
+                        { 
+                            path: 'category',
+                            populate: { path: 'offer' }
+                        }
+                    ]
+                })
+                .sort({ date: -1 });
             
+            // Calculate totals
+            const totalGross = orders.reduce((sum, order) => {
+                // Use original product price without any discounts
+                return sum + (order.items[0].product.price * order.items[0].quantity);
+            }, 0);
+
+            const totalOfferDiscount = orders.reduce((sum, order) => {
+                let discount = 0;
+                const originalPrice = order.items[0].product.price * order.items[0].quantity;
+                
+                if (order.items[0].product.offer) {
+                    discount = (originalPrice * order.items[0].product.offer.discountValue) / 100;
+                } else if (order.items[0].product.category?.offer) {
+                    discount = (originalPrice * order.items[0].product.category.offer.discountValue) / 100;
+                }
+                return sum + discount;
+            }, 0);
+
+            const totalCouponDiscount = orders.reduce((sum, order) => {
+                return sum + (order.couponUsed?.discount || 0);
+            }, 0);
+
+            const totalNet = totalGross - totalOfferDiscount - totalCouponDiscount;
+
+            // Calculate other statistics
+            const statistics = {
+                totalOrders: orders.length,
+                totalRevenue: totalGross,
+                totalDiscount: totalOfferDiscount + totalCouponDiscount
+            };
+
+            res.render('admin/dashBoard', { 
+                statistics, 
+                orders,
+                totalGross: Math.round(totalGross),
+                totalOfferDiscount: Math.round(totalOfferDiscount),
+                totalCouponDiscount: Math.round(totalCouponDiscount),
+                totalNet: Math.round(totalNet)
+            });
         } catch (error) {
-            res.status(500).send("Error Occured")
+            console.error("Dashboard Error:", error);
+            res.status(500).send("Error Occurred");
         }
     },
     loadAllProducts:async (req,res)=>{
@@ -222,12 +279,24 @@ module.exports={
         }
     },
     updateOrderStatus:async(req,res)=>{
-        const { status } = req.body;
+        const { status,date } = req.body;
         try {
-            
+            let updateData={status}
+             // Add specific date fields based on status
+            switch(status) {
+                case 'Shipped':
+                updateData.shippedAt = date;
+                break;
+                case 'Out for Delivery':
+                updateData.outForDeliveryAt = date;
+                    break;
+                case 'Delivered':
+                    updateData.deliveredAt = date;
+                    break;
+            }
             const order = await orderSchema.findByIdAndUpdate(
                 req.params.id,
-                { status },
+                updateData,
                 { new: true } // Return the updated document
             );
 
@@ -240,6 +309,309 @@ module.exports={
             res.status(500).json({ message: "Error updating order status" });
         }
     },
+    loadAllCoupons:async(req,res)=>{
+        try {
+            const coupons=await couponSchema.find({})
+            res.render('admin/allCoupons',{coupons});
+        } catch (error) {
+           console.log(error);
+           res.status(500).send("Error occured",error) 
+        }
+    },
+    loadAddCoupon: async(req,res)=>{
+        try {
+            res.render('admin/addCoupon')
+        } catch (error) {
+            console.log(error)
+            res.status(500).send("Error Occured",error)
+        }
+    },
+    addCoupon:async(req,res)=>{
+        try {
+            const {couponTitle,couponCode,discountValue,minimumPrice,usagePerUser,startDate,endDate}=req.body;
+            const coupon=new couponSchema({
+                couponTitle,
+                couponCode:couponCode.toUpperCase(),
+                discountValue,
+                minimumPrice,
+                usagePerUser,
+                startDate,
+                endDate
+            })
+
+            await coupon.save();
+
+            return res.status(200).json({status:true,message:"Coupon Added Successfully"});
+        } catch (error) {
+            console.log(error);
+            return res.status(500).send("Error Occured",error)
+        }
+    },
+    loadEditCoupon:async(req,res)=>{
+        try {
+            const couponId=req.params.id;
+            const coupon=await couponSchema.findById(couponId);
+            res.render('admin/editCoupon',{coupon});
+        } catch (error) {
+            console.log(error);
+            res.status(500).send("Error Occured",error)
+        }
+    },
+    editCoupon:async(req,res)=>{
+        try {
+            const couponId=req.params.id;
+            const {couponTitle,couponCode,discountValue,minimumPrice,usagePerUser,startDate,endDate}=req.body;
+
+            const updateCoupon=await couponSchema.findByIdAndUpdate(couponId,{
+                couponTitle,
+                couponCode:couponCode.toUpperCase(),
+                discountValue,
+                minimumPrice,
+                usagePerUser,
+                startDate,
+                endDate,
+                updatedAt:Date.now()
+            })
+
+            await updateCoupon.save();
+            return res.status(200).json({status:true,message:"Coupon Updated Successfully"})
+        } catch (error) {
+            console.log(error);
+            res.status(500).send("Error Occured",error)
+        }
+    },
+    filterOrders: async (req, res) => {
+        try {
+            const { startDate, endDate, filterType } = req.body;
+            let query = {
+                status: { $nin: ['Cancelled', 'Returned'] }
+            };
+
+            if (filterType) {
+                const now = new Date();
+                switch (filterType) {
+                    case 'day':
+                        query.createdAt = { 
+                            $gte: new Date(now.setHours(0,0,0,0)),
+                            $lt: new Date(now.setHours(23,59,59,999))
+                        };
+                        break;
+                    case 'week':
+                        const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
+                        query.createdAt = { 
+                            $gte: new Date(weekStart.setHours(0,0,0,0)),
+                            $lt: new Date()
+                        };
+                        break;
+                    case 'month':
+                        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+                        query.createdAt = { 
+                            $gte: monthStart,
+                            $lt: new Date()
+                        };
+                        break;
+                }
+            } else if (startDate && endDate) {
+                query.createdAt = {
+                    $gte: new Date(startDate),
+                    $lt: new Date(new Date(endDate).setHours(23,59,59,999))
+                };
+            }
+
+            const orders = await orderSchema.find(query)
+                .populate('userId', 'name')
+                .populate({
+                    path: 'items.product',
+                    populate: [
+                        { path: 'offer' },
+                        { 
+                            path: 'category',
+                            populate: { path: 'offer' }
+                        }
+                    ]
+                })
+                .sort({ createdAt: -1 });
+
+            res.json({ orders });
+        } catch (error) {
+            console.error("Filter Error:", error);
+            res.status(500).json({ error: "Error occurred while filtering orders" });
+        }
+    },
+    toggleCouponStatus: async (req, res) => {
+        try {
+            const couponId = req.params.id;
+            
+            // Find the coupon and toggle its status
+            const coupon = await couponSchema.findById(couponId);
+            if (!coupon) {
+                return res.status(404).json({ status: false, message: 'Coupon not found' });
+            }
+
+            // Toggle the status
+            coupon.isActive = !coupon.isActive;
+            await coupon.save();
+
+            return res.status(200).json({ 
+                status: true, 
+                isActive: coupon.isActive,
+                message: coupon.isActive ? 'Coupon unblocked successfully' : 'Coupon blocked successfully'
+            });
+        } catch (error) {
+            console.error('Error toggling coupon status:', error);
+            return res.status(500).json({ status: false, message: 'Internal server error' });
+        }
+    },
+    loadAddOffer:async(req,res)=>{
+        try {
+            const categories=await categorySchema.find({})
+            const products=await productSchema.find({})
+            res.render('admin/addOffer',{categories,products})
+        } catch (error) {
+            console.log(error)
+            res.status(500).send("Error Occured",error)
+        }
+    },
+    addOffer:async (req, res) => {
+        try {
+            const {
+                offerTitle,
+                offerType,
+                productId,
+                categoryId,
+                discountValue,
+                minimumPrice,
+                startDate,
+                endDate
+            } = req.body;
+
+            // Create new offer
+            const offer = new offerSchema({
+                offerTitle,
+                offerType,
+                ...(offerType === 'product' ? { productId } : { categoryId }),
+                discountValue: Number(discountValue),
+                minimumPrice: Number(minimumPrice),
+                startDate,
+                endDate
+            });
+
+            await offer.save();
+
+            if (offerType === 'product') {
+                // Get product and calculate discounted price
+                const product = await productSchema.findById(productId);
+                const discount = (product.price * Number(discountValue)) / 100;
+                const discountedPrice = product.price - discount;
+
+                // Update product with offer and calculated discounted price
+                await productSchema.findByIdAndUpdate(
+                    productId,
+                    { 
+                        offer: offer._id,
+                        discountedPrice: discountedPrice // Direct value instead of function
+                    }
+                );
+            } else if (offerType === 'category') {
+                // Update category with offer
+                await categorySchema.findByIdAndUpdate(
+                    categoryId,
+                    { offer: offer._id }
+                );
+
+                // Update all products in the category
+                const products = await productSchema.find({ category: categoryId });
+                
+                for (const product of products) {
+                    const discount = (product.price * Number(discountValue)) / 100;
+                    const discountedPrice = product.price - discount;
+                    
+                    await productSchema.findByIdAndUpdate(
+                        product._id,
+                        { discountedPrice: discountedPrice }
+                    );
+                }
+            }
+
+            res.status(200).json({
+                status: true,
+                message: "Offer added successfully"
+            });
+
+        } catch (error) {
+            console.error('Error adding offer:', error);
+            res.status(500).json({
+                status: false,
+                message: "Error occurred while adding offer"
+            });
+        }
+    },
+    loadAllOffers: async (req, res) => {
+        try {
+            const offers = await offerSchema.find({})
+                .populate('productId', 'name')
+                .populate('categoryId', 'name');
+            
+            res.render('admin/allOffers', { offers });
+        } catch (error) {
+            console.error('Error loading offers:', error);
+            res.status(500).send("Error occurred while loading offers");
+        }
+    },
+    toggleOfferStatus: async (req, res) => {
+        try {
+            const offerId = req.params.id;
+            const offer = await offerSchema.findById(offerId);
+
+            if (!offer) {
+                return res.status(404).json({
+                    status: false,
+                    message: "Offer not found"
+                });
+            }
+
+            offer.isActive = !offer.isActive;
+            await offer.save();
+
+            // If offer is deactivated, remove it from products/categories
+            if (!offer.isActive) {
+                if (offer.offerType === 'product') {
+                    await productSchema.updateOne(
+                        { _id: offer.productId },
+                        { 
+                            $unset: { offer: 1 },
+                            discountedPrice: null
+                        }
+                    );
+                } else {
+                    await categorySchema.updateOne(
+                        { _id: offer.categoryId },
+                        { $unset: { offer: 1 } }
+                    );
+                    await productSchema.updateMany(
+                        { category: offer.categoryId },
+                        { 
+                            $unset: { offer: 1 },
+                            discountedPrice: null
+                        }
+                    );
+                }
+            }
+
+            return res.status(200).json({
+                status: true,
+                isActive: offer.isActive,
+                message: offer.isActive ? "Offer activated successfully" : "Offer deactivated successfully"
+            });
+
+        } catch (error) {
+            console.error('Error toggling offer status:', error);
+            return res.status(500).json({
+                status: false,
+                message: "Error occurred while toggling offer status"
+            });
+        }
+    },
     loadLogout:(req,res)=>{
         try {
             req.session.admin=null;
@@ -248,11 +620,8 @@ module.exports={
             console.log(error)
             res.status(500).send("Error occured")
         }
-    }
-
+    },
     
-
-
 }
 
 

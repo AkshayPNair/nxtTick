@@ -8,6 +8,8 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/notyf/notyf.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf/notyf.min.css">
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
 </head>
 <body class="bg-gray-100">
   {{>header}}
@@ -24,7 +26,17 @@
             <div class="flex-1">
               <h3 class="text-lg font-semibold">{{this.product.name}}</h3>
               <p class="text-gray-500">Quantity : {{this.quantity}}</p>
-              <p class="text-lg font-bold text-red-600 mb-5">Rs. {{this.subtotal}}</p>
+              {{#if this.product.activeOffer}}
+                <div class="flex items-center gap-2 mb-5">
+                  <span class="text-red-600 font-semibold">Rs. {{roundPrice this.product.finalPrice}}</span>
+                  <span class="text-gray-400 font-semibold line-through text-sm">Rs. {{roundPrice this.product.price}}</span>
+                  <span class="bg-green-200 text-green-600 font-semibold rounded-md text-xs px-2">
+                    {{this.product.activeOffer.discountValue}}% OFF
+                  </span>
+                </div>
+              {{else}}
+                <p class="text-lg font-bold text-red-600 mb-5">Rs. {{roundPrice this.product.price}}</p>
+              {{/if}}
             </div>
           </div>
           {{/each}}
@@ -51,11 +63,9 @@
               </label>
               {{/each}}
             </div>
-            <a href="/user/addresses">
-              <button type="button" class="bg-blue-600 text-white px-4 py-2 mt-4 rounded-lg hover:bg-blue-700">
-                Add New Address
-              </button>
-            </a>
+            <button type="button" onclick="openAddressModal()" class="bg-blue-600 text-white px-4 py-2 mt-4 rounded-lg hover:bg-blue-700">
+              Add New Address
+            </button>
         </div>
       </div>
 
@@ -64,14 +74,26 @@
         <div class="bg-white p-6 rounded-lg shadow-md">
           <h2 class="text-xl font-semibold mb-4">Order Summary</h2>
 
-          <!-- Discount Code -->
-          <div class="mb-4">
-            <label for="coupon-code" class="block text-sm font-medium">Discount Code</label>
-            <div class="flex items-center mt-1">
-              <input type="text" id="coupon-code" name="couponCode" class="block w-full border border-gray-300 rounded-l-lg p-2" placeholder="Coupon Code">
-              <button type="button" class="bg-blue-600 text-white px-4 py-2 rounded-r-lg hover:bg-blue-700">Apply</button>
+          {{#if hasActiveOffers}}
+            <!-- Show message when products have discounts -->
+            <div class="mb-4 text-sm text-gray-600">
+              <p>Coupon cannot be applied with existing product discounts</p>
             </div>
-          </div>
+          {{else}}
+            <!-- Discount Code - Only show if no product has discounts -->
+            <div class="mb-4">
+              <label for="coupon-code" class="block text-sm font-medium">Discount Code</label>
+              <div class="flex items-center mt-1">
+                <select id="coupon-code" name="couponCode" class="block w-full border border-gray-300 rounded-l-lg p-2">
+                  <option value="">Select a coupon</option>
+                  {{#each coupons}}
+                    <option value="{{this.couponCode}}">{{this.couponCode}}</option>
+                  {{/each}}
+                </select>
+                <button type="button" onclick="applyCoupon()" class="bg-blue-600 text-white px-4 py-2 rounded-r-lg hover:bg-blue-700">Apply</button>
+              </div>
+            </div>
+          {{/if}}
 
           <!-- Pricing Details -->
           <div class="border-t border-gray-300 pt-4 mb-4">
@@ -79,18 +101,38 @@
               <span>Subtotal</span>
               <span>Rs. {{total}}</span>
             </div>
+
+            {{#each cartItems}}
+              {{#if this.product.activeOffer}}
+              <div class="flex justify-between mb-2">
+                <span class="text-gray-600">Discount</span>
+                <div class="flex items-center gap-2">
+                  <span class="text-green-600">-{{this.product.activeOffer.discountValue}}%</span>
+                  <span class="bg-green-200 text-green-600 text-xs rounded px-1">
+                    {{this.product.activeOffer.type}}
+                  </span>
+                </div>
+              </div>
+              {{/if}}
+            {{/each}}
+
+            <div id="discount-row" class="flex justify-between mb-2 hidden">
+              <span>Coupon Discount</span>
+              <span id="discount-amount" class="text-green-600 font-semibold">-Rs. 0</span>
+            </div>
+
             <div class="flex justify-between text-lg font-semibold text-red-600">
               <span>Total</span>
-              <span>Rs. {{total}}</span>
+              <span id="final-total">Rs. {{finalTotal}}</span>
             </div>
           </div>
 
           <!-- Payment Options -->
           <div>
             <p class="text-sm mb-2">Select Payment Method:</p>
-            <label class="block text-sm font-medium mb-2">
-              <input type="radio" name="paymentMethod" value="Wallet" class="mr-2" required>
-              Wallet
+            <label class="block text-sm font-medium mb-2 ">
+              <input type="radio" name="paymentMethod" value="Wallet"  class="mr-2 " required>
+              Wallet (Balance: <span class="text-red-600"> Rs. {{wallet.balance}}</span>)
             </label>
             <label class="block text-sm font-medium mb-2">
               <input type="radio" name="paymentMethod" value="Razorpay" class="mr-2" required>
@@ -111,47 +153,147 @@
       </form> <!-- End Form -->
     </div>
   </div>
+   <!-- Add Address Modal -->
+    <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden" id="addAddressModal">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 class="text-xl font-semibold mb-4">Add New Address</h2>
+            <form id="addAddressForm" class="space-y-4">
+                <input type="text" placeholder="Name" name="name" class="w-full p-2 border rounded" required>
+                <input type="text" placeholder="Phone" name="phone" class="w-full p-2 border rounded" required>
+                <input type="text" placeholder="Pin Code" name="pinCode" class="w-full p-2 border rounded" required>
+                <input type="text" placeholder="Address Line 1" name="addressLine1" class="w-full p-2 border rounded" required>
+                <input type="text" placeholder="Address Line 2" name="addressLine2" class="w-full p-2 border rounded">
+                <input type="text" placeholder="City" name="city" class="w-full p-2 border rounded" required>
+                <input type="text" placeholder="State" name="state" class="w-full p-2 border rounded" required>
+                <input type="text" placeholder="Country" name="country" class="w-full p-2 border rounded" required>
+                <label class="flex items-center">
+                    <input type="checkbox" name="isDefault" class="mr-2">
+                    Set as Default
+                </label>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" class="bg-gray-300 px-4 py-2 rounded" data-modal-close="addAddressModal">Cancel</button>
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Save Address</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
   <script>
     async function submitOrder() {
         event.preventDefault();
-      const form = document.getElementById('checkoutForm');
+        const form = document.getElementById('checkoutForm');
 
-      if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-      }
-
-      const formData = new FormData(form);
-      const data = Object.fromEntries(formData.entries());
-
-      try {
-        const response = await fetch('/user/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        });
-        const result = await response.json();
-
-        if (response.ok) {
-          Swal.fire({
-            title: result.message,
-            text: 'Thank you for shopping with us.',
-            icon: 'success',
-            confirmButtonText: 'OK',
-          }).then(() => {
-            window.location.href = '/user/orders'; // Redirect to the orders page
-          });
-        } else {
-          notyf.error(result.message)
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
         }
-      } catch (error) {
-        Swal.fire({
-          title: 'Error',
-          text: 'Unable to place the order. Please try again later.',
-          icon: 'error',
-          confirmButtonText: 'OK',
-        });
-      }
+
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        
+        // Add the final total (including discount) to the data
+        const finalTotalElement = document.getElementById('final-total');
+        const finalTotal = parseFloat(finalTotalElement.textContent.replace('Rs. ', ''));
+        data.finalAmount = finalTotal;
+
+        try {
+            const response = await fetch('/user/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+                if (data.paymentMethod === 'Razorpay') {
+                    // Initialize Razorpay payment
+                    const options = {
+                        key: result.key_id,
+                        amount: result.amount,
+                        currency: "INR",
+                        name: "nxtTick",
+                        description: "Purchase Payment",
+                        order_id: result.razorpayOrderId,
+                        handler: async function (response) {
+                            try {
+                                // Get the final amount from the page
+                                const finalAmount = parseFloat(document.getElementById('final-total').textContent.replace('Rs. ', ''));
+                                
+                                // Get selected address and coupon
+                                const addressId = document.querySelector('input[name="addressId"]:checked').value;
+                                const couponCode = document.getElementById('coupon-code')?.value || '';
+
+                                // Create verification payload
+                                const verificationData = {
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_signature: response.razorpay_signature,
+                                    addressId: addressId,
+                                    couponCode: couponCode,
+                                    finalAmount: finalAmount,
+                                    orderDetails: {
+                                        total: finalAmount,
+                                        paymentMethod: 'Razorpay'
+                                    }
+                                };
+
+                                const verifyResponse = await fetch('/user/verify-payment', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(verificationData)
+                                });
+                                
+                                const verifyResult = await verifyResponse.json();
+                                if (verifyResult.status) {
+                                    Swal.fire({
+                                        title: 'Order Placed Successfully',
+                                        text: 'Thank you for shopping with us.',
+                                        icon: 'success',
+                                        confirmButtonText: 'OK'
+                                    }).then(() => {
+                                        window.location.href = '/user/orders';
+                                    });
+                                } else {
+                                    throw new Error(verifyResult.message);
+                                }
+                            } catch (error) {
+                                console.error('Payment verification failed:', error);
+                                notyf.error('Payment verification failed');
+                            }
+                        },
+                        prefill: {
+                            name: "{{user.name}}",
+                            email: "{{user.email}}"
+                        },
+                        theme: {
+                            color: "#3B82F6"
+                        }
+                    };
+                    const rzp = new Razorpay(options);
+                    rzp.open();
+                } else {
+                    // Handle other payment methods (COD, Wallet)
+                    Swal.fire({
+                        title: result.message,
+                        text: 'Thank you for shopping with us.',
+                        icon: 'success',
+                        confirmButtonText: 'OK',
+                    }).then(() => {
+                        window.location.href = '/user/orders';
+                    });
+                }
+            } else {
+                notyf.error(result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                title: 'Error',
+                text: 'Unable to place the order. Please try again later.',
+                icon: 'error',
+                confirmButtonText: 'OK',
+            });
+        }
     }
     const notyf = new Notyf({
     duration: 3000, // Duration of the notification
@@ -177,6 +319,84 @@
       },
     ],
   });
+
+  function openAddressModal() {
+    document.getElementById('addAddressModal').classList.remove('hidden');
+  }
+
+  function closeAddressModal() {
+    document.getElementById('addAddressModal').classList.add('hidden');
+    document.getElementById('addAddressForm').reset();
+  }
+
+  document.getElementById('addAddressForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+      const response = await fetch('/user/address', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const result = await response.json();
+
+      if (response.ok) {
+        notyf.success('Address added successfully');
+        closeAddressModal();
+        // Reload the page to show the new address
+        location.reload();
+      } else {
+        notyf.error(result.message || 'Failed to add address');
+      }
+    } catch (error) {
+      notyf.error('Something went wrong. Please try again.');
+    }
+  });
+
+  document.querySelector('[data-modal-close="addAddressModal"]').addEventListener('click', closeAddressModal);
+
+  async function applyCoupon() {
+    const couponCode = document.getElementById('coupon-code').value;
+    if (!couponCode) {
+        notyf.error('Please select a coupon');
+        return;
+    }
+
+    // Get the subtotal amount directly from the page
+    const subtotalAmount = {{total}}; // This will be replaced with the actual value from server
+
+    try {
+        const response = await fetch('/user/apply-coupon', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                couponCode: couponCode,
+                total: subtotalAmount
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.status) {
+            // Show discount row
+            document.getElementById('discount-row').classList.remove('hidden');
+            // Update discount amount
+            document.getElementById('discount-amount').textContent = `-Rs. ${result.discount}`;
+            // Update final total
+            document.getElementById('final-total').textContent = `Rs. ${result.finalTotal}`;
+            notyf.success(result.message);
+        } else {
+            notyf.error(result.message);
+        }
+    } catch (error) {
+        console.error('Error applying coupon:', error);
+        notyf.error('Error applying coupon');
+    }
+  }
   </script>
 </body>
 </html>

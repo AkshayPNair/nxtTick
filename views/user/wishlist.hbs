@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile Page</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf/notyf.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/notyf/notyf.min.js"></script>
+</head>
+<body class="bg-gray-50">
+  {{>header}}
+  <div class="flex flex-col md:flex-row h-screen">
+    <!-- wishlist Content -->
+    <div class="flex-1 p-8">
+      <h1 class="text-2xl font-semibold mb-6">My Wishlist</h1>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {{#if data.length}}
+        <!-- Product Card -->
+        {{#each data}}
+          <div class="bg-white shadow-md rounded-lg overflow-hidden product-card">
+            <img src="{{this.images.[0]}}" onclick="load('{{this._id}}')" alt="Product Image" class="w-full h-70 object-cover">
+            <div class="p-4">
+              <h2 class="text-lg font-bold text-gray-800">{{this.name}}</h2>
+              <p class="text-sm text-gray-600">Sixth Scale Action Figure</p>
+              <div class="flex justify-between items-center mt-2">
+                <p class="text-red-600 font-bold">Rs. {{this.price}}</p>
+                <div class="flex space-x-2">                 
+                  <button onclick="addToCart('{{this._id}}')" class="cart-icon transition duration-300 hover:scale-110 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </button>
+                  <button onclick="toggleWishlist(this, '{{this._id}}')" class="heart-icon active transition duration-300 hover:scale-110">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 hover:opacity-75" fill="red" viewBox="0 0 24 24" stroke="red">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        {{/each}}
+        {{else}}
+        <p class="text-2xl text-center font-medium mb-6">Wishlist is empty</p>
+        {{/if}}
+      </div>
+    </div>
+  </div>
+
+  {{>footer}}
+
+  <script>
+    const notyf = new Notyf({
+        duration: 3000,
+        position: {
+            x: 'right',
+            y: 'bottom',
+        },
+        types: [
+            {
+                type: 'success',
+                background: 'green',
+                duration: 3000,
+            },
+            {
+                type: 'error',
+                background: 'red',
+                duration: 3000,
+            }
+        ]
+    });
+
+    async function toggleWishlist(button, productId) {
+        try {
+            const response = await fetch(`/user/toggle-wishlist/${productId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Remove the product card from the wishlist page
+                const productCard = button.closest('.product-card');
+                productCard.remove();
+
+                // Check if wishlist is empty after removal
+                const remainingProducts = document.querySelectorAll('.product-card');
+                if (remainingProducts.length === 0) {
+                    const gridContainer = document.querySelector('.grid');
+                    gridContainer.innerHTML = '<p class="text-2xl text-center font-medium mb-6">Wishlist is empty</p>';
+                }
+
+                notyf.success('Removed from wishlist');
+            } else if (data.redirect) {
+                window.location.href = data.redirect;
+            } else {
+                notyf.error(data.message || 'Something went wrong');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            notyf.error('Something went wrong');
+        }
+    }
+
+    async function addToCart(productId) {
+        const quantity = document.getElementById("quantity")?.textContent || "1"; // Default to 1 if no quantity selector
+        try {
+            const response = await fetch("/user/addToCart", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    productId: productId,
+                    quantity: parseInt(quantity),
+                }),
+            });
+            
+            const data = await response.json();
+            
+            if (data.status) {
+                // First notification for cart
+                notyf.success({
+                    message: "Added to cart",
+                    duration: 2000,
+                });
+
+                // Wait for 1 second before showing the wishlist removal notification
+                setTimeout(async () => {
+                    // Remove from wishlist
+                    const wishlistButton = document.querySelector(`button[onclick*="${productId}"]`);
+                    if (wishlistButton) {
+                        const productCard = wishlistButton.closest('.product-card');
+                        productCard.remove();
+
+                        // Check if wishlist is empty after removal
+                        const remainingProducts = document.querySelectorAll('.product-card');
+                        if (remainingProducts.length === 0) {
+                            const gridContainer = document.querySelector('.grid');
+                            gridContainer.innerHTML = '<p class="text-2xl text-center font-medium mb-6">Wishlist is empty</p>';
+                        }
+
+                        // Second notification for wishlist removal
+                        notyf.success({
+                            message: "Removed from wishlist",
+                            duration: 2000,
+                        });
+
+                        // Call the API to update the wishlist in the backend
+                        await fetch(`/user/toggle-wishlist/${productId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                    }
+                }, 1000);
+            } else {
+                notyf.error(data.message || "Failed to add product to cart.");
+            }
+        } catch (error) {
+            console.error("Error adding product to cart:", error);
+            notyf.error("An error occurred. Please try again later.");
+        }
+    }
+
+    function load(productId) {
+        window.location.href = `/user/productView/${productId}`;
+    }
+  </script>
+</body>
+</html>

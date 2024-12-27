@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Coupons</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 flex flex-col min-h-screen">
+  <div class="flex flex-1">
+    {{!-- Sidebar --}}
+    {{> sideBar}}
+
+    <main class="flex-grow bg-white">
+      <!-- Header -->
+      <div class="flex items-center justify-between p-5 shadow-md">
+        <h1 class="font-bold text-lg">Coupons</h1>
+        <button class="bg-blue-600 text-white py-2 px-4 rounded-lg">Admin</button>
+      </div>
+
+      <!-- Coupon Listing -->
+      <div class="p-5">
+        <div class="flex justify-between items-center mb-5">
+          <h2 class="text-lg font-bold">All Coupons</h2>
+          <div class="flex items-center gap-3">
+           <a href="addCoupon"><button class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded">+ Add Coupon</button></a>
+          </div>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="flex items-center justify-between bg-gray-100 p-4 shadow-sm rounded-md mb-5">
+          <input type="text" placeholder="Search coupon..." id="search" class="flex-grow border p-2 rounded-l-md">
+          <div class="flex gap-3">
+            <button class="bg-gray-200 px-4 py-2 rounded-r-lg">Search</button>
+          </div>
+        </div>
+
+        <!-- Coupon Table -->
+        <div class="overflow-x-auto rounded-md shadow-md">
+          <table class="min-w-full table-auto bg-white border rounded coupon-table">
+            <thead class="bg-gray-100 text-left">
+              <tr>
+                <th class="py-3 px-4 text-start w-1/5">Title</th>
+                <th class="py-3 px-4 text-start w-1/5">Code</th>
+                <th class="py-3 px-4 text-start w-1/5">Start Date</th>
+                <th class="py-3 px-4 text-start w-1/5">End Date</th>
+                <th class="py-3 px-4 text-start w-1/5">Status</th>
+                <th class="py-3 px-4 text-center w-1/5">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y" id="couponTableBody">
+              {{#if coupons.length}}
+                {{#each coupons}}
+                  <tr>
+                    <td class="py-3 px-4">{{this.couponTitle}}</td>
+                    <td class="py-3 px-4">{{this.couponCode}}</td>
+                    <td class="py-3 px-4">{{formatDate this.startDate}}</td>
+                    <td class="py-3 px-4">{{formatDate this.endDate}}</td>
+                    <td class="py-3 px-4">
+                      {{#if this.isActive}}
+                        <span class="bg-green-200 text-green-600 px-2 py-1 rounded-lg">Active</span>
+                      {{else}}
+                        <span class="bg-red-200 text-red-600 px-2 py-1 rounded-lg">Blocked</span>
+                      {{/if}}
+                    </td>
+                    <td class="py-3 px-4 flex items-center justify-center gap-2">
+                        <a href="editCoupon/{{this._id}}">
+                            <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Edit</button>
+                        </a>
+                        <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600" onclick="toggleCouponStatus('{{this._id}}', {{this.isActive}})">
+                          {{#if this.isActive}}Block{{else}}Unblock{{/if}}
+                        </button>
+                    </td>
+                  </tr>
+                {{/each}}
+              {{else}}
+                <tr>
+                  <td colspan="6" class="text-center py-5 text-gray-500">No coupons found</td>
+                </tr>
+              {{/if}}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-gray-50 text-center py-4">
+    <p>2024 <span class="font-bold text-blue-600">nxtTick</span>. All rights reserved</p>
+  </footer>
+
+  <script>
+    // Format dates to ddmmyy format
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return (
+        String(date.getDate()).padStart(2, '0') + 
+        String(date.getMonth() + 1).padStart(2, '0') + 
+        String(date.getFullYear()).slice(2)
+      );
+    }
+
+    // Toggle coupon status (block/unblock)
+    function toggleCouponStatus(couponId, currentStatus) {
+        const action = currentStatus ? 'Block' : 'Unblock';
+        
+        Swal.fire({
+            title: `Are you sure you want to ${action} this coupon?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: `Yes, ${action} it!`,
+            cancelButtonText: 'Cancel',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/admin/toggleCouponStatus/${couponId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.status) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: result.message,
+                            icon: 'success'
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error!', result.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire('Error!', 'Something went wrong. Please try again.', 'error');
+                });
+            }
+        });
+    }
+  </script>
+</body>
+</html>

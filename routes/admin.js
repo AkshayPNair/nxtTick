@@ -54,9 +54,28 @@ router.get('/orders',adminAuth.checkSession,adminController.loadOrders)
 router.get('/orderDetail/:id',adminAuth.checkSession,adminController.loadOrderDetail);
 router.patch('/orderDetail/:id/status',adminAuth.checkSession,adminController.updateOrderStatus);
 
+//filter orders
+router.post('/filter-orders', adminAuth.checkSession, adminController.filterOrders);
+
+//load coupons
+router.get('/allCoupons',adminAuth.checkSession,adminController.loadAllCoupons);
+router.get('/addCoupon',adminAuth.checkSession,adminController.loadAddCoupon);
+router.post('/addCoupon',adminAuth.checkSession,adminController.addCoupon);
+router.get('/editCoupon/:id',adminAuth.checkSession,adminController.loadEditCoupon);
+router.post('/editCoupon/:id',adminAuth.checkSession,adminController.editCoupon);
+
+//load offers
+router.get('/addOffer',adminController.loadAddOffer);
+
+//toggle coupon status
+router.post('/toggleCouponStatus/:id', adminAuth.checkSession, adminController.toggleCouponStatus); 
+
 //logout
 router.get('/logout',adminAuth.checkSession,adminController.loadLogout);
 
-
+// Offers
+router.get('/allOffers', adminAuth.checkSession, adminController.loadAllOffers);
+router.post('/addOffer', adminAuth.checkSession, adminController.addOffer);
+router.post('/toggleOfferStatus/:id', adminAuth.checkSession, adminController.toggleOfferStatus);
 
 module.exports=router;

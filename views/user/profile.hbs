@@ -21,8 +21,8 @@
       <h1 class="text-2xl font-semibold mb-6">My Profile</h1>
       <div class="flex items-center space-x-4 mb-8">
         <div class="relative">
-          <img id="profile-image" src={{user.profileImage}} alt="Profile" class="rounded-full w-20 h-20">
-          <label for="profileImage" class="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-1 cursor-pointer hover:bg-blue-700">
+          <img id="profile-image" src="{{#if user.profileImage}}{{user.profileImage}}{{else}}https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png{{/if}}" alt="Profile" class="rounded-full w-20 h-20 object-cover">
+          <label for="profile-image-upload" class="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-1 cursor-pointer hover:bg-blue-700">
             <input type="file" class="hidden" name="profileImage" id="profile-image-upload" accept="image/*">
             <span class="text-sm">&#9998;</span>
           </label>
@@ -34,7 +34,7 @@
       </div>
 
       <!-- Form -->
-      <form class="grid grid-cols-1 md:grid-cols-2 gap-6"  id="profile-form" action="/user/updateProfile" method="POST" enctype="multipart/form-data">
+      <form class="grid grid-cols-1 md:grid-cols-2 gap-6" id="profile-form" action="/user/updateProfile" method="POST" enctype="multipart/form-data">
         <div>
           <label class="block text-sm font-medium text-gray-700">Name</label>
           <input type="text" placeholder="Name" name="name" value="{{user.name}}" class="mt-1 w-full border rounded p-2 focus:outline-blue-600">
@@ -45,7 +45,7 @@
             <option value="">Select a gender</option>
             <option value="male" {{#if (eq user.gender "male")}}selected{{/if}}>Male</option>
             <option value="female" {{#if (eq user.gender "female")}}selected{{/if}}>Female</option>
-           <option value="other" {{#if (eq user.gender "other")}}selected{{/if}}>Other</option>
+            <option value="other" {{#if (eq user.gender "other")}}selected{{/if}}>Other</option>
           </select>
         </div>
         <div>
@@ -53,91 +53,98 @@
           <input type="email" name="email" placeholder="Email" value="{{user.email}}" class="mt-1 w-full border rounded p-2 focus:outline-blue-600" readonly>
         </div>
         
-        <div>
-          <label class="block text-sm font-medium text-gray-700">City</label>
-          <input type="text" placeholder="City" class="mt-1 w-full border rounded p-2 focus:outline-blue-600">
-        </div>
+       
         <div style="display: none;">
-          <label class="block text-sm font-medium text-gray-700" for="profileImage">Profile Image</label>
-          <input type="file" class="block w-full text-sm text-gray-500" name="profileImage" id="profileImage" accept="image/*" >
+          <input type="hidden" name="croppedImage" id="cropped-image-input">
         </div>
         <div class="col-span-1 md:col-span-2">
-          <button class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Save Changes</button>
+          <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Save Changes</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- Cropper Modal -->
-  <div id="cropper-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+  <div id="cropper-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
     <div class="bg-white p-6 rounded-lg">
       <div class="w-96 h-96">
         <img id="cropper-image" src="" class="max-w-full max-h-full">
       </div>
       <div class="flex justify-end mt-4 space-x-2">
-        <button id="crop-btn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Crop</button>
+        <button id="crop-btn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save</button>
         <button id="cancel-btn" class="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
       </div>
     </div>
   </div>
 
+  {{>profileFooter}}
   <script>
     const profileImageUpload = document.getElementById('profile-image-upload');
-  const profileImage = document.getElementById('profile-image');
-  const cropperModal = document.getElementById('cropper-modal');
-  const cropperImage = document.getElementById('cropper-image');
-  const cropBtn = document.getElementById('crop-btn');
-  const cancelBtn = document.getElementById('cancel-btn');
-  let cropper;
+    const profileImage = document.getElementById('profile-image');
+    const cropperModal = document.getElementById('cropper-modal');
+    const cropperImage = document.getElementById('cropper-image');
+    const cropBtn = document.getElementById('crop-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const croppedImageInput = document.getElementById('cropped-image-input');
+    let cropper;
 
-  profileImageUpload.addEventListener('change', function () {
-  const file = this.files[0];
-  if (file) {
-    console.log("File selected:", file); // Debug log
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      console.log("File read successfully"); // Debug log
-      cropperImage.src = e.target.result;
-      cropperModal.classList.remove('hidden');
-      
-      // Additional error handling
-      try {
-        if (cropper) cropper.destroy(); // Ensure no duplication
-        cropper = new Cropper(cropperImage, {
-          aspectRatio: 1,
-          viewMode: 1,
-        });
-        console.log("Cropper initialized successfully"); // Debug log
-      } catch (error) {
-        console.error("Error initializing Cropper:", error);
+    profileImageUpload.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          cropperImage.src = e.target.result;
+          cropperModal.classList.remove('hidden');
+          
+          if (cropper) {
+            cropper.destroy();
+          }
+          
+          cropper = new Cropper(cropperImage, {
+            aspectRatio: 1,
+            viewMode: 1,
+            dragMode: 'move',
+            autoCropArea: 1,
+            restore: false,
+            guides: true,
+            center: true,
+            highlight: false,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            toggleDragModeOnDblclick: false,
+          });
+        };
+        reader.readAsDataURL(file);
       }
-    };
-    reader.onerror = function(error) {
-      console.error("Error reading file:", error);
-    };
-    reader.readAsDataURL(file);
-  } else {
-    console.error("No file selected.");
-  }
-});
-  cropBtn.addEventListener('click', function () {
-    if (cropper) {
-      const canvas = cropper.getCroppedCanvas({
-        width: 80,
-        height: 80,
-      });
-      profileImage.src = canvas.toDataURL();
-      cropper.destroy();
-      cropperModal.classList.add('hidden');
-    }
-  });
+    });
 
-  cancelBtn.addEventListener('click', function () {
-    if (cropper) cropper.destroy();
-    cropperModal.classList.add('hidden');
-  });
-   
+    cropBtn.addEventListener('click', function() {
+      if (!cropper) return;
+      
+      const canvas = cropper.getCroppedCanvas({
+        width: 300,
+        height: 300,
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: 'high',
+      });
+
+      const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      profileImage.src = croppedDataUrl;
+      croppedImageInput.value = croppedDataUrl;
+      
+      cropper.destroy();
+      cropper = null;
+      cropperModal.classList.add('hidden');
+    });
+
+    cancelBtn.addEventListener('click', function() {
+      if (cropper) {
+        cropper.destroy();
+        cropper = null;
+      }
+      cropperModal.classList.add('hidden');
+      profileImageUpload.value = '';
+    });
   </script>
 </body>
 </html>
-

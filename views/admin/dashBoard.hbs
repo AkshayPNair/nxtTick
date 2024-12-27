@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+  <script src="/js/dashboard.js"></script>
 </head>
 <body class="bg-gray-100 font-sans text-gray-800">
   <div class="flex flex-col h-screen">
@@ -24,20 +28,204 @@
         </div>
 
         <!-- Metrics Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <!-- Card -->
-          <div class="bg-white shadow rounded-lg p-4">
-            <h3 class="text-gray-600 font-semibold">Total Orders</h3>
-            <p class="text-xl font-bold">₹126,500</p>
-            <span class="text-green-500">▲ 34.7%</span>
-            <p class="text-gray-500 text-sm">Compared to Oct 2024</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <!-- Total Orders Card -->
+          <div class="bg-white shadow-lg rounded-xl p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-2xl border-l-4 border-blue-500 relative overflow-hidden group">
+            <div class="absolute inset-0 bg-gradient-to-r from-blue-100 to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+            <div class="flex flex-col relative z-10">
+              <h3 class="text-gray-600 font-semibold text-sm uppercase tracking-wider mb-2 group-hover:text-blue-600 transition-colors duration-300">Total Orders</h3>
+              <p class="text-3xl font-bold text-gray-800 group-hover:text-blue-700">{{statistics.totalOrders}}</p>
+              <div class="mt-2 text-blue-500 flex items-center">
+                <i class="fas fa-shopping-cart mr-2 animate-bounce"></i>
+                <span class="text-sm font-semibold group-hover:font-bold">Orders Processed</span>
+              </div>
+            </div>
           </div>
-          <!-- Repeat similar cards for Active Orders, Completed Orders, etc. -->
+
+          <!-- Total Revenue Card -->
+          <div class="bg-white shadow-lg rounded-xl p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-2xl border-l-4 border-green-500 relative overflow-hidden group">
+            <div class="absolute inset-0 bg-gradient-to-r from-green-100 to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+            <div class="flex flex-col relative z-10">
+              <h3 class="text-gray-600 font-semibold text-sm uppercase tracking-wider mb-2 group-hover:text-green-600 transition-colors duration-300">Total Revenue</h3>
+              <p class="text-3xl font-bold text-gray-800 group-hover:text-green-700">₹{{statistics.totalRevenue}}</p>
+              <div class="mt-2 text-green-500 flex items-center">
+                <i class="fas fa-chart-line mr-2 animate-pulse"></i>
+                <span class="text-sm font-semibold group-hover:font-bold">Gross Income</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Total Discount Card -->
+          <div class="bg-white shadow-lg rounded-xl p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-2xl border-l-4 border-purple-500 relative overflow-hidden group">
+            <div class="absolute inset-0 bg-gradient-to-r from-purple-100 to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+            <div class="flex flex-col relative z-10">
+              <h3 class="text-gray-600 font-semibold text-sm uppercase tracking-wider mb-2 group-hover:text-purple-600 transition-colors duration-300">Total Discounts</h3>
+              <p class="text-3xl font-bold text-gray-800 group-hover:text-purple-700">₹{{roundPrice statistics.totalDiscount}}</p>
+              <div class="mt-2 text-purple-500 flex items-center">
+                <i class="fas fa-tags mr-2 animate-spin"></i>
+                <span class="text-sm font-semibold group-hover:font-bold">Savings Offered</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Net Revenue Card -->
+          <div class="bg-white shadow-lg rounded-xl p-6 transform transition-all duration-300 hover:scale-105 hover:shadow-2xl border-l-4 border-red-500 relative overflow-hidden group">
+            <div class="absolute inset-0 bg-gradient-to-r from-red-100 to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+            <div class="flex flex-col relative z-10">
+              <h3 class="text-gray-600 font-semibold text-sm uppercase tracking-wider mb-2 group-hover:text-red-600 transition-colors duration-300">Net Revenue</h3>
+              <p class="text-3xl font-bold text-gray-800 group-hover:text-red-700">₹{{roundPrice (subtract statistics.totalRevenue statistics.totalDiscount)}}</p>
+              <div class="mt-2 text-red-500 flex items-center">
+                <i class="fas fa-dollar-sign mr-2 animate-pulse"></i>
+                <span class="text-sm font-semibold group-hover:font-bold">Final Earnings</span>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+
+        <!-- Sales Report Section -->
+        <div class="bg-white shadow-lg rounded-2xl p-8 mb-8 transform  transition-all duration-300">
+          <div class="flex justify-between items-center mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Sales Report</h2>
+            
+            <!-- Filter Controls -->
+           <div class="flex items-center space-x-6">
+              <!-- Quick Filters -->
+              <div class="flex space-x-3">
+                <button onclick="filterSales('day'); setActiveFilter(this)" class="px-2 py-2.5 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-lg hover:from-blue-600 hover:to-blue-800 transform hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg active:shadow-[0_0_15px_rgba(59,130,246,0.5)]" id="dayFilter">
+                  Today
+                </button>
+                <button onclick="filterSales('week'); setActiveFilter(this)" class="px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-indigo-700 text-white rounded-lg hover:from-indigo-600 hover:to-indigo-800 transform hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg active:shadow-[0_0_15px_rgba(99,102,241,0.5)]" id="weekFilter">
+                  This Week
+                </button>
+                <button onclick="filterSales('month'); setActiveFilter(this)" class="px-5 py-2.5 bg-gradient-to-r from-purple-500 to-purple-700 text-white rounded-lg hover:from-purple-600 hover:to-purple-800 transform hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg active:shadow-[0_0_15px_rgba(147,51,234,0.5)]" id="monthFilter">
+                  This Month
+                </button>
+              </div>
+
+              <!-- Custom Date Range -->
+              <div class="flex items-center space-x-3">
+                <input type="date" id="startDate" class="px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200">
+                <span class="text-gray-500 font-medium">to</span>
+                <input type="date" id="endDate" class="px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200">
+                <button onclick="filterCustomRange(); setActiveFilter(this)" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg hover:from-blue-700 hover:to-blue-900 transform hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg active:shadow-[0_0_15px_rgba(37,99,235,0.5)]">
+                  Apply
+                </button>
+              </div>
+
+              <!-- Export Buttons -->
+              <div class="flex space-x-3">
+                <button onclick="exportToPDF()" class="flex items-center px-5 py-2.5 bg-gradient-to-r from-red-500 to-red-700 text-white rounded-lg hover:from-red-600 hover:to-red-800 transform hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg">
+                  <i class="fas fa-file-pdf mr-2"></i> PDF
+                </button>
+                <button onclick="exportReport('excel')" class="flex items-center px-5 py-2.5 bg-gradient-to-r from-green-500 to-green-700 text-white rounded-lg hover:from-green-600 hover:to-green-800 transform hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg">
+                  <i class="fas fa-file-excel mr-2"></i> Excel
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sales Report Table -->
+          <div class="overflow-x-auto rounded-xl shadow-lg border border-gray-100">
+            <table class="min-w-full bg-white">
+              <thead>
+                <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                  <th class="group px-6 py-4 text-left">
+                    <div class="flex items-center space-x-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <span>Date</span>
+                      <i class="fas fa-sort text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                    </div>
+                  </th>
+                  <th class="group px-6 py-4 text-left">
+                    <div class="flex items-center space-x-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <span>Order ID</span>
+                      <i class="fas fa-sort text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                    </div>
+                  </th>
+                  <th class="group px-6 py-4 text-left">
+                    <div class="flex items-center space-x-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <span>Customer</span>
+                      <i class="fas fa-sort text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                    </div>
+                  </th>
+                  <th class="group px-6 py-4 text-left">
+                    <div class="flex items-center space-x-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <span>Original Price</span>
+                      <i class="fas fa-sort text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                    </div>
+                  </th>
+                  <th class="group px-6 py-4 text-left">
+                    <div class="flex items-center space-x-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <span>Offer Applied</span>
+                      <i class="fas fa-sort text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                    </div>
+                  </th>
+                  <th class="group px-6 py-4 text-left">
+                    <div class="flex items-center space-x-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <span>Coupon</span>
+                      <i class="fas fa-sort text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                    </div>
+                  </th>
+                  <th class="group px-6 py-4 text-left">
+                    <div class="flex items-center space-x-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <span>Net Amount</span>
+                      <i class="fas fa-sort text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200" id="salesReportBody">
+                {{#each orders}}
+                <tr class="hover:bg-gray-50 transition-colors duration-200">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <i class="far fa-calendar-alt text-gray-400 mr-2"></i>
+                      <span>{{formatDate this.date}}</span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <i class="fas fa-hashtag text-blue-400 mr-2"></i>
+                      <span class="text-blue-600 font-medium">{{this._id}}</span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">{{this.userId.name}}</td>
+                  <td class="px-6 py-4 whitespace-nowrap">₹{{this.items.[0].subtotal}}</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    {{#if this.items.[0].product.offer}}
+                       <span class="text-green-600 font-medium">{{this.items.[0].product.offer.discountValue}}% {{!-- (-₹{{calculateOfferDiscount this.items.[0].product.price this.items.[0].product.offer.discountValue}})--}}</span> 
+                    {{else if this.items.[0].product.category.offer}}
+                      <span class="text-green-600 font-medium">{{this.items.[0].product.category.offer.discountValue}}% {{!--(-₹{{calculateOfferDiscount this.items.[0].product.price this.items.[0].product.category.offer.discountValue}})--}}</span>
+                    {{else}}
+                      <span class="text-gray-500 font-medium">0%</span>
+                    {{/if}}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    {{#if this.couponUsed.discount}}
+                      <span class="text-red-600 font-medium">₹{{this.couponUsed.discount}}</span>
+                    {{else}}
+                      <span class="text-gray-500 font-medium">₹0</span>
+                    {{/if}}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap font-medium">₹{{this.total}}</td>
+                </tr>
+                {{/each}}
+              </tbody>
+              <tfoot class="bg-gradient-to-r from-gray-50 to-gray-100 font-semibold">
+                <tr>
+                  <td colspan="3" class="px-6 py-4 text-right">Totals:</td>
+                  <td class="px-6 py-4">₹{{totalGross}}</td>
+                  <td class="px-6 py-4 text-green-600">-₹{{totalOfferDiscount}}</td>
+                  <td class="px-6 py-4 text-red-600">-₹{{totalCouponDiscount}}</td>
+                  <td class="px-6 py-4 text-blue-600">₹{{totalNet}}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
         </div>
 
         <!-- Graph and Best Sellers -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-          <!-- Sale Graph -->
+                  
           <div class="lg:col-span-2 bg-white shadow rounded-lg p-4">
             <h3 class="text-gray-600 font-semibold mb-4">Sale Graph</h3>
             <div class="flex justify-end space-x-2 mb-4">
@@ -95,5 +283,353 @@
       <p>2024 <span class="font-bold text-blue-600 ">nxtTick</span>. All rights reserved</p>
     </footer>
   </div>
+  
+  <script>
+    function setActiveFilter(button) {
+      // Remove active class from all filter buttons
+      document.querySelectorAll('#dayFilter, #weekFilter, #monthFilter').forEach(btn => {
+        btn.classList.remove('bg-blue-600', 'text-white');
+        btn.classList.add('bg-gray-100');
+      });
+      
+      // Add active class to clicked button
+      button.classList.remove('bg-gray-100');
+      button.classList.add('bg-blue-600', 'text-white');
+    }
+
+    function filterSales(type) {
+        fetch('/admin/filter-orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ filterType: type })
+        })
+        .then(response => response.json())
+        .then(data => updateSalesTable(data.orders))
+        .catch(error => console.error('Error:', error));
+    }
+
+    function filterCustomRange() {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+
+        fetch('/admin/filter-orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ startDate, endDate })
+        })
+        .then(response => response.json())
+        .then(data => updateSalesTable(data.orders))
+        .catch(error => console.error('Error:', error));
+    }
+
+    function updateSalesTable(orders) {
+        const tbody = document.getElementById('salesReportBody');
+        tbody.innerHTML = '';
+
+        orders.forEach(order => {
+            const row = `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">${formatDate(order.createdAt)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">#${order._id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${order.userId.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">₹${order.items[0].subtotal}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${getOfferText(order.items[0].product)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${order.couponUsed ? `<span class="text-red-600">₹${order.couponUsed.discount}</span>` : '<span class="text-gray-500">₹0</span>'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap font-medium">₹${order.total}</td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+
+        // Calculate and update totals
+        const totalGross = orders.reduce((sum, order) => sum + order.items[0].subtotal, 0);
+        const totalOfferDiscount = orders.reduce((sum, order) => {
+            const product = order.items[0].product;
+            let discount = 0;
+            if (product.offer) {
+                discount = (order.items[0].subtotal * product.offer.discountValue) / 100;
+            } else if (product.category?.offer) {
+                discount = (order.items[0].subtotal * product.category.offer.discountValue) / 100;
+            }
+            return sum + discount;
+        }, 0);
+        const totalCouponDiscount = orders.reduce((sum, order) => sum + (order.couponUsed?.discount || 0), 0);
+        const totalNet = totalGross - totalOfferDiscount - totalCouponDiscount;
+
+        // Update footer totals
+        document.querySelector('tfoot').innerHTML = `
+            <tr>
+                <td colspan="3" class="px-6 py-4 font-bold text-right">Totals:</td>
+                <td class="px-6 py-4 font-bold">₹${Math.round(totalGross)}</td>
+                <td class="px-6 py-4 font-bold text-green-600">-₹${Math.round(totalOfferDiscount)}</td>
+                <td class="px-6 py-4 font-bold text-red-600">-₹${Math.round(totalCouponDiscount)}</td>
+                <td class="px-6 py-4 font-bold">₹${Math.round(totalNet)}</td>
+            </tr>
+        `;
+    }
+
+    // Helper function to format date
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-IN');
+    }
+
+    // Helper function to get offer text
+    function getOfferText(product) {
+        if (product.offer) {
+            return `<span class="text-green-600">${product.offer.discountValue}%</span>`;
+        } else if (product.category?.offer) {
+            return `<span class="text-green-600">${product.category.offer.discountValue}%</span>`;
+        }
+        return '<span class="text-gray-500">0%</span>';
+    }
+
+    function calculateOfferDiscount(price, discountValue) {
+        return Math.round((price * discountValue) / 100);
+    }
+
+    function updateTotals(orders) {
+        // Calculate total gross (original price without any discounts)
+        const totalGross = orders.reduce((sum, order) => {
+            return sum + order.items[0].product.price * order.items[0].quantity;
+        }, 0);
+
+        // Calculate total offer discounts
+        const totalOfferDiscount = orders.reduce((sum, order) => {
+            let discount = 0;
+            const originalPrice = order.items[0].product.price * order.items[0].quantity;
+            
+            if (order.items[0].product.offer) {
+                discount = calculateOfferDiscount(originalPrice, order.items[0].product.offer.discountValue);
+            } else if (order.items[0].product.category?.offer) {
+                discount = calculateOfferDiscount(originalPrice, order.items[0].product.category.offer.discountValue);
+            }
+            return sum + discount;
+        }, 0);
+
+        // Calculate total coupon discounts
+        const totalCouponDiscount = orders.reduce((sum, order) => {
+            return sum + (order.couponUsed?.discount || 0);
+        }, 0);
+
+        // Calculate net amount (gross - offer discounts - coupon discounts)
+        const totalNet = totalGross - totalOfferDiscount - totalCouponDiscount;
+
+        document.querySelector('tfoot').innerHTML = `
+            <tr>
+                <td colspan="3" class="px-6 py-4 font-bold text-right">Totals:</td>
+                <td class="px-6 py-4 font-bold">₹${Math.round(totalGross)}</td>
+                <td class="px-6 py-4 font-bold text-green-600">-₹${Math.round(totalOfferDiscount)}</td>
+                <td class="px-6 py-4 font-bold text-red-600">-₹${Math.round(totalCouponDiscount)}</td>
+                <td class="px-6 py-4 font-bold">₹${Math.round(totalNet)}</td>
+            </tr>
+        `;
+    }
+
+    function exportReport(type) {
+        if (type === 'excel') {
+            // Get all rows from the table, including those hidden by pagination
+            const tableRows = document.querySelectorAll('#salesReportBody tr');
+            if (tableRows.length === 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'No Data',
+                    text: 'There is no data to export!'
+                });
+                return;
+            }
+            exportToExcel(Array.from(tableRows));
+        }
+    }
+
+    function exportToExcel(rows) {
+        try {
+            // Ensure XLSX is available
+            if (typeof XLSX === 'undefined') {
+                throw new Error('XLSX library not loaded');
+            }
+
+            // Create a new workbook
+            const workbook = XLSX.utils.book_new();
+            
+            // Get summary data
+            const totalOrders = document.querySelector('.text-3xl').textContent.trim();
+            const grossRevenue = document.querySelectorAll('.text-3xl')[1].textContent.trim();
+            const totalDiscounts = document.querySelectorAll('.text-3xl')[2].textContent.trim();
+            const netRevenue = document.querySelectorAll('.text-3xl')[3].textContent.trim();
+
+            // Format the current date
+            const currentDate = new Date().toLocaleString('en-IN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            // Add company info and report title
+            const headerData = [
+                ['nxtTick Sales Report'],
+                [''],
+                ['Report Generated:', currentDate],
+                ['Period:', (document.getElementById('startDate').value || 'All time') + ' to ' + (document.getElementById('endDate').value || 'Present')],
+                [''],
+                ['Summary Statistics'],
+                ['Total Orders:', totalOrders],
+                ['Gross Revenue:', grossRevenue],
+                ['Total Discounts:', totalDiscounts],
+                ['Net Revenue:', netRevenue],
+                [''],
+                ['Detailed Sales Report'],
+                ['Date', 'Order ID', 'Customer', 'Original Price', 'Offer Applied', 'Coupon Discount', 'Net Amount']
+            ];
+
+            // Get sales data with more details
+            const salesData = rows.map(row => {
+                const cells = row.getElementsByTagName('td');
+                return [
+                    cells[0].textContent.trim(),  // Date
+                    cells[1].textContent.trim(),  // Order ID
+                    cells[2].textContent.trim(),  // Customer
+                    cells[3].textContent.trim(),  // Original Price
+                    cells[4].textContent.trim(),  // Offer Applied
+                    cells[5].textContent.trim(),  // Coupon Discount
+                    cells[6].textContent.trim()   // Net Amount
+                ];
+            });
+
+            // Combine header and sales data
+            const allData = [...headerData, ...salesData];
+
+            // Create worksheet
+            const worksheet = XLSX.utils.aoa_to_sheet(allData);
+
+            // Set column widths
+            worksheet['!cols'] = [
+                { wch: 15 },  // Date
+                { wch: 15 },  // Order ID
+                { wch: 30 },  // Customer
+                { wch: 15 },  // Original Price
+                { wch: 15 },  // Offer Applied
+                { wch: 15 },  // Coupon Discount
+                { wch: 15 }   // Net Amount
+            ];
+
+            // Add styles to the header
+            const headerStyle = {
+                font: { bold: true, color: { rgb: "FFFFFF" } },
+                fill: { fgColor: { rgb: "4A90E2" } }
+            };
+
+            // Apply styles to header cells
+            for (let i = 0; i < headerData[12].length; i++) {
+                const cellRef = XLSX.utils.encode_cell({ r: 12, c: i });
+                worksheet[cellRef].s = headerStyle;
+            }
+
+            // Merge cells for title
+            worksheet['!merges'] = [
+                { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } }  // Merge first row across all columns
+            ];
+
+            // Add the worksheet to workbook
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Sales Report');
+
+            // Generate Excel file with current date in filename
+            const date = new Date().toISOString().split('T')[0];
+            const fileName = `nxtTick_Sales_Report_${date}.xlsx`;
+
+            // Save the file
+            XLSX.writeFile(workbook, fileName);
+
+        } catch (error) {
+            console.error('Excel Export Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Export Failed',
+                text: 'Failed to generate Excel report. Please try again.'
+            });
+        }
+    }
+
+    function exportToPDF() {
+        // Create new jsPDF instance
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Add title
+        doc.setFontSize(18);
+        doc.text('Sales Report', 14, 20);
+
+        // Get table data
+        const table = document.getElementById('salesReportBody');
+        const rows = Array.from(table.getElementsByTagName('tr'));
+
+        // Define table headers
+        const headers = [['Date', 'Order ID', 'Customer', 'Gross Amount', 'Coupon', 'Net Amount']];
+
+        // Get table data
+        const data = rows.map(row => {
+            const cells = row.getElementsByTagName('td');
+            return [
+                cells[0].textContent,
+                cells[1].textContent,
+                cells[2].textContent,
+                cells[3].textContent,
+                cells[4].textContent,
+                cells[5].textContent
+            ];
+        });
+
+        // Get footer data
+        const footer = document.querySelector('tfoot tr');
+        const footerCells = footer.getElementsByTagName('td');
+        const footerData = [[
+            'Totals',
+            '',
+            '',
+            footerCells[3].textContent,
+            footerCells[4].textContent,
+            footerCells[5].textContent
+        ]];
+
+        // Add table to PDF
+        doc.autoTable({
+            head: headers,
+            body: data,
+            foot: footerData,
+            startY: 30,
+            theme: 'grid',
+            headStyles: {
+                fillColor: [41, 128, 185],
+                textColor: 255,
+                fontSize: 12,
+                fontStyle: 'bold'
+            },
+            footStyles: {
+                fillColor: [233, 236, 239],
+                textColor: 0,
+                fontSize: 12,
+                fontStyle: 'bold'
+            },
+            styles: {
+                fontSize: 10,
+                cellPadding: 3
+            },
+            margin: { top: 30 }
+        });
+
+        // Save PDF
+        doc.save('sales-report.pdf');
+    }
+  </script>
 </body>
 </html>

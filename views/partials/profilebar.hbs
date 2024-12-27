@@ -1,11 +1,37 @@
-<aside class="w-48 bg-blue-100 text-gray-800 h-screen">
+<aside class="w-48 bg-blue-100 text-gray-800 min-h-screen sticky top-0 overflow-y-auto">
     <nav class="flex-1  mt-10">
         <ul class="space-y-3 ">
-            <li><a href="/user/profile" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold" id="profile-link">My Profile</a></li>
-            <li><a href="/user/orders" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold" id="all-orders-link">My Orders</a></li>
-            <li><a href="/user/addresses" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold" id="address-link">Saved Address</a></li>
-            <li><a href="#" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold" id="wallet-link">My Wallet</a></li>
-            <li><a href="#" class="block px-4 py-2 text-black hover:bg-red-300 rounded font-semibold" id="logout-link">Logout</a></li>
+            <li><a href="/user/profile" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold flex items-center" id="profile-link">
+                <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                My Profile
+            </a></li>
+            <li><a href="/user/orders" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold flex items-center" id="all-orders-link">
+                <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                My Orders
+            </a></li>
+            <li><a href="/user/addresses" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold flex items-center" id="address-link">
+                <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Saved Address
+            </a></li>
+            <li><a href="/user/wallet" class="block px-4 py-2 text-black hover:bg-blue-200 rounded font-semibold flex items-center" id="wallet-link">
+                <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                My Wallet
+            </a></li>
+            <li><a href="/user/logout" class="block px-4 py-2 text-black hover:bg-red-300 rounded font-semibold flex items-center" id="logout-link">
+                <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Logout
+            </a></li>
         </ul>
     </nav>
 </aside>

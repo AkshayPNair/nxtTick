@@ -12,7 +12,7 @@ const productSchema = new mongoose.Schema({
   category: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "category",
-    required:true,
+    required: true,
   },
   brand: {
     type: String,
@@ -29,27 +29,70 @@ const productSchema = new mongoose.Schema({
     min: 0, 
   },
   images:[{
-    type:String
+    type: String
   }],
-  status:{
-    type:Boolean,
-    default:true,
+  status: {
+    type: Boolean,
+    default: true,
   },
-  isDeleted:{
-    type:Boolean,
-    default:false,
+  isDeleted: {
+    type: Boolean,
+    default: false,
   },
-  deletedAt:{
-    type:Date,
-    default:Date.now
+  isWishlist: {
+    type: Boolean,
+    default: false,
+  },
+  offer: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'offer',
+    default: null
+  },
+  discountedPrice: {
+    type: Number,
+    default: null
+  },
+  deletedAt: {
+    type: Date,
+    default: Date.now()
   },
   createdAt: {
-     type: Date, 
-     default: Date.now 
+    type: Date, 
+    default: Date.now() 
   },
-  updatedAt:{
-    type:Date,
-    default:Date.now
+  updatedAt: {
+    type: Date,
+    default: Date.now()
+  }
+});
+
+// Pre-save middleware to calculate discounted price
+productSchema.pre('save', async function(next) {
+  try {
+    // Always set discountedPrice to regular price first
+    this.discountedPrice = this.price;
+
+    // Then check for offers and update if necessary
+    if (this.offer) {
+      const offer = await mongoose.model('Offer').findById(this.offer);
+      if (offer && offer.isActive) {
+        const discount = (this.price * offer.discountValue) / 100;
+        this.discountedPrice = this.price - discount;
+      }
+    } else {
+      // Check for category offer if no product offer exists
+      const category = await mongoose.model('category')
+        .findById(this.category)
+        .populate('offer');
+      
+      if (category?.offer?.isActive) {
+        const discount = (this.price * category.offer.discountValue) / 100;
+        this.discountedPrice = this.price - discount;
+      }
+    }
+    next();
+  } catch (error) {
+    next(error);
   }
 });
 

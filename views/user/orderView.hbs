@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     {{>header}}
@@ -17,15 +18,40 @@
         <h2 class="text-2xl font-semibold mb-8">Order Summary</h2>
         
         <div class="grid grid-cols-12 gap-8 items-start">
-          {{#each orders.items}}  
-            <div class="col-span-4">
-                <img src="{{product.images.[0]}}" alt="Product Name" class="w-full rounded-lg shadow-md">
+          {{#each order.items}}  
+            <div class="col-span-2 flex justify-center">
+                <img src="{{product.images.[0]}}" alt="Product Name" class="w-24 h-24 rounded-lg shadow-md">
             </div>
             <div class="col-span-8">
                 <h3 class="text-xl font-semibold">{{product.name}}</h3>
-                <p class="text-md text-gray-700 mt-4">Price: ₹{{subtotal}}</p>
+                <p class="text-md text-gray-700 mt-4">
+                    Price: 
+                    {{#if this.activeOffer}}
+                        <!-- Product/Category Offer Applied -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-red-600 font-semibold">₹{{this.finalPrice}}</span>
+                            <span class="text-gray-400 font-semibold line-through text-sm">₹{{this.originalPrice}}</span>
+                            <span class="bg-green-200 text-green-600 font-semibold rounded-md text-xs px-2">
+                                {{this.activeOffer.discountValue}}% OFF
+                            </span>
+                        </div>
+                    {{else if ../couponUsed}}
+                        <!-- Coupon Applied -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-red-600 font-semibold">₹{{this.finalPrice}}</span>
+                            <span class="text-gray-400 font-semibold line-through text-sm">₹{{this.originalPrice}}</span>
+                            <span class="bg-green-200 text-green-600 font-semibold rounded-md text-xs px-2">
+                                COUPON APPLIED
+                            </span>
+                        </div>
+                    {{else}}
+                        <!-- Regular Price -->
+                        <span class="text-red-600 font-semibold">₹{{this.originalPrice}}</span>
+                    {{/if}}
+                </p>
                 <p class="text-md text-gray-700">Quantity: {{quantity}}</p>
             </div>
+            <br>
          {{/each}} 
         </div>
       </div>
@@ -36,7 +62,7 @@
         <div class="p-6 bg-gray-50 rounded-lg shadow-inner">
           <p class="text-lg text-gray-800 font-medium">{{order.address.name}}</p>
           <p class="text-lg text-gray-600">{{order.address.street}}</p>
-          <p class="text-lg text-gray-600">{{order.address.city}}, {{order.address.state}}, {{order.address.zip}}</p>
+          <p class="text-lg text-gray-600">{{order.address.city}}, {{order.address.state}}, {{order.address.pinCode}}</p>
           <p class="text-lg text-gray-600">{{order.address.country}}</p>
           <p class="text-lg text-gray-600">Phone:  {{order.address.phone}}</p>
         </div>
@@ -46,53 +72,332 @@
       <div class="mb-12">
         <h2 class="text-2xl font-semibold mb-8">Order Tracking</h2>
         <div class="relative px-8">
-          <div class="absolute inset-0 h-1 bg-gray-300"></div>
+          <!-- Progress Line -->
+          <div class="absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-gray-200 via-gray-200 to-gray-200 rounded-full">
+            <div id="progress-line" class="absolute top-0 left-0 h-full rounded-full transition-all duration-1000 animate-pulse shadow-lg"></div>
+          </div>
+
           <div class="flex justify-between items-center relative z-10">
             <!-- Pending -->
-            <div class="flex flex-col items-center">
-              <div class="w-8 h-8 rounded-full flex items-center justify-center bg-green-500 text-white text-xl">✓</div>
-              <span class="mt-4 text-lg font-medium">Pending</span>
-              <span class="text-sm text-gray-500">01/12/2024</span>
+            <div class="flex flex-col items-center transform transition-all duration-500 hover:scale-110">
+              <div id="pending-stage" class="w-10 h-10 rounded-full border-4 border-gray-300 bg-white shadow-lg flex items-center justify-center transition-all duration-300">
+                <svg class="w-5 h-5 text-gray-400 transform transition-transform duration-500 hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+              <span class="mt-3 font-medium text-gray-500 transition-colors duration-300">Pending</span>
+              <span id="pending-date" class="text-sm text-gray-500">{{formatDate order.createdAt}}</span>
             </div>
+
             <!-- Shipped -->
-            <div class="flex flex-col items-center">
-              <div class="w-8 h-8 rounded-full flex items-center justify-center bg-green-500 text-white text-xl">✓</div>
-              <span class="mt-4 text-lg font-medium">Shipped</span>
-              <span class="text-sm text-gray-500">03/12/2024</span>
+            <div class="flex flex-col items-center transform transition-all duration-500 hover:scale-110">
+              <div id="shipped-stage" class="w-10 h-10 rounded-full border-4 border-gray-300 bg-white shadow-lg flex items-center justify-center transition-all duration-300">
+                <svg class="w-5 h-5 text-gray-400 transform transition-transform duration-500 hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+              <span class="mt-3 font-medium text-gray-500 transition-colors duration-300">Shipped</span>
+              <span id="shipped-date" class="text-sm text-gray-500">
+                {{#if order.shippedAt}}
+                  {{formatDate order.shippedAt}}
+                {{else}}
+                  --
+                {{/if}}
+              </span>
             </div>
+
             <!-- Out for Delivery -->
-            <div class="flex flex-col items-center">
-              <div class="w-8 h-8 rounded-full flex items-center justify-center bg-yellow-500 text-white text-xl">•</div>
-              <span class="mt-4 text-lg font-medium">Out for Delivery</span>
-              <span class="text-sm text-gray-500">--</span>
+            <div class="flex flex-col items-center transform transition-all duration-500 hover:scale-110">
+              <div id="out-for-delivery-stage" class="w-10 h-10 rounded-full border-4 border-gray-300 bg-white shadow-lg flex items-center justify-center transition-all duration-300">
+                <svg class="w-5 h-5 text-gray-400 transform transition-transform duration-500 hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+              </div>
+              <span class="mt-3 font-medium text-gray-500 transition-colors duration-300">Out for Delivery</span>
+              <span id="out-for-delivery-date" class="text-sm text-gray-500">
+                {{#if order.outForDeliveryAt}}
+                  {{formatDate order.outForDeliveryAt}}
+                {{else}}
+                  --
+                {{/if}}
+              </span>
             </div>
-            <!-- Delivered -->
-            <div class="flex flex-col items-center">
-              <div class="w-8 h-8 rounded-full flex items-center justify-center bg-gray-400 text-white text-xl">•</div>
-              <span class="mt-4 text-lg font-medium">Delivered</span>
-              <span class="text-sm text-gray-500">--</span>
+
+            <!-- Delivered/Cancelled/Returned -->
+            <div class="flex flex-col items-center transform transition-all duration-500 hover:scale-110">
+              <div id="final-stage" class="w-10 h-10 rounded-full border-4 border-gray-300 bg-white shadow-lg flex items-center justify-center transition-all duration-300">
+                <svg class="w-5 h-5 text-gray-400 transform transition-transform duration-500 hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+              <span id="final-stage-text" class="mt-3 font-medium text-gray-500 transition-colors duration-300">
+                {{#if (eq order.status "Cancelled")}}
+                  Cancelled
+                {{else if (eq order.status "Returned")}}
+                  Returned
+                {{else}}
+                  Delivered
+                {{/if}}
+              </span>
+              <span id="final-stage-date" class="text-sm text-gray-500">
+                {{#if (eq order.status "Cancelled")}}
+                  {{formatDate order.cancelledAt}}
+                {{else if (eq order.status "Returned")}}
+                  {{formatDate order.returnedAt}}
+                {{else}}
+                  {{#if order.deliveredAt}}
+                    {{formatDate order.deliveredAt}}
+                  {{else}}
+                    --
+                  {{/if}}
+                {{/if}}
+              </span>
             </div>
           </div>
         </div>
       </div>
-  
+
+     
       <!-- Additional Order Details Section -->
       <div class="mb-12">
         <h2 class="text-2xl font-semibold mb-8">Order Details</h2>
         <div class="text-lg text-gray-700">
-          <p>Order Date: {{order.createdAt}}</p>
-          <p>Payment Method: {{order.paymentMethod}}</p>
-          <p>Order ID: {{order._id}}</p>
+          <p ><span class="font-semibold">Order Date :</span> {{formatDate order.createdAt}}</p>
+          <p><span class="font-semibold">Payment Method :</span> {{order.paymentMethod}}</p>
+          <p><span class="font-semibold">Order ID :</span> {{order._id}}</p>
         </div>
       </div>
   
       <!-- Cancel Order Button -->
       <div class="text-center">
-        <button class="px-2 py-1 bg-red-500 text-white text-lg font-semibold rounded-lg shadow-md hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-red-400">
-          Cancel Order
-        </button>
+        {{#if order.deliveredAt}}         
+            <button onclick="confirmReturnOrder('{{order._id}}')" class="px-2 py-1 bg-red-500 text-white text-lg font-semibold rounded-lg shadow-md hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-red-400">
+              Return Order
+            </button>
+        {{else if (eq order.status "Cancelled")}}
+        {{else if (eq order.status "Returned")}}
+        {{else}}
+          <button onclick="confirmCancelOrder('{{order._id}}')" class="px-2 py-1 bg-red-500 text-white text-lg font-semibold rounded-lg shadow-md hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-red-400">
+            Cancel Order
+          </button>
+        {{/if}}
       </div>
     </div>
   </div>
+
+   <style>
+        @keyframes glow {
+          0% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+          50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); }
+          100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+        }
+      </style>
+
+      <script>
+        function updateProgressBar(status) {
+          const stages = [
+            document.getElementById('pending-stage'),
+            document.getElementById('shipped-stage'),
+            document.getElementById('out-for-delivery-stage'),
+            document.getElementById('final-stage')
+          ];
+          const progressLine = document.getElementById('progress-line');
+
+          // Reset all stages
+          stages.forEach(stage => {
+            stage.classList.remove('border-blue-500', 'bg-blue-500', 'border-yellow-500', 'bg-yellow-500', 'border-green-500', 'bg-green-500', 'border-red-500', 'bg-red-500', 'animate-pulse');
+            stage.classList.add('border-gray-300', 'bg-white');
+            stage.querySelector('svg').classList.replace('text-white', 'text-gray-400');
+          });
+
+          switch(status) {
+            case 'Pending':
+              stages[0].classList.remove('border-gray-300', 'bg-white');
+              stages[0].classList.add('border-blue-500', 'bg-blue-500', 'animate-pulse');
+              stages[0].querySelector('svg').classList.replace('text-gray-400', 'text-white');
+              progressLine.style.width = '25%';
+              progressLine.className = 'absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-gray-300 rounded-full transition-all duration-1000 animate-pulse shadow-[0_0_10px_rgba(59,130,246,0.5)]';
+              break;
+
+            case 'Shipped':
+              for(let i = 0; i <= 1; i++) {
+                stages[i].classList.remove('border-gray-300', 'bg-white');
+                stages[i].classList.add('border-blue-500', 'bg-blue-500', 'animate-pulse');
+                stages[i].querySelector('svg').classList.replace('text-gray-400', 'text-white');
+              }
+              progressLine.style.width = '50%';
+              progressLine.className = 'absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 via-blue-500 to-gray-300 rounded-full transition-all duration-1000 animate-pulse shadow-[0_0_15px_rgba(59,130,246,0.6)]';
+              break;
+
+            case 'Out for Delivery':
+              for(let i = 0; i <= 2; i++) {
+                stages[i].classList.remove('border-gray-300', 'bg-white');
+                if(i === 2) {
+                  stages[i].classList.add('border-yellow-500', 'bg-yellow-500', 'animate-pulse');
+                } else {
+                  stages[i].classList.add('border-blue-500', 'bg-blue-500', 'animate-pulse');
+                }
+                stages[i].querySelector('svg').classList.replace('text-gray-400', 'text-white');
+              }
+              progressLine.style.width = '75%';
+              progressLine.className = 'absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 via-yellow-500 to-gray-300 rounded-full transition-all duration-1000 animate-pulse shadow-[0_0_20px_rgba(234,179,8,0.6)]';
+              break;
+
+            case 'Delivered':
+              stages.forEach((stage, index) => {
+                stage.classList.remove('border-gray-300', 'bg-white');
+                if(index === 3) {
+                  stage.classList.add('border-green-500', 'bg-green-500', 'animate-pulse');
+                } else if(index === 2) {
+                  stage.classList.add('border-yellow-500', 'bg-yellow-500', 'animate-pulse');
+                } else {
+                  stage.classList.add('border-blue-500', 'bg-blue-500', 'animate-pulse');
+                }
+                stage.querySelector('svg').classList.replace('text-gray-400', 'text-white');
+              });
+              progressLine.style.width = '100%';
+              progressLine.className = 'absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 via-yellow-500 to-green-500 rounded-full transition-all duration-1000 animate-pulse shadow-[0_0_25px_rgba(34,197,94,0.6)]';
+              break;
+
+            case 'Cancelled':
+              // Show only first stage in blue, final stage in red
+              stages[0].classList.remove('border-gray-300', 'bg-white');
+              stages[0].classList.add('border-blue-500', 'bg-blue-500', 'animate-pulse');
+              stages[0].querySelector('svg').classList.replace('text-gray-400', 'text-white');
+
+              stages[3].classList.remove('border-gray-300', 'bg-white');
+              stages[3].classList.add('border-red-500', 'bg-red-500', 'animate-pulse');
+              stages[3].querySelector('svg').classList.replace('text-gray-400', 'text-white');
+
+              progressLine.style.width = '100%';
+              progressLine.className = 'absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-red-500 rounded-full transition-all duration-1000 animate-pulse shadow-[0_0_25px_rgba(239,68,68,0.6)]';
+              break;
+
+            case 'Returned':
+              // Show all stages completed but final stage in red
+              stages.forEach((stage, index) => {
+                stage.classList.remove('border-gray-300', 'bg-white');
+                if(index === 3) {
+                  stage.classList.add('border-red-500', 'bg-red-500', 'animate-pulse');
+                } else {
+                  stage.classList.add('border-blue-500', 'bg-blue-500', 'animate-pulse');
+                }
+                stage.querySelector('svg').classList.replace('text-gray-400', 'text-white');
+              });
+              progressLine.style.width = '100%';
+              progressLine.className = 'absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 via-blue-500 to-red-500 rounded-full transition-all duration-1000 animate-pulse shadow-[0_0_25px_rgba(239,68,68,0.6)]';
+              break;
+          }
+        }
+
+        // Initialize progress bar on page load
+        window.onload = function() {
+          const status = '{{order.status}}';
+          updateProgressBar(status);
+        }
+
+        function confirmCancelOrder(orderId) {
+          Swal.fire({
+            title: 'Are you sure?',
+            text: "You want to cancel this order?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#EF4444', 
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Yes, cancel it!',
+            cancelButtonText: 'No, keep it'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              fetch(`/user/cancelOrder/${orderId}`)
+                .then(response => {
+                  if(response.ok) {
+                    Swal.fire({
+                      title: 'Order Cancelled!',
+                      text: 'Your order has been cancelled successfully',
+                      icon: 'success',
+                      confirmButtonText: 'OK'
+                    }).then(() => {
+                      window.location.href = '/user/orders';
+                    });
+                  }
+                })
+                .catch(() => {
+                  Swal.fire({
+                    title: 'Error!',
+                    text: 'Failed to cancel order',
+                    icon: 'error'
+                  });
+                });
+            }
+          });
+        }
+
+        function confirmReturnOrder(orderId) {
+          Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you want to return this order?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#EF4444',
+            cancelButtonColor: '#6B7280', 
+            confirmButtonText: 'Yes, return it!',
+            cancelButtonText: 'No, keep it'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              Swal.fire({
+                title: 'Return Reason',
+                input: 'textarea',
+                inputLabel: 'Please provide a reason for returning',
+                inputPlaceholder: 'Enter your reason here...',
+                inputAttributes: {
+                  'aria-label': 'Return reason'
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Submit',
+                showLoaderOnConfirm: true,
+                preConfirm: (reason) => {
+                  if (!reason) {
+                    Swal.showValidationMessage('Please enter a reason')
+                  }
+                  return reason;
+                }
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  fetch(`/user/returnOrder/${orderId}`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                      reason: result.value
+                    })
+                  })
+                  .then(response => {
+                    if(response.ok) {
+                      Swal.fire({
+                        title: 'Return Confirmed!',
+                        text: 'Your return  has been submitted successfully',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                      }).then(() => {
+                        window.location.href = '/user/orders';
+                      });
+                    } else {
+                      throw new Error('Return failed');
+                    }
+                  })
+                  .catch(() => {
+                    Swal.fire({
+                      title: 'Error!',
+                      text: 'Failed to process return request',
+                      icon: 'error'
+                    });
+                  });
+                }
+              });
+            }
+          });
+        }
+      </script>
 </body>
 </html>

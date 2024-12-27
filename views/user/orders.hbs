@@ -5,6 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Orders</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <style>
+        .order-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .order-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .view-details {
+            transition: all 0.3s ease;
+        }
+        .view-details:hover {
+            transform: translateX(5px);
+        }
+    </style>
 </head>
 <body class="bg-gray-50">
     {{>header}}
@@ -22,7 +40,7 @@
                 <!-- Single Order Card -->
                 {{#if orders.length}} 
                 {{#each orders}}
-                <div class="bg-white shadow-md rounded-lg overflow-hidden">
+                <div class="order-card bg-white shadow-md rounded-lg overflow-hidden" data-aos="fade-up">
                     {{#each this.items}}
                     <div class="flex items-center p-4">
                         <!-- Product Image -->
@@ -36,14 +54,36 @@
                             <!-- Horizontal Details -->
                             <div class="flex items-center space-x-8 mt-2">
                                 <p class="text-sm text-gray-600">Quantity : <span class="font-medium text-black-500">{{this.quantity}}</span></p>
-                                <p class="text-sm text-gray-600">Order Price : <span class="font-medium text-red-500"> Rs. {{this.subtotal}}</span></p>
-                                <p class="text-sm text-gray-600">
+                                <p class="text-sm text-gray-600 flex items-center gap-2">
+                                    Order Price : 
+                                    {{#if this.activeOffer}}
+                                        <!-- Product/Category Offer Applied -->
+                                        <span class="font-medium text-red-600">Rs. {{this.finalPrice}}</span>
+                                        <span class="font-medium text-gray-400 line-through text-sm">Rs. {{this.originalPrice}}</span>
+                                        <span class="bg-green-200 text-green-600 font-semibold rounded-md text-xs px-2">
+                                            {{this.activeOffer.discountValue}}% OFF
+                                        </span>
+                                    {{else if ../couponUsed}}
+                                        <!-- Coupon Applied -->
+                                        <span class="font-medium text-red-600">Rs. {{this.finalPrice}}</span>
+                                        <span class="font-medium text-gray-400 line-through text-sm">Rs. {{this.originalPrice}}</span>
+                                        <span class="bg-green-200 text-green-600 font-semibold rounded-md text-xs px-2">
+                                            COUPON APPLIED
+                                        </span>
+                                    {{else}}
+                                        <!-- Regular Price -->
+                                        <span class="font-medium text-red-600">Rs. {{this.originalPrice}}</span>
+                                    {{/if}}
+                                </p>
+                                <p class="text-sm text-gray-600 ">
                                     Status : 
                                     <span class="font-medium text-white rounded-xl px-1 
                                         {{#if (eq ../status 'Pending')}}bg-orange-200 text-orange-500{{/if}}
                                         {{#if (eq ../status 'Shipped')}}bg-blue-200 text-blue-500{{/if}}
                                         {{#if (eq ../status 'Out for Delivery')}}bg-yellow-100 text-yellow-500{{/if}}
-                                        {{#if (eq ../status 'Delivered')}}bg-green-200 text-green-500{{/if}}">
+                                        {{#if (eq ../status 'Delivered')}}bg-green-200 text-green-500{{/if}}
+                                        {{#if (eq ../status 'Cancelled')}}bg-red-200 text-red-500{{/if}}
+                                        {{#if (eq ../status 'Returned')}}bg-red-200 text-red-500{{/if}}">
                                         {{../status}}
                                     </span>
                                 </p>
@@ -53,12 +93,16 @@
                         
                     </div>
 
-                    <!-- Buttons -->
-                    <div class="flex justify-end  items-center px-4 py-2 bg-gray-100">
-                        {{!-- <button  class="text-sm font-semibold text-red-600 hover:text-red-800">Cancel Order</button> --}}
-                        <a href="/user/orderView/{{this._id}}" class="text-sm font-semibold text-blue-600 hover:text-blue-800">View Details</a>
-                    </div>
                     {{/each}}
+                    <!-- Buttons -->
+                    <div class="flex justify-end items-center px-4 py-2 bg-gray-50">
+                        <a href="/user/orderView/{{this._id}}" class="view-details inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800">
+                            <span>View Details</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                    </div>
                 </div>
                 {{/each}}
                 {{else}}
@@ -71,5 +115,12 @@
             </div>
         </div>
     </div>
+    {{>profileFooter}}
+    <script>
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+    </script>
 </body>
 </html>

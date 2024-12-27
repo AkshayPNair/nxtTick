@@ -69,20 +69,48 @@
       <img src="{{this.product.images.[0]}}" alt="Product Image" class="w-12 h-12">
     </td>
     <td class="p-4 text-gray-600">{{this.product.name}}</td>
-    <td class="p-4 text-gray-600">Rs. {{this.product.price}}</td>
     <td class="p-4">
-      <!-- Quantity input with onchange handler -->
-      <input
+      {{#if this.product.activeOffer}}
+        <div class="flex flex-col">
+          <div class="flex items-center gap-2">
+            <span class="text-red-600 font-semibold">Rs. {{roundPrice this.product.finalPrice}}</span>
+            <span class="text-gray-400 font-semibold line-through text-sm">Rs. {{roundPrice this.product.price}}</span> 
+            <span class="bg-green-200 text-green-600 font-semibold rounded-md text-xs">{{this.product.activeOffer.discountValue}}% OFF</span>
+        </div>
+      {{else}}
+        <span class="text-red-600 font-semibold">Rs. {{roundPrice this.product.price}}</span>
+      {{/if}}
+    </td>
+    
+    <td class="p-4">
+      <div class="flex items-center justify-center border border-gray-300 rounded w-24">
+        <button type="button" 
+                class="px-2 py-1 text-gray-600 hover:bg-gray-100 font-medium"
+                onclick="const input = this.nextElementSibling; if(input.value > 1) { input.value--; input.dispatchEvent(new Event('change')); }">
+          -
+        </button>
+        <input
           type="number"
           value="{{this.quantity}}"
-          class="w-12 border border-gray-300 rounded p-1"
+          class="w-10 text-center border-x border-gray-300 py-1 font-medium focus:outline-none"
           min="1"
-          onchange="updateSubtotal(this, {{this.product.price}}, 'subtotal-{{this.product._id}}', '{{this.product._id}}')"/>
-
+          readonly
+          onchange="updateSubtotal(this, {{this.product.price}}, 'subtotal-{{this.product._id}}', '{{this.product._id}}')"
+        />
+        <button type="button"
+                class="px-2 py-1 text-gray-600 hover:bg-gray-100 font-medium" 
+                onclick="const input = this.previousElementSibling; input.value++; input.dispatchEvent(new Event('change'));">
+          +
+        </button>
+      </div>
     </td>
     <!-- Subtotal element with unique ID -->
     <td class="p-4 text-red-500 font-semibold subtotal" id="subtotal-{{this.product._id}}">
-      Rs. {{multiply this.product.price this.quantity}}
+      Rs. {{#if this.product.activeOffer}}
+            {{multiply this.product.finalPrice this.quantity}}
+          {{else}}
+            {{multiply this.product.price this.quantity}}
+          {{/if}}
     </td>
     <td class="p-4">
       <button onclick="removeFromCart('{{this.product._id}}')" class="text-black hover:text-red-500">
@@ -106,9 +134,10 @@
       <!-- Cart Totals -->
       <div class="bg-blue-50 shadow-md rounded-lg p-6 w-full lg:w-1/4">
         <h2 class="text-2xl text-center font-bold text-black mb-8">Cart Totals</h2>
+        
         <div class="flex justify-between items-center mb-4">
           <span class="text-gray-600 font-medium">Subtotal</span>
-          <span  class="text-gray-600 font-medium">Rs. {{total}}</span>
+          <span class="text-gray-600 font-medium">Rs. {{total}}</span>
         </div>
         <div class="flex justify-between items-center mb-6">
           <span class="text-black font-semibold">Total</span>

@@ -37,14 +37,18 @@ const orderSchema=new mongoose.Schema({
         type: Date,
         default: null
     },
+    outForDeliveryAt: {
+        type: Date,
+        default: null
+    },
     deliveredAt: {
         type: Date,
         default: null
     },
-    outForDeliveryAt: {
-        type: Date,
-        default: null
+    couponUsed: {
+        code: String,
+        discount: Number
     }
-})
+});
 
 module.exports=mongoose.model("Order",orderSchema)

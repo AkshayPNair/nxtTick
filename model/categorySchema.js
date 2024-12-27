@@ -21,6 +21,11 @@ const categorySchema=new mongoose.Schema({
       image:[{
         type:String
       }],
+      offer: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'offer',
+        default: null
+      },
       createdAt: {
         type: Date, 
         default: Date.now 

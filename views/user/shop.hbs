@@ -5,8 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shop</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/notyf/notyf.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf/notyf.min.css">
+    <style>
+      
+        .product-card {
+            transition: transform 0.3s ease-in-out;
+        }
+        .product-card:hover {
+            transform: scale(1.05);
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .product-card {
+            animation: fadeIn 0.5s ease-out;
+        }
+        .heart-icon {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .heart-icon.active svg {
+            fill: red;
+            stroke: red;
+        }
+        .heart-icon:hover {
+            transform: scale(1.1);
+        }
+    </style>
 </head>
-<body>
+<body class="bg-gray-50">
     {{!-- header section --}}
     {{>header}}
 
@@ -62,12 +97,21 @@
           </button>
         </div>
 
-        <!-- Showing Results -->
-        <p class="text-gray-700">Showing 1–16 of 32 results</p>
+
+        
       </div>
 
       <!-- Right Section -->
       <div class="flex items-center gap-4">
+        <!-- Category Filter -->
+        <p class="text-gray-700 font-medium">Category</p>
+        <select id="categoryFilter" class="border border-gray-300 rounded-md px-4 py-2 bg-white shadow-sm text-gray-600" onchange="filterByCategory(this.value)">
+            <option value="all" {{#if (eq categoryFilter 'all')}}selected{{/if}}>All Categories</option>
+            {{#each categories}}
+            <option value="{{this._id}}" {{#if (eq ../categoryFilter (toString this._id))}}selected{{/if}}>{{this.name}}</option>
+            {{/each}}
+        </select>
+
         <!-- Sort By -->
         <p class="text-gray-700 font-medium">Sort by</p>
         <select id="sortBy" class="border border-gray-300 rounded-md px-4 py-2 bg-white shadow-sm text-gray-600" onchange="sortProducts(this.value)">
@@ -89,12 +133,31 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <!-- Product Card -->
              {{#each data}}
-          <div class="bg-white shadow-md rounded-lg overflow-hidden">
-            <img src="{{this.images.[0]}}" onclick="load('{{this._id}}')" alt="Green Goblin" class="w-full h-70 object-cover">
-            <div class="p-4 ">
+          <div class="bg-white shadow-md rounded-lg overflow-hidden product-card">
+            <img src="{{this.images.[0]}}" onclick="load('{{this._id}}')" alt="{{this.name}}" class="w-full h-70 object-cover">
+            <div class="p-4">
               <h2 class="text-lg font-bold text-gray-800">{{this.name}}</h2>
-              <p class="text-sm text-gray-600">Sixth Scale Action Figure </p>
-              <p class="text-red-600 font-bold mt-2">Rs. {{this.price}}</p>
+              <p class="text-sm text-gray-600">{{this.brand}}</p>
+              <div class="flex justify-between items-center mt-2">
+                {{#if this.activeOffer}}
+                    <div class="flex flex-col">
+                        <div class="flex items-center gap-2">
+                            <span class="text-red-600 font-semibold">₹{{roundPrice this.finalPrice}}</span>
+                            <span class="text-gray-400 line-through font-semibold text-sm">₹{{roundPrice this.price}}</span>
+                             <span class="bg-green-200 text-green-600  font-semibold rounded-md text-xs">
+                               {{this.activeOffer.discountValue}}% OFF
+                            </span>
+                        </div>
+                    </div>
+                {{else}}
+                    <span class="text-red-600 font-semibold">₹{{roundPrice this.price}}</span>
+                {{/if}}
+                <button onclick="toggleWishlist(this,'{{this._id}}')" class="heart-icon {{#if this.isInWishlist}}active{{/if}}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="{{#if this.isInWishlist}}red{{else}}none{{/if}}" viewBox="0 0 24 24" stroke="{{#if this.isInWishlist}}red{{else}}currentColor{{/if}}">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                </button>
+              </div>
             </div>
           </div>
           {{/each}}
@@ -118,7 +181,66 @@
     function sortProducts(sortOption) {
       window.location.href = `/user/shop?sort=${sortOption}`;
     }
-     
+    const notyf = new Notyf({
+        duration: 3000,
+        position: {
+            x: 'right',
+            y: 'bottom',
+        },
+        types: [
+            {
+                type: 'success',
+                background: 'green',
+                duration: 3000,
+            },
+            {
+                type: 'error',
+                background: 'red',
+                duration: 3000,
+            }
+        ]
+    });
+
+    async function toggleWishlist(button, productId) {
+        try {
+            const response = await fetch(`/user/toggle-wishlist/${productId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                button.classList.toggle('active');
+                const heartIcon = button.querySelector('svg');
+                
+                if (button.classList.contains('active')) {
+                    heartIcon.style.fill = 'red';
+                    heartIcon.style.stroke = 'red';
+                    notyf.success('Added to wishlist');
+                } else {
+                    heartIcon.style.fill = 'none';
+                    heartIcon.style.stroke = 'currentColor';
+                    notyf.success('Removed from wishlist');
+                }
+            } else if (data.redirect) {
+                window.location.href = data.redirect;
+            } else {
+                notyf.error(data.message || 'Something went wrong');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            notyf.error('Something went wrong');
+        }
+    }
+
+    function filterByCategory(categoryId) {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('category', categoryId);
+        window.location.href = currentUrl.toString();
+    }
 </script>
 
 </body>

@@ -44,19 +44,42 @@ router.post('/updateProfile', userAuth.checkSession, upload.single('profileImage
 
 //load address
 router.get("/addresses",userAuth.checkSession,userController.loadAddress);
-router.post("/address",userAuth.checkSession,addressController.addAddress);
-router.post("/address/:id",userAuth.checkSession,addressController.editAddress);
-router.delete("/address/:id",userAuth.checkSession,addressController.deleteAddress);
+router.post("/address", userAuth.checkSession, addressController.addAddress);
+router.post("/address/:id", userAuth.checkSession, addressController.editAddress);
+router.delete("/address/:id", userAuth.checkSession, addressController.deleteAddress);
 
 //load checkout
 router.get("/checkout",userAuth.checkSession,userController.loadCheckout);
 router.post("/checkout",userAuth.checkSession,userController.placeOrder);
+// Verify Razorpay payment
+router.post('/verify-payment', userAuth.checkSession, userController.verifyPayment);
+
 
 //load orders
 router.get("/orders",userAuth.checkSession,userController.loadOrders);
 
 //load order view
-router.get('/orderView/:id',userController.loadOrderView);
+router.get('/orderView/:id',userAuth.checkSession,userController.loadOrderView);
+router.get('/cancelOrder/:id',userAuth.checkSession,userController.cancelOrder);
+router.post('/returnOrder/:id',userAuth.checkSession,userController.returnOrder);
+
+//apply coupon
+router.post('/apply-coupon',userAuth.checkSession,userController.applyCoupon);
+
+//reset password
+router.get('/forgetPasswordEmail',userController.loadForgetPasswordEmail);
+router.post('/forgetPasswordEmail',userController.forgetPasswordEmail);
+router.get('/forgetPassOtp', userController.loadForgetPassOtp);
+router.post('/verifyForgetPassOtp', userController.verifyForgetPassOtp);
+router.get('/forgetPassword',userController.loadForgetPassword);
+router.post('/forgetPassword',userController.forgetPassword);
+
+//load wishlist
+router.get('/wishlist',userAuth.checkSession,userController.loadWishlist);
+router.post('/toggle-wishlist/:productId', userAuth.checkSession, userController.toggleWishlist);
+
+//load wallet
+router.get('/wallet',userAuth.checkSession,userController.loadWallet);
 
 //google authenctication
 router.get('/auth/google',passport.authenticate('google',{scope:['profile','email']}));
@@ -65,8 +88,18 @@ router.get('/auth/google/callback',passport.authenticate('google',{failureRedire
     res.redirect('/user/home')
 })
 
+//wallet routes
+router.post('/addWalletMoney', userAuth.checkSession, userController.addWalletMoney);
+router.post('/verifyWalletPayment', userAuth.checkSession, userController.verifyWalletPayment);
+
+
 //logout
 router.get('/logout',userAuth.checkSession,userController.loadLogout)
+
+
+
+
+
 
 
 

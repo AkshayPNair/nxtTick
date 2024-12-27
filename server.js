@@ -61,10 +61,78 @@ hbs.registerHelper('and', function () {
     return Array.prototype.every.call(arguments, Boolean);
 });
 
+hbs.registerHelper('includes', function(array, value) {
+    if (!array) return false;
+    return array.map(item => item.toString()).includes(value.toString());
+});
+
+
 hbs.registerHelper('getImage', function (images, index) {
     return images && images[index];
 });
 
+hbs.registerHelper('or', function (a, b) {
+    return a || b;
+});
+
+hbs.registerHelper('subtract', function(a, b) {
+    return a - b;
+});
+
+hbs.registerHelper('toString', function(value) {
+    return value.toString();
+});
+
+hbs.registerHelper('length', function(value) {
+    return value.length;
+});
+
+hbs.registerHelper('multiply', function(a, b) {
+    return a * b;
+});
+
+hbs.registerHelper('divide', function(a, b) {
+    return a / b;
+});
+
+hbs.registerHelper('math', function(a, b, operator) {
+    return math[operator](a, b);
+});
+
+// Add this if you haven't already
+hbs.registerHelper('roundPrice', function(price) {
+    return Math.round(Number(price));
+});
+
+
+
+hbs.registerHelper('calculateDiscount', function(price, discountValue) {
+    return price - (price * (discountValue / 100));
+});
+
+hbs.registerHelper('calculateOfferDiscount', (price, discountValue) => {
+    return Math.round((price * discountValue) / 100);
+});
+
+hbs.registerHelper('hasOffer', function(products) {
+    return products.offer || (products.category && products.category.offer);
+});
+
+hbs.registerHelper('limit', function(value, limit) {
+    return value.slice(0, limit);
+});
+
+hbs.registerHelper('add', function(a, b) {
+    return a + b;
+});
+
+hbs.registerHelper('lt', function(a, b) {
+    return a < b;
+}); 
+
+hbs.registerHelper('capitalize', function(text) {
+    return text.charAt(0).toUpperCase() + text.slice(1);
+});
 
 hbs.registerHelper('multiply', function(price, quantity) {
     return price * quantity;
