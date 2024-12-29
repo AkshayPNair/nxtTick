@@ -104,7 +104,13 @@ hbs.registerHelper('roundPrice', function(price) {
     return Math.round(Number(price));
 });
 
+hbs.registerHelper('ne', function (v1, v2) {
+    return v1 !== v2;
+});
 
+hbs.registerHelper('multiply', function(a, b) {
+    return a * b;
+});
 
 hbs.registerHelper('calculateDiscount', function(price, discountValue) {
     return price - (price * (discountValue / 100));
@@ -163,6 +169,8 @@ app.use(session({
         httpOnly: true 
     }
 }));
+
+// Initialize passport after session middleware
 app.use(passport.initialize());
 app.use(passport.session());
 

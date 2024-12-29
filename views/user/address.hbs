@@ -6,6 +6,8 @@
     <title>Manage Addresses</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
 </head>
 <body class="bg-gray-50">
 
@@ -71,7 +73,7 @@
             <form id="addAddressForm" class="space-y-4">
                 <input type="text" placeholder="Name" name="name" class="w-full p-2 border rounded" required>
                 <input type="text" placeholder="Phone" name="phone" class="w-full p-2 border rounded" required>
-                <input type="text" placeholder="Pin Code" name="pinCode" class="w-full p-2 border rounded" required>
+                <input type="text" placeholder="PinCode" name="pinCode" class="w-full p-2 border rounded" required>
                 <input type="text" placeholder="Address Line 1" name="addressLine1" class="w-full p-2 border rounded" required>
                 <input type="text" placeholder="Address Line 2" name="addressLine2" class="w-full p-2 border rounded">
                 <input type="text" placeholder="City" name="city" class="w-full p-2 border rounded" required>
@@ -95,14 +97,14 @@
             <h2 class="text-xl font-semibold mb-4">Edit Address</h2>
             <form id="editAddressForm" class="space-y-4">
                 <input type="hidden" name="id" id="edit-id">
-                <input type="text" id="edit-name" name="name" class="w-full p-2 border rounded" required>
-                <input type="text" id="edit-phone" name="phone" class="w-full p-2 border rounded" required>
-                <input type="text" id="edit-pinCode" name="pinCode" class="w-full p-2 border rounded" required>
-                <input type="text" id="edit-addressLine1" name="addressLine1" class="w-full p-2 border rounded" required>
-                <input type="text" id="edit-addressLine2" name="addressLine2" class="w-full p-2 border rounded">
-                <input type="text" id="edit-city" name="city" class="w-full p-2 border rounded" required>
-                <input type="text" id="edit-state" name="state" class="w-full p-2 border rounded" required>
-                <input type="text" id="edit-country" name="country" class="w-full p-2 border rounded" required>
+                <input type="text" id="edit-name" name="name" placeholder="Name" class="w-full p-2 border rounded" required>
+                <input type="text" id="edit-phone" name="phone" placeholder="Phone" class="w-full p-2 border rounded" required>
+                <input type="text" id="edit-pinCode" name="pinCode" placeholder="PinCode" class="w-full p-2 border rounded" required>
+                <input type="text" id="edit-addressLine1" name="addressLine1" placeholder="Address Line 1" class="w-full p-2 border rounded" required>
+                <input type="text" id="edit-addressLine2" name="addressLine2" placeholder="Address Line 2" class="w-full p-2 border rounded">
+                <input type="text" id="edit-city" name="city" placeholder="City" class="w-full p-2 border rounded" required>
+                <input type="text" id="edit-state" name="state" placeholder="State" class="w-full p-2 border rounded" required>
+                <input type="text" id="edit-country" name="country" placeholder="Country" class="w-full p-2 border rounded" required>
                 <label class="flex items-center">
                     <input type="checkbox" id="edit-isDefault" name="isDefault" class="mr-2">
                     Set as Default
@@ -116,7 +118,42 @@
     </div>
     {{>profileFooter}}
     <script>
-        
+        // Initialize Notyf
+        const notyf = new Notyf({
+            duration: 3000,
+            position: {
+                x: 'right',
+                y: 'top',
+            },
+            types: [
+                {
+                    type: 'error',
+                    background: '#FF0000',
+                    duration: 3000
+                },
+                {
+                    type: 'success',
+                    background: '#28a745',
+                    duration: 3000
+                }
+            ]
+        });
+
+        // Validation functions
+        function validatePhone(phone) {
+            const phoneRegex = /^[0-9]{10}$/;
+            return phoneRegex.test(phone);
+        }
+
+        function validatePinCode(pinCode) {
+            const pinCodeRegex = /^[0-9]{6}$/;
+            return pinCodeRegex.test(pinCode);
+        }
+
+        function validateName(name) {
+            const nameRegex = /^[A-Za-z\s]{3,50}$/;
+            return nameRegex.test(name);
+        }
 
         // Toggle modal visibility
         document.getElementById('addAddressButton').addEventListener('click', () => {
@@ -131,10 +168,53 @@
             });
         });
 
+        // Add Address Form Validation
         document.getElementById('addAddressForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData);
+
+            // Validate name
+            if (!validateName(data.name)) {
+                notyf.error('Name should contain only letters and spaces, and be between 3-50 characters');
+                return;
+            }
+
+            // Validate phone
+            if (!validatePhone(data.phone)) {
+                notyf.error('Please enter a valid 10-digit phone number');
+                return;
+            }
+
+            // Validate pin code
+            if (!validatePinCode(data.pinCode)) {
+                notyf.error('Please enter a valid 6-digit pin code');
+                return;
+            }
+
+            // Validate address line 1
+            if (data.addressLine1.trim().length < 5) {
+                notyf.error('Address Line 1 should be at least 5 characters long');
+                return;
+            }
+
+            // Validate city
+            if (!validateName(data.city)) {
+                notyf.error('City name should contain only letters and spaces');
+                return;
+            }
+
+            // Validate state
+            if (!validateName(data.state)) {
+                notyf.error('State name should contain only letters and spaces');
+                return;
+            }
+
+            // Validate country
+            if (!validateName(data.country)) {
+                notyf.error('Country name should contain only letters and spaces');
+                return;
+            }
 
             try {
                 const response = await fetch('/user/address', {
@@ -144,16 +224,85 @@
                 });
 
                 if (response.ok) {
-                    Swal.fire({title:'Success', text:'Address added successfully', icon:'success',confirmButtonText:'OK'}).then(()=>{
-                       window.location.reload(); 
-                    });
-                     
+                    notyf.success('Address added successfully');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
                 } else {
                     const error = await response.json();
-                    Swal.fire('Error', error.message, 'error');
+                    notyf.error(error.message);
                 }
             } catch (error) {
-                Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
+                notyf.error('Something went wrong. Please try again.');
+            }
+        });
+
+        // Edit Address Form Validation
+        document.getElementById('editAddressForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            // Validate name
+            if (!validateName(data.name)) {
+                notyf.error('Name should contain only letters and spaces, and be between 3-50 characters');
+                return;
+            }
+
+            // Validate phone
+            if (!validatePhone(data.phone)) {
+                notyf.error('Please enter a valid 10-digit phone number');
+                return;
+            }
+
+            // Validate pin code
+            if (!validatePinCode(data.pinCode)) {
+                notyf.error('Please enter a valid 6-digit pin code');
+                return;
+            }
+
+            // Validate address line 1
+            if (data.addressLine1.trim().length < 5) {
+                notyf.error('Address Line 1 should be at least 5 characters long');
+                return;
+            }
+
+            // Validate city
+            if (!validateName(data.city)) {
+                notyf.error('City name should contain only letters and spaces');
+                return;
+            }
+
+            // Validate state
+            if (!validateName(data.state)) {
+                notyf.error('State name should contain only letters and spaces');
+                return;
+            }
+
+            // Validate country
+            if (!validateName(data.country)) {
+                notyf.error('Country name should contain only letters and spaces');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/user/address/${data.id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    notyf.success('Address updated successfully');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    const error = await response.json();
+                    notyf.error(error.message);
+                }
+            } catch (error) {
+                notyf.error('Something went wrong. Please try again.');
             }
         });
 
@@ -173,60 +322,41 @@
             document.getElementById('editAddressModal').classList.remove('hidden');
         }
 
-        // Delete Address
+        // Delete Address with SweetAlert2 confirmation
         async function deleteAddress(id) {
-            const confirmed = await Swal.fire({
+            // Show confirmation dialog
+            const result = await Swal.fire({
                 title: 'Are you sure?',
-                text: 'You won\'t be able to revert this!',
+                text: "You won't be able to revert this!",
                 icon: 'warning',
                 showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
                 confirmButtonText: 'Yes, delete it!',
-                cancelButtonText: 'No, cancel!'
+                cancelButtonText: 'Cancel'
             });
 
-            if (confirmed.isConfirmed) {
+            // If user confirms deletion
+            if (result.isConfirmed) {
                 try {
                     const response = await fetch(`/user/address/${id}`, {
                         method: 'DELETE'
                     });
 
                     if (response.ok) {
-                        Swal.fire('Deleted!', 'The address has been deleted.', 'success');
-                        window.location.reload();
+                        notyf.success('Address deleted successfully');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
                     } else {
                         const error = await response.json();
-                        Swal.fire('Error', error.message, 'error');
+                        notyf.error(error.message);
                     }
                 } catch (error) {
-                    Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
+                    notyf.error('Something went wrong. Please try again.');
                 }
             }
         }
-
-        // Edit Address Form Submit
-        document.getElementById('editAddressForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData);
-
-            try {
-                const response = await fetch(`/user/address/${data.id}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-
-                if (response.ok) {
-                    Swal.fire('Success', 'Address updated successfully', 'success');
-                    window.location.reload(); // Reload to fetch updated address list
-                } else {
-                    const error = await response.json();
-                    Swal.fire('Error', error.message, 'error');
-                }
-            } catch (error) {
-                Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
-            }
-        });
     </script>
 </body>
 </html>

@@ -107,8 +107,8 @@
     const couponId = document.getElementById("couponId").value;
     const couponTitle = document.getElementById("couponTitle").value.trim();
     const couponCode = document.getElementById("couponCode").value.trim();
-    const discountValue = document.getElementById("discountValue").value.trim();
-    const minimumPrice = document.getElementById("minimumPrice").value.trim();
+    const discountValue = Number(document.getElementById("discountValue").value.trim());
+    const minimumPrice = Number(document.getElementById("minimumPrice").value.trim());
     const startDate = document.getElementById("startDate").value;
     const endDate = document.getElementById("endDate").value;
     const usagePerUser = document.getElementById("usagePerUser").value.trim();
@@ -116,6 +116,10 @@
     // Validation
     if (!couponTitle) {
       Swal.fire({icon: "error", title: "Error", text: "Please enter coupon title"});
+      return;
+    }
+    if (couponTitle.length > 20) {
+      Swal.fire({icon: "error", title: "Error", text: "Coupon title cannot exceed 20 characters"});
       return;
     }
     if (!couponCode) {
@@ -128,6 +132,10 @@
     }
     if (!minimumPrice || minimumPrice <= 0) {
       Swal.fire({icon: "error", title: "Error", text: "Please enter valid minimum price"});
+      return;
+    }
+    if (discountValue >= minimumPrice) {
+      Swal.fire({icon: "error", title: "Error", text: "Discount value must be less than minimum price"});
       return;
     }
     if (!usagePerUser || usagePerUser <= 0) {

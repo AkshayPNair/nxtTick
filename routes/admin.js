@@ -63,19 +63,22 @@ router.get('/addCoupon',adminAuth.checkSession,adminController.loadAddCoupon);
 router.post('/addCoupon',adminAuth.checkSession,adminController.addCoupon);
 router.get('/editCoupon/:id',adminAuth.checkSession,adminController.loadEditCoupon);
 router.post('/editCoupon/:id',adminAuth.checkSession,adminController.editCoupon);
-
-//load offers
-router.get('/addOffer',adminController.loadAddOffer);
-
 //toggle coupon status
 router.post('/toggleCouponStatus/:id', adminAuth.checkSession, adminController.toggleCouponStatus); 
 
-//logout
-router.get('/logout',adminAuth.checkSession,adminController.loadLogout);
-
 // Offers
 router.get('/allOffers', adminAuth.checkSession, adminController.loadAllOffers);
+router.get('/addOffer',adminAuth.checkSession,adminController.loadAddOffer);
 router.post('/addOffer', adminAuth.checkSession, adminController.addOffer);
+router.get('/editOffer/:id',adminAuth.checkSession,adminController.loadEditOffer);
+router.post('/editOffer/:id',adminAuth.checkSession,adminController.editOffer);
 router.post('/toggleOfferStatus/:id', adminAuth.checkSession, adminController.toggleOfferStatus);
+
+// sales data
+router.get('/sales-data', adminAuth.checkSession, adminController.getSalesData);
+
+
+//logout
+router.get('/logout',adminAuth.checkSession,adminController.loadLogout);
 
 module.exports=router;

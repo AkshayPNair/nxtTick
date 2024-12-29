@@ -65,7 +65,7 @@ module.exports={
                         }
                     ]
                 })
-                .sort({ date: -1 });
+                .sort({ createdAt: -1 });
             
             // Calculate totals
             const totalGross = orders.reduce((sum, order) => {
@@ -465,7 +465,7 @@ module.exports={
     loadAddOffer:async(req,res)=>{
         try {
             const categories=await categorySchema.find({})
-            const products=await productSchema.find({})
+            const products=await productSchema.find({isDeleted:false})
             res.render('admin/addOffer',{categories,products})
         } catch (error) {
             console.log(error)
@@ -612,16 +612,179 @@ module.exports={
             });
         }
     },
+    loadEditOffer: async (req, res) => {
+        try {
+            const offerId = req.params.id;
+            const offer = await offerSchema.findById(offerId);
+            
+            if (!offer) {
+                return res.redirect('/admin/allOffers');
+            }
+
+            let product = null;
+            let category = null;
+
+            if (offer.offerType === 'product') {
+                product = await productSchema.findById(offer.productId);
+            } else {
+                category = await categorySchema.findById(offer.categoryId);
+            }
+
+            res.render('admin/editOffer', { 
+                offer,
+                product,
+                category
+            });
+        } catch (error) {
+            console.error('Error loading edit offer page:', error);
+            res.redirect('/admin/allOffers');
+        }
+    },
+    editOffer:async (req, res) => {
+        try {
+            const offerId = req.params.id;
+            const { offerTitle, discountValue, startDate, endDate } = req.body;
+
+            // Find the existing offer
+            const offer = await offerSchema.findById(offerId);
+            if (!offer) {
+                return res.status(404).json({
+                    status: false,
+                    message: "Offer not found"
+                });
+            }
+
+            // Update offer details
+            offer.offerTitle = offerTitle;
+            offer.discountValue = Number(discountValue);
+            offer.startDate = startDate;
+            offer.endDate = endDate;
+            offer.updatedAt = Date.now();
+
+            await offer.save();
+
+            // Update discounted prices
+            if (offer.offerType === 'product' && offer.isActive) {
+                const product = await productSchema.findById(offer.productId);
+                if (product) {
+                    const discount = (product.price * Number(discountValue)) / 100;
+                    const discountedPrice = product.price - discount;
+                    await productSchema.findByIdAndUpdate(
+                        offer.productId,
+                        { discountedPrice: discountedPrice }
+                    );
+                }
+            } else if (offer.offerType === 'category' && offer.isActive) {
+                const products = await productSchema.find({ category: offer.categoryId });
+                for (const product of products) {
+                    const discount = (product.price * Number(discountValue)) / 100;
+                    const discountedPrice = product.price - discount;
+                    await productSchema.findByIdAndUpdate(
+                        product._id,
+                        { discountedPrice: discountedPrice }
+                    );
+                }
+            }
+
+            return res.status(200).json({
+                status: true,
+                message: "Offer updated successfully"
+            });
+
+        } catch (error) {
+            console.error('Error updating offer:', error);
+            return res.status(500).json({
+                status: false,
+                message: "Error occurred while updating offer"
+            });
+        }
+    },
     loadLogout:(req,res)=>{
         try {
-            req.session.admin=null;
+            delete req.session.admin;
             res.redirect("/admin/login")
         } catch (error) {
             console.log(error)
             res.status(500).send("Error occured")
         }
     },
-    
+    getSalesData: async (req, res) => {
+        try {
+            const period = req.query.period;
+            const now = new Date();
+            let startDate, labels, format;
+
+            switch (period) {
+                case 'weekly':
+                    startDate = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+                    labels = Array.from({length: 7}, (_, i) => {
+                        const d = new Date(now.getTime() - ((6-i) * 24 * 60 * 60 * 1000));
+                        return d.toLocaleDateString('en-US', { weekday: 'short' });
+                    });
+                    format = '%Y-%m-%d';
+                    break;
+                case 'monthly':
+                    startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+                    labels = Array.from({length: 30}, (_, i) => {
+                        const d = new Date(startDate.getTime() + (i * 24 * 60 * 60 * 1000));
+                        return d.getDate();
+                    });
+                    format = '%Y-%m-%d';
+                    break;
+                case 'yearly':
+                    startDate = new Date(now.getFullYear(), 0, 1);
+                    labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    format = '%Y-%m';
+                    break;
+            }
+
+            const orders = await orderSchema.aggregate([
+                {
+                    $match: {
+                        createdAt: { $gte: startDate },
+                        status: { $nin: ['Cancelled', 'Returned'] }
+                    }
+                },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: format, date: "$createdAt" } },
+                        total: { $sum: "$total" }
+                    }
+                },
+                { $sort: { "_id": 1 } }
+            ]);
+
+            // Initialize sales data array with zeros
+            const values = new Array(labels.length).fill(0);
+
+            // Fill in actual sales data
+            orders.forEach(order => {
+                const date = new Date(order._id);
+                let index;
+                
+                switch (period) {
+                    case 'weekly':
+                        index = 6 - Math.floor((now - date) / (24 * 60 * 60 * 1000));
+                        break;
+                    case 'monthly':
+                        index = date.getDate() - 1;
+                        break;
+                    case 'yearly':
+                        index = date.getMonth();
+                        break;
+                }
+                
+                if (index >= 0 && index < values.length) {
+                    values[index] = order.total;
+                }
+            });
+
+            res.json({ labels, values });
+        } catch (error) {
+            console.error('Error getting sales data:', error);
+            res.status(500).json({ error: 'Error fetching sales data' });
+        }
+    },
 }
 
 

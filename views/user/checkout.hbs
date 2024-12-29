@@ -142,6 +142,9 @@
               <input type="radio" name="paymentMethod" value="COD" class="mr-2" required>
               Cash on Delivery
             </label>
+            <div id="cod-message" class="ml-6 text-red-500 text-xs font-semibold mt-1 hidden">
+              COD not available for orders above Rs. 1000.
+            </div>
           </div>
 
           <!-- Place Order Button -->
@@ -160,7 +163,7 @@
             <form id="addAddressForm" class="space-y-4">
                 <input type="text" placeholder="Name" name="name" class="w-full p-2 border rounded" required>
                 <input type="text" placeholder="Phone" name="phone" class="w-full p-2 border rounded" required>
-                <input type="text" placeholder="Pin Code" name="pinCode" class="w-full p-2 border rounded" required>
+                <input type="text" placeholder="PinCode" name="pinCode" class="w-full p-2 border rounded" required>
                 <input type="text" placeholder="Address Line 1" name="addressLine1" class="w-full p-2 border rounded" required>
                 <input type="text" placeholder="Address Line 2" name="addressLine2" class="w-full p-2 border rounded">
                 <input type="text" placeholder="City" name="city" class="w-full p-2 border rounded" required>
@@ -195,6 +198,9 @@
         const finalTotalElement = document.getElementById('final-total');
         const finalTotal = parseFloat(finalTotalElement.textContent.replace('Rs. ', ''));
         data.finalAmount = finalTotal;
+
+        
+        
 
         try {
             const response = await fetch('/user/checkout', {
@@ -329,29 +335,88 @@
     document.getElementById('addAddressForm').reset();
   }
 
+  function validatePhone(phone) {
+    const phoneRegex = /^[0-9]{10}$/;
+    return phoneRegex.test(phone);
+  }
+
+  function validatePinCode(pinCode) {
+    const pinCodeRegex = /^[0-9]{6}$/;
+    return pinCodeRegex.test(pinCode);
+  }
+
+  function validateName(name) {
+    const nameRegex = /^[A-Za-z\s]{3,50}$/;
+    return nameRegex.test(name);
+  }
+
   document.getElementById('addAddressForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData.entries());
+    const data = Object.fromEntries(formData);
+
+    // Validate name
+    if (!validateName(data.name)) {
+        notyf.error('Name should contain only letters and spaces, and be between 3-50 characters');
+        return;
+    }
+
+    // Validate phone
+    if (!validatePhone(data.phone)) {
+        notyf.error('Please enter a valid 10-digit phone number');
+        return;
+    }
+
+    // Validate pin code
+    if (!validatePinCode(data.pinCode)) {
+        notyf.error('Please enter a valid 6-digit pin code');
+        return;
+    }
+
+    // Validate address line 1
+    if (data.addressLine1.trim().length < 5) {
+        notyf.error('Address Line 1 should be at least 5 characters long');
+        return;
+    }
+
+    // Validate city
+    if (!validateName(data.city)) {
+        notyf.error('City name should contain only letters and spaces');
+        return;
+    }
+
+    // Validate state
+    if (!validateName(data.state)) {
+        notyf.error('State name should contain only letters and spaces');
+        return;
+    }
+
+    // Validate country
+    if (!validateName(data.country)) {
+        notyf.error('Country name should contain only letters and spaces');
+        return;
+    }
 
     try {
-      const response = await fetch('/user/address', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      const result = await response.json();
+        const response = await fetch('/user/address', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
 
-      if (response.ok) {
-        notyf.success('Address added successfully');
-        closeAddressModal();
-        // Reload the page to show the new address
-        location.reload();
-      } else {
-        notyf.error(result.message || 'Failed to add address');
-      }
+        if (response.ok) {
+            notyf.success('Address added successfully');
+            // Add delay before closing modal and reloading
+            setTimeout(() => {
+                closeAddressModal();
+                location.reload();
+            }, 1000); // Wait for 1 second to show the success message
+        } else {
+            notyf.error(result.message || 'Failed to add address');
+        }
     } catch (error) {
-      notyf.error('Something went wrong. Please try again.');
+        notyf.error('Something went wrong. Please try again.');
     }
   });
 
@@ -388,6 +453,7 @@
             document.getElementById('discount-amount').textContent = `-Rs. ${result.discount}`;
             // Update final total
             document.getElementById('final-total').textContent = `Rs. ${result.finalTotal}`;
+            updateCODAvailability();
             notyf.success(result.message);
         } else {
             notyf.error(result.message);
@@ -397,6 +463,30 @@
         notyf.error('Error applying coupon');
     }
   }
+
+  function updateCODAvailability() {
+    const finalTotalElement = document.getElementById('final-total');
+    const finalTotal = parseFloat(finalTotalElement.textContent.replace('Rs. ', ''));
+    const codRadio = document.querySelector('input[value="COD"]');
+    const codLabel = codRadio.parentElement;
+    const codMessage = document.getElementById('cod-message');
+
+    if (finalTotal > 1000) {
+        codRadio.disabled = true;
+        codLabel.classList.add('opacity-50');
+        codMessage.classList.remove('hidden');
+        if (codRadio.checked) {
+            codRadio.checked = false;
+        }
+    } else {
+        codRadio.disabled = false;
+        codLabel.classList.remove('opacity-50');
+        codMessage.classList.add('hidden');
+    }
+  }
+
+  // Call this function initially and whenever the total changes
+  updateCODAvailability();
   </script>
 </body>
 </html>

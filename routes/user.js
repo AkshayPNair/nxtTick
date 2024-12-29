@@ -38,6 +38,9 @@ router.post("/addToCart",userAuth.checkSession,userController.addToCart);
 router.post("/updateCartQuantity",userAuth.checkSession,userController.updateCartQuantity);
 router.post("/removeFromCart", userAuth.checkSession, userController.removeFromCart);
 
+//validate cart
+router.post('/validateCart', userAuth.checkSession, userController.validateCart);
+
 //load user profile
 router.get('/profile',userAuth.checkSession,userController.loadProfile);
 router.post('/updateProfile', userAuth.checkSession, upload.single('profileImage'), userController.updateProfile);
@@ -92,6 +95,8 @@ router.get('/auth/google/callback',passport.authenticate('google',{failureRedire
 router.post('/addWalletMoney', userAuth.checkSession, userController.addWalletMoney);
 router.post('/verifyWalletPayment', userAuth.checkSession, userController.verifyWalletPayment);
 
+//reset password
+router.post('/resetPassword', userAuth.checkSession, userController.resetPassword);
 
 //logout
 router.get('/logout',userAuth.checkSession,userController.loadLogout)

@@ -125,35 +125,43 @@
   // Handle Form Submission
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
-
     let isValid = true;
 
     // Validate Category Name
-    const nameRegex = /^[A-Za-z\s]+$/; // Regex for alphabets and spaces
-    if (!categoryName.value.trim()) {
+    const nameRegex = /^[A-Za-z\s]+$/;
+    const categoryNameValue = categoryName.value.trim();
+    
+    if (!categoryNameValue) {
       isValid = false;
       await Swal.fire({
         icon: 'error',
         title: 'Category name is required!',
-
       });
       return;
-    } else if (!nameRegex.test(categoryName.value.trim())) {
+    } else if (!nameRegex.test(categoryNameValue)) {
       isValid = false;
       await Swal.fire({
         icon: 'error',
         title: 'Category name can only contain alphabets!',
       });
       return;
-    }else if(categoryName.value.trim().length < 4){
-      isValid=false;
+    } else if (categoryNameValue.length < 4) {
+      isValid = false;
       await Swal.fire({
         icon: 'error',
-        title: 'Category name at least 4 characters long.',
+        title: 'Category name must be at least 4 characters long.',
       });
+      return;
+    } else if (categoryNameValue.length > 10) {
+      isValid = false;
+      await Swal.fire({
+        icon: 'error',
+        title: 'Category name cannot exceed 10 characters.',
+      });
+      return;
     }
 
-    if (!isValid) return; // Stop if validation fails
+    if (!isValid) return;
 
     // Prepare Form Data
     const formData = new FormData();

@@ -69,38 +69,8 @@
 </section>
 
     <!-- Filter and Sort Section -->
-  <div class="container mx-auto  px-4 py-6 bg-blue-50 w-full">
-    <div class="flex flex-wrap items-center justify-between">
-      <!-- Left Section -->
-      <div class="flex items-center gap-6">
-        <!-- Filter Button -->
-        <button class="flex items-center gap-2 bg-white px-4 py-2 rounded-md shadow-sm border border-gray-300 hover:bg-gray-100">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-gray-600">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L14 13.414V19a1 1 0 01-.447.894l-4 2A1 1 0 019 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
-          </svg>
-          <span class="text-gray-700 font-medium">Filter</span>
-        </button>
-
-        <!-- Grid and List View Icons -->
-        <div class="flex items-center gap-3">
-          <!-- Grid View -->
-          <button class="p-2 bg-white rounded-md border border-gray-300 hover:bg-gray-100">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-gray-600">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h4v4H4V6zm6 0h4v4h-4V6zm6 0h4v4h-4V6zM4 14h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z" />
-            </svg>
-          </button>
-          <!-- List View -->
-          <button class="p-2 bg-white rounded-md border border-gray-300 hover:bg-gray-100">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-gray-600">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-            </svg>
-          </button>
-        </div>
-
-
-        
-      </div>
-
+  <div class="container mx-auto px-4 py-6 bg-blue-50 w-full">
+    <div class="flex justify-end">
       <!-- Right Section -->
       <div class="flex items-center gap-4">
         <!-- Category Filter -->
@@ -122,7 +92,6 @@
             <option value="aToZ" {{#if (eq sortOption 'aToZ')}}selected{{/if}}>aA - zZ</option>
             <option value="zToA" {{#if (eq sortOption 'zToA')}}selected{{/if}}>zZ - aA</option>
         </select>
-
       </div>
     </div>
   </div>
@@ -163,12 +132,7 @@
           {{/each}}
         </div>
         
-        <!-- show more button -->
-        <div class="flex justify-center mt-10">
-            <button class="w-48 px-6 py-2 bg-white border border-gray-200 font-semibold rounded-md text-gray-800 hover:bg-gray-100 shadow-lg">
-              Show More
-            </button>
-          </div>
+       
     </section>
 
     {{!-- footer section --}}

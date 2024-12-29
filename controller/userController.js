@@ -281,7 +281,7 @@ module.exports={
     loadproductView: async (req, res) => {
         try {
             // Fetch product with offers populated
-            const findProduct = await productSchema.findById(req.params.productId)
+            const findProduct = await productSchema.findOne({ _id: req.params.productId})
                 .populate('offer')
                 .populate({
                     path: 'category',
@@ -289,6 +289,11 @@ module.exports={
                         path: 'offer'
                     }
                 });
+
+            
+            if (!findProduct || findProduct.isDeleted) {
+                return res.redirect('/'); 
+            }
 
             const userId = req.session.user;
             const user = await userSchema.findById(userId);
@@ -407,6 +412,21 @@ module.exports={
                 })
                 .exec();
 
+            // Filter out deleted products and redirect if any found
+            const hasDeletedProducts = cartItems.some(item => !item.productId || item.productId.isDeleted);
+            if (hasDeletedProducts) {
+                // Remove deleted products from cart
+                await cart.deleteMany({ 
+                    userId,
+                    productId: { 
+                        $in: cartItems
+                            .filter(item => !item.productId || item.productId.isDeleted)
+                            .map(item => item.productId?._id)
+                    }
+                });
+                return res.redirect('/user/cart');
+            }
+
             // Process cart items to include discount information
             const cartDetails = cartItems.map(item => {
                 const product = item.productId;
@@ -464,31 +484,27 @@ module.exports={
             const { productId, quantity } = req.body;
             const userId = req.session.user; 
     
-            
+            // Check if product exists and is not deleted
+            const product = await productSchema.findOne({_id: productId,isDeleted: false});
+
+            if (!product) {
+                return res.status(404).json({ status: false, message: "Product not available" });
+            }
+
             const requestedQuantity = parseInt(quantity);
             if (requestedQuantity <= 0) {
                 return res.status(400).json({ status: false, message: "Invalid quantity" });
             }
     
-            
-            const product = await productSchema.findById(productId);
-    
-            if (!product) {
-                return res.status(404).json({ status: false, message: "Product not found" });
-            }
-    
-            
             if (product.stock === 0) {
                 return res.status(400).json({ status: false, message: "Product is out of stock" });
             }
     
-            
             const existingCartItem = await cart.findOne({ userId, productId });
     
             if (existingCartItem) {
                 const totalQuantity = existingCartItem.quantity + requestedQuantity;
     
-                
                 if (totalQuantity > 4) {
                     return res.status(400).json({
                         status: false,
@@ -496,7 +512,6 @@ module.exports={
                     });
                 }
     
-                
                 if (totalQuantity > product.stock) {
                     return res.status(400).json({
                         status: false,
@@ -504,12 +519,10 @@ module.exports={
                     });
                 }
     
-                
                 existingCartItem.quantity = totalQuantity;
                 await existingCartItem.save();
                 return res.status(200).json({ status: true, message: "Product quantity updated in cart" });
             } else {
-                
                 if (requestedQuantity > 4) {
                     return res.status(400).json({
                         status: false,
@@ -517,7 +530,6 @@ module.exports={
                     });
                 }
     
-                
                 if (requestedQuantity > product.stock) {
                     return res.status(400).json({
                         status: false,
@@ -525,7 +537,6 @@ module.exports={
                     });
                 }
     
-                
                 const newCartItem = new cart({
                     userId,
                     productId,
@@ -586,8 +597,43 @@ module.exports={
             res.status(500).json({ message: 'Failed to update quantity' });
         }
     },
-      
-   
+    validateCart: async (req, res) => {
+        try {
+            const userId = req.session.user;
+            
+            // Fetch cart items with product details
+            const cartItems = await cart.find({ userId })
+                .populate('productId');
+
+            // Check for deleted or unavailable products
+            const deletedProducts = cartItems.filter(item => 
+                !item.productId || item.productId.isDeleted
+            );
+
+            if (deletedProducts.length > 0) {
+                // Remove deleted products from cart
+                await cart.deleteMany({ 
+                    userId,
+                    productId: { 
+                        $in: deletedProducts.map(item => item.productId?._id)
+                    }
+                });
+
+                return res.status(400).json({
+                    status: false,
+                    message: "Some products in your cart are no longer available."
+                });
+            }
+
+            res.status(200).json({ status: true });
+        } catch (error) {
+            console.error("Error validating cart:", error);
+            res.status(500).json({
+                status: false,
+                message: "Error validating cart"
+            });
+        }
+    },
     removeFromCart: async (req, res) => {
         try {
             const { productId } = req.body;
@@ -669,7 +715,10 @@ module.exports={
                             populate: { path: 'offer' }
                         }
                     ]
-                });
+                })
+                .exec();
+
+            
 
             // Process cart items to include discount information
             const cartDetails = cartItems.map(item => {
@@ -746,6 +795,26 @@ module.exports={
                 return res.redirect('/user/login');
             }
 
+           
+            const cartItems = await cart.find({ userId }).populate("productId").exec();
+
+            // Check for deleted products
+            const deletedProducts = cartItems.filter(item => 
+                !item.productId || item.productId.isDeleted
+            );
+
+            if (deletedProducts.length > 0) {
+                // Get names of deleted products
+                const deletedProductNames = deletedProducts
+                    .map(item => item.productId?.name || 'Unknown product')
+                    .join(', ');
+
+                return res.status(400).json({ 
+                    status: false,
+                    message: ` Products are no longer available: ${deletedProductNames}.`
+                });
+            }
+
             const { addressId, paymentMethod, finalAmount, couponCode } = req.body;
             
             // Check if payment method is wallet
@@ -760,8 +829,6 @@ module.exports={
                     });
                 }
             }
-
-            const cartItems = await cart.find({ userId }).populate("productId").exec();
 
             if (!cartItems.length) {
                 return res.status(400).json({ message: "Your cart is empty. Add products before placing an order." });
@@ -1004,30 +1071,37 @@ module.exports={
                 );
             }
 
-            // Add refund to wallet
-            let wallet = await walletSchema.findOne({ userId: order.userId });
-            if (!wallet) {
-                wallet = new walletSchema({ userId: order.userId, balance: 0 });
+            // Only process refund if payment method is not COD
+            if (order.paymentMethod !== 'COD') {
+                // Add refund to wallet
+                let wallet = await walletSchema.findOne({ userId: order.userId });
+                if (!wallet) {
+                    wallet = new walletSchema({ userId: order.userId, balance: 0 });
+                }
+
+                // Add the order amount to wallet
+                wallet.balance += order.total;
+                
+                // Add transaction record
+                wallet.transactions.push({
+                    type: 'credit',
+                    amount: order.total,
+                    description: `Refund for Cancelled Order`,
+                    date: new Date()
+                });
+
+                await wallet.save();
             }
-
-            // Add the order amount to wallet
-            wallet.balance += order.total;
-            
-            // Add transaction record
-            wallet.transactions.push({
-                type: 'credit',
-                amount: order.total,
-                description: `Refund for Cancelled Order `,
-                date: new Date()
-            });
-
-            await wallet.save();
             
             // Update order status
             order.status = "Cancelled";
             await order.save();
 
-            return res.status(200).json({message:"Order cancelled and amount refunded to wallet"});
+            return res.status(200).json({
+                message: order.paymentMethod === 'COD' 
+                    ? "Order cancelled successfully"
+                    : "Order cancelled and amount refunded to wallet"
+            });
         } catch (error) {
             console.log(error);
             res.status(500).send("Error Occurred", error);
@@ -1051,31 +1125,38 @@ module.exports={
                 );
             }
 
-            // Add refund to wallet
-            let wallet = await walletSchema.findOne({ userId: order.userId });
-            if (!wallet) {
-                wallet = new walletSchema({ userId: order.userId, balance: 0 });
+            // Only process refund if payment method is not COD
+            if (order.paymentMethod !== 'COD') {
+                // Add refund to wallet
+                let wallet = await walletSchema.findOne({ userId: order.userId });
+                if (!wallet) {
+                    wallet = new walletSchema({ userId: order.userId, balance: 0 });
+                }
+
+                // Add the order amount to wallet
+                wallet.balance += order.total;
+                
+                // Add transaction record
+                wallet.transactions.push({
+                    type: 'credit',
+                    amount: order.total,
+                    description: `Refund for Returned Order`,
+                    date: new Date()
+                });
+
+                await wallet.save();
             }
-
-            // Add the order amount to wallet
-            wallet.balance += order.total;
-            
-            // Add transaction record
-            wallet.transactions.push({
-                type: 'credit',
-                amount: order.total,
-                description: `Refund for Returned Order `,
-                date: new Date()
-            });
-
-            await wallet.save();
 
             // Update order status
             order.status = 'Returned';
             order.returnReason = reason;
             await order.save();
              
-            res.status(200).json({message:"Order returned and amount refunded to wallet"});
+            return res.status(200).json({
+                message: order.paymentMethod === 'COD' 
+                    ? "Order returned successfully"
+                    : "Order returned and amount refunded to wallet"
+            });
 
         } catch (error) {
             console.log(error);
@@ -1220,7 +1301,7 @@ module.exports={
                     // If order used a coupon
                     else if (order.couponUsed) {
                         // Calculate individual item's share of the coupon discount
-                        const totalOrderValue = order.items.reduce((sum, orderItem) => 
+                         const totalOrderValue = order.items.reduce((sum, orderItem) => 
                             sum + (orderItem.subtotal), 0);
                         const itemDiscountShare = (item.subtotal / totalOrderValue) * order.couponUsed.discount;
                         finalPrice = basePrice - (itemDiscountShare / item.quantity);
@@ -1234,6 +1315,7 @@ module.exports={
                         hasDiscount: activeOffer || order.couponUsed
                     };
                 }),
+                
                 hasCouponDiscount: !!order.couponUsed,
                 couponUsed: order.couponUsed // Add this to pass coupon info to the view
             };
@@ -1409,7 +1491,27 @@ module.exports={
             res.status(500).send("Error Occured",error);
         }
     },
-   
+    resetPassword: async(req,res)=>{
+        try {
+            const {newPassword,currentPassword}=req.body;
+            const userId=req.session.user;
+            const user=await userSchema.findById(userId);
+
+            if(!user){
+                return res.status(400).json({status:false,message:"User not found"});
+            }
+            const match=await  bcrypt.compare(currentPassword,user.password);
+            if(!match){
+                return res.status(400).json({status:false,message:"Current password is incorrect"})
+            }
+            const hashedPassword=await bcrypt.hash(newPassword,10);
+            await userSchema.findByIdAndUpdate(userId,{password:hashedPassword});
+            res.status(200).json({status:true,message:"Password updated Successfully"})
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({status:false,message:"Error Occured",error})
+        }
+    },
     toggleWishlist: async (req, res) => {
         try {
             const userId = req.session.user;
@@ -1638,7 +1740,7 @@ module.exports={
     },
     loadLogout: (req, res) => {
         try {
-            req.session.destroy();
+            delete req.session.user;
             res.redirect('/user/login');
         } catch (error) {
             console.log(error);

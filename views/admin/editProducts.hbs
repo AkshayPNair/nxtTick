@@ -135,11 +135,11 @@
           text: "Please provide a product name.",
         });
         return false;
-      } else if (productName.length < 4) {
+      } else if (productName.length > 30) {
         Swal.fire({
           icon: "error",
           title: "Invalid Product Name",
-          text: "Product name must be at least 4 characters long.",
+          text: "Product name cannot exceed 30 characters.",
         });
         return false;
       } else if (!/^[A-Za-z\s\(\)\[\]\{\}\-\&]+$/.test(productName)) {
@@ -179,11 +179,18 @@
           text: "Please provide the stock quantity.",
         });
         return false;
-      } else if (!Number.isInteger(+stock) || stock < 0) {
+      } else if (stock < 0 || !Number.isInteger(+stock)) {
         Swal.fire({
           icon: "error",
           title: "Invalid Stock",
           text: "Stock must be a positive integer.",
+        });
+        return false;
+      } else if (stock.toString().length > 10) {
+        Swal.fire({
+          icon: "error",
+          title: "Invalid Stock",
+          text: "Stock value cannot exceed 10 digits.",
         });
         return false;
       }
@@ -201,6 +208,13 @@
           icon: "error",
           title: "Invalid Price",
           text: "Price must be a positive integer.",
+        });
+        return false;
+      } else if (price.toString().length > 10) {
+        Swal.fire({
+          icon: "error",
+          title: "Invalid Price",
+          text: "Price value cannot exceed 10 digits.",
         });
         return false;
       }

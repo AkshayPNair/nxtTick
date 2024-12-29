@@ -30,12 +30,7 @@ const offerSchema = new mongoose.Schema({
     required: true,
     min: 0,
     max: 100
-  },
-  minimumPrice: {
-    type: Number,
-    required: true,
-    min: 0
-  },
+  }, 
   startDate: {
     type: Date,
     required: true

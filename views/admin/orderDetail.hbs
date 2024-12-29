@@ -125,22 +125,24 @@
       
 
       <div class="mt-8 flex">
-  <button 
-    onclick="updateOrderStatus('{{order._id}}', 'Shipped')" 
-    class="px-4 py-2 bg-blue-500 text-white rounded-md shadow hover:bg-blue-600 mr-3">
-    Mark as Shipped
-  </button>
-  <button 
-    onclick="updateOrderStatus('{{order._id}}', 'Out for Delivery')" 
-    class="px-4 py-2 bg-yellow-500 text-white rounded-md shadow hover:bg-yellow-600 mr-3">
-    Mark as Out for Delivery
-  </button>
-  <button 
-    onclick="updateOrderStatus('{{order._id}}', 'Delivered')" 
-    class="px-4 py-2 bg-green-500 text-white rounded-md shadow hover:bg-green-600 mr-3">
-    Mark as Delivered
-  </button>
-</div>
+        {{#if (ne order.status 'Delivered')}}
+          <button 
+            onclick="updateOrderStatus('{{order._id}}', 'Shipped')" 
+            class="px-4 py-2 bg-blue-500 text-white rounded-md shadow hover:bg-blue-600 mr-3">
+            Mark as Shipped
+          </button>
+          <button 
+            onclick="updateOrderStatus('{{order._id}}', 'Out for Delivery')" 
+            class="px-4 py-2 bg-yellow-500 text-white rounded-md shadow hover:bg-yellow-600 mr-3">
+            Mark as Out for Delivery
+          </button>
+          <button 
+            onclick="updateOrderStatus('{{order._id}}', 'Delivered')" 
+            class="px-4 py-2 bg-green-500 text-white rounded-md shadow hover:bg-green-600 mr-3">
+            Mark as Delivered
+          </button>
+        {{/if}}
+      </div>
   
       <!-- Additional Order Details Section -->
       <div class="mb-12 mt-10">
