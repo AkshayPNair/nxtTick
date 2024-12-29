@@ -171,7 +171,7 @@ module.exports={
     loadHome: async (req, res) => {
         try {
             const userId = req.session.user;
-            const user = await userSchema.findById(userId);
+            const user = userId ? await userSchema.findById(userId) : null;
             
             // Fetch products with offers populated
             const products = await productSchema.find({ isDeleted: false })
@@ -230,7 +230,7 @@ module.exports={
                     finalPrice: finalPrice,
                     activeOffer: activeOffer,
                     images: data.images,
-                    isInWishlist: user.wishlist.includes(data._id)
+                    isInWishlist: user ? user.wishlist.includes(data._id) : false
                 };
             });
 
@@ -264,7 +264,7 @@ module.exports={
                     finalPrice: finalPrice,
                     activeOffer: activeOffer,
                     images: data.images,
-                    isInWishlist: user.wishlist.includes(data._id)
+                    isInWishlist: user ? user.wishlist.includes(data._id) : false
                 };
             });
 
@@ -296,10 +296,10 @@ module.exports={
             }
 
             const userId = req.session.user;
-            const user = await userSchema.findById(userId);
+            const user = userId ? await userSchema.findById(userId) : null;
 
             // Check if product is in user's wishlist
-            const isInWishlist = user.wishlist.includes(findProduct._id);
+            const isInWishlist =  user ? user.wishlist.includes(findProduct._id) : false;
             findProduct.isInWishlist = isInWishlist;
 
             // Ensure price is a number
@@ -373,7 +373,7 @@ module.exports={
                     finalPrice: Math.round(similarProductFinalPrice),
                     activeOffer: similarProductOffer,
                     images: product.images,
-                    isInWishlist: user.wishlist.includes(product._id)
+                    isInWishlist: user ? user.wishlist.includes(product._id) :false
                 };
             });
 
@@ -483,6 +483,10 @@ module.exports={
         try {
             const { productId, quantity } = req.body;
             const userId = req.session.user; 
+
+            if (!userId){
+                res.redirect('/user/login')
+            }
     
             // Check if product exists and is not deleted
             const product = await productSchema.findOne({_id: productId,isDeleted: false});
@@ -1593,10 +1597,7 @@ module.exports={
             const productId = req.params.productId;
 
             if (!userId) {
-                return res.status(401).json({
-                    success: false,
-                    redirect: '/user/login'
-                });
+                return res.status(401).json({success: false,redirect: '/user/login'});
             }
 
             const user = await userSchema.findById(userId);
@@ -1816,7 +1817,7 @@ module.exports={
     loadLogout: (req, res) => {
         try {
             delete req.session.user;
-            res.redirect('/user/login');
+            res.redirect('/user/home');
         } catch (error) {
             console.log(error);
             res.status(500).send("Error occurred ",error);

@@ -22,6 +22,14 @@
         .view-details:hover {
             transform: translateX(5px);
         }
+        @keyframes slowBounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-25px);
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -106,7 +114,49 @@
                 </div>
                 {{/each}}
                 {{else}}
-                    <p class="text-center text-3xl  font-semibold">No Orders Found.</p>
+                    <div class="flex flex-col items-center justify-center min-h-[400px]" data-aos="fade-up">
+                        <div class="relative">
+                            <!-- Shopping bag icon with slower animation -->
+                            <svg class="w-32 h-32 text-gray-300 mb-4 animate-[slowBounce_3s_ease-in-out_infinite]" 
+                                 fill="none" 
+                                 stroke="currentColor" 
+                                 viewBox="0 0 24 24">
+                                <path stroke-linecap="round" 
+                                      stroke-linejoin="round" 
+                                      stroke-width="1.5" 
+                                      d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z">
+                                </path>
+                            </svg>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-700 mb-2" data-aos="fade-up" data-aos-delay="100">
+                            No Orders Yet
+                        </h2>
+                        <p class="text-gray-500 text-center mb-6 max-w-md" data-aos="fade-up" data-aos-delay="200">
+                            Looks like you haven't made any orders yet. Start shopping to fill your order history!
+                        </p>
+                        <a href="/user/shop" 
+                           class="group relative inline-flex items-center justify-center px-4 py-3 
+                                  bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold
+                                  rounded-full overflow-hidden shadow-xl
+                                  hover:from-blue-600 hover:to-blue-800
+                                  transform hover:scale-105 transition-all duration-300 ease-out
+                                  hover:shadow-blue-500/30 hover:shadow-2xl"
+                           data-aos="fade-up" data-aos-delay="300">
+                            <span class="relative flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:animate-bounce" 
+                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                          d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                                </svg>
+                                Start Shopping
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:translate-x-1 transition-transform" 
+                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                          d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </span>
+                        </a>
+                    </div>
                 {{/if}}
                 
                 <!-- End Single Order Card -->

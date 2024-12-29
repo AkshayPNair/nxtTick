@@ -45,7 +45,40 @@
           </div>
         {{/each}}
         {{else}}
-        <p class="text-2xl text-center font-medium mb-6">Wishlist is empty</p>
+        <div class="col-span-full flex items-center justify-center min-h-[60vh]">
+          <div class="text-center animate-fadeIn">
+            <svg class="mx-auto h-40 w-40 text-gray-400 animate-float" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+            <h3 class="mt-4 text-2xl font-bold text-gray-900 animate-fadeInUp">Your Wishlist is Empty</h3>
+            <p class="mt-2 text-gray-500 animate-fadeInUp">Explore our collection and add your favorite items!</p>
+            <a href="/user/shop" 
+               class="mt-6 inline-flex items-center justify-center px-3 py-2.5
+                      bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold
+                      rounded-full overflow-hidden shadow-xl
+                      hover:from-blue-600 hover:to-blue-800
+                      transform hover:scale-105 transition-all duration-300 ease-out
+                      hover:shadow-blue-500/30 hover:shadow-2xl
+                      group">
+                <span class="relative flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" 
+                         class="h-6 w-6 group-hover:animate-bounce" 
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                    </svg>
+                    Start Shopping
+                    <svg xmlns="http://www.w3.org/2000/svg" 
+                         class="h-5 w-5 group-hover:translate-x-1 transition-transform" 
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M9 5l7 7-7 7"/>
+                    </svg>
+                </span>
+            </a>
+          </div>
+        </div>
         {{/if}}
       </div>
     </div>
@@ -94,7 +127,21 @@
                 const remainingProducts = document.querySelectorAll('.product-card');
                 if (remainingProducts.length === 0) {
                     const gridContainer = document.querySelector('.grid');
-                    gridContainer.innerHTML = '<p class="text-2xl text-center font-medium mb-6">Wishlist is empty</p>';
+                    gridContainer.innerHTML = `
+                      <div class="col-span-full flex items-center justify-center min-h-[60vh]">
+                        <div class="text-center animate-fadeIn">
+                          <svg class="mx-auto h-40 w-40 text-gray-400 animate-float" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
+                              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                          </svg>
+                          <h3 class="mt-4 text-2xl font-semibold text-gray-900 animate-fadeInUp">Your Wishlist is Empty</h3>
+                          <p class="mt-2 text-gray-500 animate-fadeInUp">Explore our collection and add your favorite items!</p>
+                          <a href="/user/shop" class="mt-6 inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300 transform hover:scale-105 animate-fadeInUp">
+                            Start Shopping
+                          </a>
+                        </div>
+                      </div>
+                    `;
                 }
 
                 notyf.success('Removed from wishlist');
@@ -144,7 +191,21 @@
                         const remainingProducts = document.querySelectorAll('.product-card');
                         if (remainingProducts.length === 0) {
                             const gridContainer = document.querySelector('.grid');
-                            gridContainer.innerHTML = '<p class="text-2xl text-center font-medium mb-6">Wishlist is empty</p>';
+                            gridContainer.innerHTML = `
+                              <div class="col-span-full flex items-center justify-center min-h-[60vh]">
+                                <div class="text-center animate-fadeIn">
+                                  <svg class="mx-auto h-40 w-40 text-gray-400 animate-float" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
+                                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                  </svg>
+                                  <h3 class="mt-4 text-2xl font-semibold text-gray-900 animate-fadeInUp">Your Wishlist is Empty</h3>
+                                  <p class="mt-2 text-gray-500 animate-fadeInUp">Explore our collection and add your favorite items!</p>
+                                  <a href="/user/shop" class="mt-6 inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300 transform hover:scale-105 animate-fadeInUp">
+                                    Start Shopping
+                                  </a>
+                                </div>
+                              </div>
+                            `;
                         }
 
                         // Second notification for wishlist removal
@@ -173,6 +234,32 @@
 
     function load(productId) {
         window.location.href = `/user/productView/${productId}`;
+    }
+
+    tailwind.config = {
+        theme: {
+            extend: {
+                keyframes: {
+                    fadeIn: {
+                        '0%': { opacity: '0' },
+                        '100%': { opacity: '1' },
+                    },
+                    fadeInUp: {
+                        '0%': { opacity: '0', transform: 'translateY(20px)' },
+                        '100%': { opacity: '1', transform: 'translateY(0)' },
+                    },
+                    float: {
+                        '0%, 100%': { transform: 'translateY(0)' },
+                        '50%': { transform: 'translateY(-10px)' },
+                    }
+                },
+                animation: {
+                    fadeIn: 'fadeIn 1s ease-in',
+                    fadeInUp: 'fadeInUp 1s ease-out',
+                    float: 'float 3s ease-in-out infinite',
+                }
+            }
+        }
     }
   </script>
 </body>

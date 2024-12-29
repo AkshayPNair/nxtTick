@@ -8,7 +8,7 @@ module.exports = {
         const sortOption = req.query.sort || "default"; 
         const categoryFilter = req.query.category || "all";
         const userId = req.session.user;
-        const user = await userSchema.findById(userId);
+        const user = userId ? await userSchema.findById(userId) : null;
   
         // Fetch all categories
         const categories = await categorySchema.find({ isBlock: false });
@@ -81,7 +81,7 @@ module.exports = {
             finalPrice: finalPrice,
             activeOffer: activeOffer,
             images: data.images,
-            isInWishlist: user.wishlist.includes(data._id)
+            isInWishlist: user ? user.wishlist.includes(data._id) : false
           };
         });
 

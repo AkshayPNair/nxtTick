@@ -43,28 +43,42 @@
       <section class="mt-8">
         <h2 class="text-lg font-semibold text-gray-700 mb-4">History</h2>
         <div class="overflow-x-auto">
-          <table class="w-full bg-white rounded-lg shadow-md">
-            <thead>
-              <tr class="text-gray-600 text-left border-b">
-                <th class="py-3 px-4">#</th>
-                <th class="py-3 px-4">Amount</th>
-                <th class="py-3 px-4">Type</th>
-                <th class="py-3 px-4">Description</th>
-                <th class="py-3 px-4">Date</th>
-              </tr>
-            </thead>
-            <tbody class="text-gray-700">
-              {{#each wallet.transactions}}
-              <tr class="border-b">
-                <td class="py-3 px-4 text-md font-semibold">{{add @index 1}}</td>
-                <td class="py-3 px-4 text-md text-red-600 font-semibold">₹ {{this.amount}}</td>
-                <td class="py-3 px-4 {{#if (eq this.type 'credit')}}text-green-600{{else}}text-red-600{{/if}} font-semibold">{{capitalize this.type}}</td>
-                <td class="py-3 px-4 text-md font-semibold">{{this.description}}</td>
-                <td class="py-3 px-4 text-md text-blue-600 font-semibold">{{formatDate this.date}}</td>
-              </tr>
-              {{/each}}
-            </tbody>
-          </table>
+          {{#if wallet.transactions}}
+            <table class="w-full bg-white rounded-lg shadow-md">
+              <thead>
+                <tr class="text-gray-600 text-left border-b">
+                  <th class="py-3 px-4">#</th>
+                  <th class="py-3 px-4">Amount</th>
+                  <th class="py-3 px-4">Type</th>
+                  <th class="py-3 px-4">Description</th>
+                  <th class="py-3 px-4">Date</th>
+                </tr>
+              </thead>
+              <tbody class="text-gray-700">
+                {{#each wallet.transactions}}
+                <tr class="border-b">
+                  <td class="py-3 px-4 text-md font-semibold">{{add @index 1}}</td>
+                  <td class="py-3 px-4 text-md text-red-600 font-semibold">₹ {{this.amount}}</td>
+                  <td class="py-3 px-4 {{#if (eq this.type 'credit')}}text-green-600{{else}}text-red-600{{/if}} font-semibold">{{capitalize this.type}}</td>
+                  <td class="py-3 px-4 text-md font-semibold">{{this.description}}</td>
+                  <td class="py-3 px-4 text-md text-blue-600 font-semibold">{{formatDate this.date}}</td>
+                </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          {{else}}
+            <div class="bg-white rounded-lg shadow-md p-8 text-center">
+              <div class="flex justify-center mb-4">
+                <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-700 mb-2">No Transactions Yet</h3>
+                <p class="text-gray-500 mb-4">Your transaction history will appear here once you start using your wallet.</p>
+                <button onclick="openAddMoneyModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow-lg font-semibold hover:bg-blue-700 transition duration-200">
+                  Add Your First Amount
+                </button>
+              </div>
+          {{/if}}
         </div>
       </section>
     </main>

@@ -29,6 +29,7 @@
 
     <!-- icons -->
     <div class="flex items-center space-x-8">
+      {{#if user}}
       {{!-- wishlistIcon --}}
       <a href="/user/wishlist" class="text-gray-600 hover:text-blue-500">
         <img src="/images/heart.png" class="w-6 h-6" alt=""> 
@@ -55,6 +56,10 @@
           class="w-6 h-6 hover:scale-110 hover:brightness-75 transition-transform duration-300"
         />
       </a>
+      {{else}}
+      <a href="/user/login" class="px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-700 rounded-lg hover:from-blue-600 hover:to-blue-800 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg">Login</a>
+      <a href="/user/signup" class="px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-700 rounded-lg hover:from-blue-600 hover:to-blue-800 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg">Sign Up</a>
+      {{/if}}
     </div>
 
     {{!-- optionIcon --}}

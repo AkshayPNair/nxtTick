@@ -189,7 +189,7 @@ app.use('/admin',adminRoutes);
 
 
 app.get('/',(req,res)=>{
-    res.redirect('/user/login')
+    res.redirect('/user/home')
 })
 
 

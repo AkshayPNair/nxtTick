@@ -24,13 +24,13 @@ router.get('/login',userAuth.isLogin,userController.loadLogin)
 router.post('/login',userController.loginUser)
 
 //home page
-router.get('/home',userAuth.checkSession, userController.loadHome)
+router.get('/home', userController.loadHome)
 
 //product view
 router.get("/productView/:productId",userAuth.checkSession,userController.loadproductView)
 
 //shop page
-router.get("/shop",userAuth.checkSession,shopController.loadShopPage);
+router.get("/shop",shopController.loadShopPage);
 
 //cart
 router.get("/cart",userAuth.checkSession,userController.loadCart);
