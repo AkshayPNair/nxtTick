@@ -216,8 +216,8 @@
                 <tr>
                   <td colspan="3" class="px-6 py-4 text-right">Totals:</td>
                   <td class="px-6 py-4">₹{{totalGross}}</td>
-                  <td class="px-6 py-4 text-green-600">-₹{{totalOfferDiscount}}</td>
-                  <td class="px-6 py-4 text-red-600">-₹{{totalCouponDiscount}}</td>
+                  <td class="px-6 py-4 text-green-600">₹{{totalOfferDiscount}}</td>
+                  <td class="px-6 py-4 text-red-600">₹{{totalCouponDiscount}}</td>
                   <td class="px-6 py-4 text-blue-600">₹{{totalNet}}</td>
                 </tr>
               </tfoot>
@@ -526,74 +526,115 @@
     }
 
     function exportToPDF() {
-        // Create new jsPDF instance
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
+        try {
+            // Get the sales data table
+            const table = document.getElementById('salesReportBody');
+            if (!table) {
+                throw new Error('Sales table not found');
+            }
 
-        // Add title
-        doc.setFontSize(18);
-        doc.text('Sales Report', 14, 20);
+            const rows = Array.from(table.getElementsByTagName('tr'));
+            if (rows.length === 0) {
+                throw new Error('No sales data available');
+            }
 
-        // Get table data
-        const table = document.getElementById('salesReportBody');
-        const rows = Array.from(table.getElementsByTagName('tr'));
-
-        // Define table headers
-        const headers = [['Date', 'Order ID', 'Customer', 'Gross Amount', 'Coupon', 'Net Amount']];
-
-        // Get table data
-        const data = rows.map(row => {
-            const cells = row.getElementsByTagName('td');
-            return [
-                cells[0].textContent,
-                cells[1].textContent,
-                cells[2].textContent,
-                cells[3].textContent,
-                cells[4].textContent,
-                cells[5].textContent
-            ];
-        });
-
-        // Get footer data
-        const footer = document.querySelector('tfoot tr');
-        const footerCells = footer.getElementsByTagName('td');
-        const footerData = [[
-            'Totals',
-            '',
-            '',
-            footerCells[3].textContent,
-            footerCells[4].textContent,
-            footerCells[5].textContent
-        ]];
-
-        // Add table to PDF
-        doc.autoTable({
-            head: headers,
-            body: data,
-            foot: footerData,
-            startY: 30,
-            theme: 'grid',
-            headStyles: {
-                fillColor: [41, 128, 185],
-                textColor: 255,
-                fontSize: 12,
-                fontStyle: 'bold'
-            },
-            footStyles: {
-                fillColor: [233, 236, 239],
-                textColor: 0,
-                fontSize: 12,
-                fontStyle: 'bold'
-            },
-            styles: {
-                fontSize: 10,
-                cellPadding: 3
-            },
-            margin: { top: 30 }
-        });
-
-        // Save PDF
-        doc.save('sales-report.pdf');
+            // Create new jsPDF instance in landscape mode
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('landscape');
+            
+            let yPos = 20;
+            
+            // Add header
+            doc.setFontSize(20);
+            doc.text('nxtTick - Sales Report', 14, yPos);
+            
+            // Add date
+            doc.setFontSize(12);
+            yPos += 10;
+            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, yPos);
+            
+            // Add summary statistics
+            yPos += 15;
+            doc.setFontSize(14);
+            doc.text('Summary:', 14, yPos);
+            
+            // Get summary statistics with error checking
+            yPos += 10;
+            doc.setFontSize(12);
+            
+            // Safely get statistics
+            const statistics = {
+                totalOrders: document.querySelector('.border-blue-500 .text-3xl')?.textContent || '0',
+                totalRevenue: document.querySelector('.border-green-500 .text-3xl')?.textContent || '₹0',
+                totalDiscounts: document.querySelector('.border-purple-500 .text-3xl')?.textContent || '₹0',
+                netRevenue: document.querySelector('.border-red-500 .text-3xl')?.textContent || '₹0'
+            };
+            
+            doc.text(`Total Orders: ${statistics.totalOrders}`, 14, yPos);
+            yPos += 7;
+            doc.text(`Total Revenue: ${statistics.totalRevenue}`, 14, yPos);
+            yPos += 7;
+            doc.text(`Total Discounts: ${statistics.totalDiscounts}`, 14, yPos);
+            yPos += 7;
+            doc.text(`Net Revenue: ${statistics.netRevenue}`, 14, yPos);
+            
+            // Prepare table data with error checking
+            const tableData = rows.map(row => {
+                const cells = row.getElementsByTagName('td');
+                if (cells.length < 7) {
+                    return ['', '', '', '', '', '', ''];
+                }
+                return [
+                    cells[0]?.textContent?.trim() || '',  // Date
+                    cells[1]?.textContent?.trim() || '',  // Order ID
+                    cells[2]?.textContent?.trim() || '',  // Customer
+                    cells[3]?.textContent?.trim() || '',  // Original Price
+                    cells[4]?.textContent?.trim() || '',  // Offer
+                    cells[5]?.textContent?.trim() || '',  // Coupon
+                    cells[6]?.textContent?.trim() || ''   // Net Amount
+                ];
+            });
+            
+            // Add sales table (removed footer)
+            doc.autoTable({
+                startY: yPos + 15,
+                head: [['Date', 'Order ID', 'Customer', 'Original Price', 'Offer', 'Coupon', 'Net Amount']],
+                body: tableData,
+                theme: 'grid',
+                styles: {
+                    fontSize: 8,
+                    cellPadding: 2
+                },
+                headStyles: {
+                    fillColor: [41, 128, 185],
+                    textColor: 255,
+                    fontSize: 9,
+                    fontStyle: 'bold'
+                },
+                margin: { top: 15 },
+                didDrawPage: function(data) {
+                    // Add page number at the bottom
+                    doc.setFontSize(8);
+                    doc.text(
+                        `Page ${doc.internal.getCurrentPageInfo().pageNumber} of ${doc.internal.getNumberOfPages()}`,
+                        doc.internal.pageSize.width - 20,
+                        doc.internal.pageSize.height - 10,
+                        { align: 'right' }
+                    );
+                }
+            });
+            
+            // Generate filename with current date
+            const date = new Date().toISOString().split('T')[0];
+            const fileName = `nxtTick_Sales_Report_${date}.pdf`;
+            
+            // Save the PDF
+            doc.save(fileName);
+            
+        } catch (error) {
+            console.error('PDF Export Error:', error);
+            alert('Failed to generate PDF. Please try again. Error: ' + error.message);
+        }
     }
 
     let salesChart;

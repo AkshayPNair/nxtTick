@@ -6,6 +6,8 @@
   <title>Edit Product</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 </head>
 <body class="bg-gray-100 font-sans text-gray-800 flex flex-col min-h-screen">
   <div class="flex">
@@ -73,21 +75,50 @@
               <label class="block text-sm font-medium">Product Gallery</label>
               <div class="space-y-4">
                 <!-- Image Upload Option -->
-                <div>
-                  <input type="file" name="images" id="images1" onchange="previewImage(this)" class="w-full border p-2 rounded" />
-                  <input type="file" name="images" id="images2" onchange="previewImage(this)" class="w-full border p-2 rounded mt-2" />
-                  <input type="file" name="images" id="images3" onchange="previewImage(this)" class="w-full border p-2 rounded mt-2" />
-                  <input type="file" name="images" id="images4" onchange="previewImage(this)" class="w-full border p-2 rounded mt-2" />
-                </div>
+                <div class="grid grid-cols-2 gap-4">
+                  <!-- Image Input 1 -->
+                  <div class="relative">
+                    <input type="file" name="images" id="images1" class="hidden" accept="image/*" onchange="handleImageSelect(this, 1)" />
+                    <label for="images1" class="cursor-pointer block w-full">
+                      <div class="w-full h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                        <img id="preview1" src="{{product.images.[0]}}" class="w-full h-full object-cover rounded-lg {{#unless product.images.[0]}}hidden{{/unless}}" onclick="initCrop(1)" />
+                        <span class="text-gray-500 {{#if product.images.[0]}}hidden{{/if}}">Click to upload</span>
+                      </div>
+                    </label>
+                  </div>
 
-                <!-- Display Images Below Gallery -->
-                <div id="image-gallery" class="flex flex-wrap mt-4">
-                  <!-- Loop through existing images and display them -->
-                  {{#each product.images}}
-                    <div class="w-32 h-32 bg-gray-200 flex items-center justify-center m-2 rounded-lg">
-                      <img src="{{this}}" alt="Product Image" class="w-full h-full rounded-lg object-cover" />
-                    </div>
-                  {{/each}}
+                  <!-- Image Input 2 -->
+                  <div class="relative">
+                    <input type="file" name="images" id="images2" class="hidden" accept="image/*" onchange="handleImageSelect(this, 2)" />
+                    <label for="images2" class="cursor-pointer block w-full">
+                      <div class="w-full h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                        <img id="preview2" src="{{product.images.[1]}}" class="w-full h-full object-cover rounded-lg {{#unless product.images.[1]}}hidden{{/unless}}" onclick="initCrop(2)" />
+                        <span class="text-gray-500 {{#if product.images.[1]}}hidden{{/if}}">Click to upload</span>
+                      </div>
+                    </label>
+                  </div>
+
+                  <!-- Image Input 3 -->
+                  <div class="relative">
+                    <input type="file" name="images" id="images3" class="hidden" accept="image/*" onchange="handleImageSelect(this, 3)" />
+                    <label for="images3" class="cursor-pointer block w-full">
+                      <div class="w-full h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                        <img id="preview3" src="{{product.images.[2]}}" class="w-full h-full object-cover rounded-lg {{#unless product.images.[2]}}hidden{{/unless}}" onclick="initCrop(3)" />
+                        <span class="text-gray-500 {{#if product.images.[2]}}hidden{{/if}}">Click to upload</span>
+                      </div>
+                    </label>
+                  </div>
+
+                  <!-- Image Input 4 -->
+                  <div class="relative">
+                    <input type="file" name="images" id="images4" class="hidden" accept="image/*" onchange="handleImageSelect(this, 4)" />
+                    <label for="images4" class="cursor-pointer block w-full">
+                      <div class="w-full h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                        <img id="preview4" src="{{product.images.[3]}}" class="w-full h-full object-cover rounded-lg {{#unless product.images.[3]}}hidden{{/unless}}" onclick="initCrop(4)" />
+                        <span class="text-gray-500 {{#if product.images.[3]}}hidden{{/if}}">Click to upload</span>
+                      </div>
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
@@ -107,6 +138,19 @@
   <footer class="bg-gray-50 text-center py-4">
     <p>2024 <span class="font-bold text-blue-600">nxtTick</span>. All rights reserved</p>
   </footer>
+
+  <!-- Add Image Crop Modal -->
+  <div id="cropModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white p-4 rounded-lg">
+      <div class="w-96 h-96">
+        <img id="cropImage" class="max-w-full max-h-full">
+      </div>
+      <div class="mt-4 flex justify-end space-x-2">
+        <button id="cancelCrop" class="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+        <button id="saveCrop" class="bg-blue-500 text-white px-4 py-2 rounded">Save</button>
+      </div>
+    </div>
+  </div>
 
   <script>
   // Optional: Handle the form submission with fetch for better UX
@@ -248,9 +292,9 @@
     const stock = document.getElementById("stock").value;
     const price = document.getElementById("price").value;
     const images1 = document.getElementById('images1').files[0];
-    const images2 = document.getElementById('images2').files[1];
-    const images3 = document.getElementById('images3').files[2];
-    const images4 = document.getElementById('images4').files[3];
+    const images2 = document.getElementById('images2').files[0];
+    const images3 = document.getElementById('images3').files[0];
+    const images4 = document.getElementById('images4').files[0];
 
     formData.append("productId", productId);
     formData.append("productName", productName);
@@ -317,6 +361,107 @@
       input.value = ''; // Clear the input if invalid image
     }
   }
+
+  let currentCropper = null;
+  let currentImageInput = null;
+
+  function handleImageSelect(input, index) {
+    const file = input.files[0];
+    if (!file) return;
+
+    // Validate file format
+    const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedFormats.includes(file.type)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Format',
+        text: 'Please upload images in JPG, JPEG, PNG, or WEBP format only'
+      });
+      input.value = '';
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      Swal.fire({
+        icon: 'error',
+        title: 'File Too Large',
+        text: 'Image size should not exceed 5MB'
+      });
+      input.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const preview = document.getElementById(`preview${index}`);
+      preview.src = e.target.result;
+      preview.classList.remove('hidden');
+      preview.parentElement.querySelector('span').classList.add('hidden');
+      initCrop(index);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function initCrop(index) {
+    const input = document.getElementById(`images${index}`);
+    if (!input.files[0]) return;
+
+    currentImageInput = input;
+    const cropModal = document.getElementById('cropModal');
+    const cropImage = document.getElementById('cropImage');
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      cropImage.src = e.target.result;
+      cropModal.classList.remove('hidden');
+      
+      if (currentCropper) {
+        currentCropper.destroy();
+      }
+
+      currentCropper = new Cropper(cropImage, {
+        aspectRatio: 1,
+        viewMode: 1,
+        minCropBoxWidth: 100,
+        minCropBoxHeight: 100
+      });
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+
+  // Cancel crop
+  document.getElementById('cancelCrop').addEventListener('click', () => {
+    document.getElementById('cropModal').classList.add('hidden');
+    if (currentCropper) {
+      currentCropper.destroy();
+      currentCropper = null;
+    }
+  });
+
+  // Save cropped image
+  document.getElementById('saveCrop').addEventListener('click', () => {
+    if (currentCropper && currentImageInput) {
+      currentCropper.getCroppedCanvas({
+        width: 300,
+        height: 300
+      }).toBlob((blob) => {
+        const file = new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' });
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        currentImageInput.files = dataTransfer.files;
+
+        // Update preview
+        const previewId = currentImageInput.id.replace('images', 'preview');
+        document.getElementById(previewId).src = currentCropper.getCroppedCanvas().toDataURL('image/jpeg');
+
+        // Close modal
+        document.getElementById('cropModal').classList.add('hidden');
+        currentCropper.destroy();
+        currentCropper = null;
+      }, 'image/jpeg');
+    }
+  });
 </script>
 
 

@@ -11,7 +11,18 @@
   <!-- Cropper.js JS -->
   <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.12/dist/cropper.min.js"></script>
 
-  
+  <style>
+    /* Add these styles for the cropper modal */
+    .cropper-container {
+      max-width: 100%;
+    }
+    .preview-image {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-800 flex flex-col min-h-screen">
   <div class="flex">
@@ -80,16 +91,36 @@
               <label class="block text-sm font-medium">Product Gallery</label>
               <div class="space-y-4">
                 <!-- Image Upload Option -->
-                <div>
-                  <input type="file" name="images" id="images1" onchange="previewImage(this)" class="w-full border p-2 rounded" />
-                  <input type="file" name="images" id="images2" onchange="previewImage(this)" class="w-full border p-2 rounded mt-2"  />
-                  <input type="file" name="images" id="images3" onchange="previewImage(this)" class="w-full border p-2 rounded mt-2"  />
-                  <input type="file" name="images" id="images4" onchange="previewImage(this)" class="w-full border p-2 rounded mt-2"  />
-                </div>
-
-                <!-- Display Images Below Gallery -->
-                <div id="image-gallery" class="flex flex-wrap mt-4">
-                  <!-- Images will be appended here -->
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <input type="file" name="images" id="images1" class="hidden" accept="image/*"/>
+                    <div id="preview1" class="w-full h-32 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer">
+                      <img class="preview-image hidden" alt="Preview 1">
+                      <span class="text-gray-400">Click to upload image 1</span>
+                    </div>
+                  </div>
+                  <!-- Repeat for images 2-4 -->
+                  <div>
+                    <input type="file" name="images" id="images2" class="hidden" accept="image/*"/>
+                    <div id="preview2" class="w-full h-32 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer">
+                      <img class="preview-image hidden" alt="Preview 2">
+                      <span class="text-gray-400">Click to upload image 2</span>
+                    </div>
+                  </div>
+                  <div>
+                    <input type="file" name="images" id="images3" class="hidden" accept="image/*"/>
+                    <div id="preview3" class="w-full h-32 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer">
+                      <img class="preview-image hidden" alt="Preview 3">
+                      <span class="text-gray-400">Click to upload image 3</span>
+                    </div>
+                  </div>
+                  <div>
+                    <input type="file" name="images" id="images4" class="hidden" accept="image/*"/>
+                    <div id="preview4" class="w-full h-32 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer">
+                      <img class="preview-image hidden" alt="Preview 4">
+                      <span class="text-gray-400">Click to upload image 4</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -111,46 +142,149 @@
     <p>2024 <span class="font-bold text-blue-600">nxtTick</span>. All rights reserved</p>
   </footer>
 
+  <!-- Image Crop Modal -->
+  <div id="cropModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white p-4 rounded-lg">
+      <div class="w-96 h-96">
+        <img id="cropImage" class="max-w-full max-h-full">
+      </div>
+      <div class="mt-4 flex justify-end space-x-2">
+        <button id="cancelCrop" class="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+        <button id="saveCrop" class="bg-blue-500 text-white px-4 py-2 rounded">Save</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-  // JavaScript to handle image preview display
-  function previewImage(input) {
-    const galleryContainer = document.getElementById("image-gallery");
-    const file = input.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        const imgElement = document.createElement("img");
-        imgElement.src = e.target.result;
-        imgElement.classList.add("w-20", "h-20", "rounded", "shadow-lg", "mr-2", "mt-2");
-        galleryContainer.appendChild(imgElement);
-      };
-      reader.readAsDataURL(file);
-    }
-  }
+  const imageInputs = [1, 2, 3, 4].map(num => document.getElementById(`images${num}`));
+  const previewDivs = [1, 2, 3, 4].map(num => document.getElementById(`preview${num}`));
+  const previewImages = document.querySelectorAll('.preview-image');
+  const cropModal = document.getElementById('cropModal');
+  const cropImage = document.getElementById('cropImage');
+  const cancelCropBtn = document.getElementById('cancelCrop');
+  const saveCropBtn = document.getElementById('saveCrop');
 
-  // JavaScript to reset the gallery
-  function resetGallery() {
-    document.getElementById("image-gallery").innerHTML = "";
-    document.getElementById("product-images").reset();
-  }
+  let currentCropper = null;
+  let currentImageIndex = null;
 
-  // Validate image format when a file is selected
-  function validateImageFormat(input) {
-    const allowedExtensions = ["jpg", "jpeg", "png", "gif"];
-    const file = input.files[0];
+  // Set up click handlers for preview divs
+  previewDivs.forEach((div, index) => {
+    div.addEventListener('click', () => {
+      imageInputs[index].click();
+    });
+  });
 
-    if (file) {
-      const fileExtension = file.name.split(".").pop().toLowerCase();
-      if (!allowedExtensions.includes(fileExtension)) {
-        Swal.fire({
-          icon: "error",
-          title: "Invalid Image Format",
-          text: "This image must be in jpg, jpeg, png format.",
-        });
+  // Image input change handler
+  imageInputs.forEach((input, index) => {
+    input.addEventListener('change', function(e) {
+      const file = this.files[0];
+      if (file) {
+        // Validate file type and size
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        if (!validTypes.includes(file.type)) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Invalid Image Format',
+            text: 'Please upload images in JPG, JPEG, PNG, or GIF format only'
+          });
+          this.value = ''; // Clear the input
+          return;
+        }
 
-        // Clear the input field to prevent the invalid file from being selected
-        input.value = ""; // Reset the input field
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+          Swal.fire({
+            icon: 'error',
+            title: 'File Too Large',
+            text: 'Image size should not exceed 5MB'
+          });
+          this.value = ''; // Clear the input
+          return;
+        }
+
+        // Initialize cropper
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          cropImage.src = e.target.result;
+          cropModal.classList.remove('hidden');
+          
+          if (currentCropper) {
+            currentCropper.destroy();
+          }
+
+          currentCropper = new Cropper(cropImage, {
+            aspectRatio: 1,
+            viewMode: 1,
+            minCropBoxWidth: 100,
+            minCropBoxHeight: 100
+          });
+
+          currentImageIndex = index;
+        };
+        reader.readAsDataURL(file);
       }
+    });
+  });
+
+  // Cancel crop
+  cancelCropBtn.addEventListener('click', () => {
+    cropModal.classList.add('hidden');
+    if (currentCropper) {
+      currentCropper.destroy();
+      currentCropper = null;
+    }
+    // Clear the input of the current image
+    if (currentImageIndex !== null) {
+      imageInputs[currentImageIndex].value = '';
+      const previewImage = previewImages[currentImageIndex];
+      previewImage.classList.add('hidden');
+      previewImage.src = '';
+      previewImage.parentElement.querySelector('span').classList.remove('hidden');
+    }
+  });
+
+  // Save cropped image
+  saveCropBtn.addEventListener('click', () => {
+    if (currentCropper && currentImageIndex !== null) {
+      const canvas = currentCropper.getCroppedCanvas({
+        width: 300,
+        height: 300
+      });
+
+      canvas.toBlob((blob) => {
+        // Create new file from blob
+        const file = new File([blob], `cropped-image-${currentImageIndex + 1}.jpg`, { type: 'image/jpeg' });
+        
+        // Update file input
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        imageInputs[currentImageIndex].files = dataTransfer.files;
+
+        // Update preview for the specific image
+        const previewImage = previewImages[currentImageIndex];
+        previewImage.src = canvas.toDataURL();
+        previewImage.classList.remove('hidden');
+        previewImage.parentElement.querySelector('span').classList.add('hidden');
+
+        // Close modal
+        cropModal.classList.add('hidden');
+        currentCropper.destroy();
+        currentCropper = null;
+      }, 'image/jpeg');
+    }
+  });
+
+  // Reset gallery function
+  function resetGallery() {
+    document.getElementById("product-images").reset();
+    previewImages.forEach(img => {
+      img.classList.add('hidden');
+      img.src = '';
+      img.parentElement.querySelector('span').classList.remove('hidden');
+    });
+    if (currentCropper) {
+      currentCropper.destroy();
+      currentCropper = null;
     }
   }
 

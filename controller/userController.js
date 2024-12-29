@@ -1057,7 +1057,17 @@ module.exports={
     cancelOrder: async (req,res)=>{
         try {
             const orderId = req.params.id;
-            const order = await orderSchema.findById(orderId).populate('items.product');
+            const order = await orderSchema.findById(orderId)
+                .populate({
+                    path: 'items.product',
+                    populate: [
+                        { path: 'offer' },
+                        {
+                            path: 'category',
+                            populate: { path: 'offer' }
+                        }
+                    ]
+                });
 
             if(!order) {
                 return res.status(404).send("Order not found");
@@ -1073,20 +1083,47 @@ module.exports={
 
             // Only process refund if payment method is not COD
             if (order.paymentMethod !== 'COD') {
-                // Add refund to wallet
                 let wallet = await walletSchema.findOne({ userId: order.userId });
                 if (!wallet) {
                     wallet = new walletSchema({ userId: order.userId, balance: 0 });
                 }
 
-                // Add the order amount to wallet
-                wallet.balance += order.total;
+                // Calculate refund amount considering offers
+                let refundAmount = 0;
+                
+                // If order used a coupon, calculate proportional refund
+                if (order.couponUsed) {
+                    refundAmount = order.total; // Use the final total that includes coupon discount
+                } else {
+                    // Calculate refund for each item considering individual offers
+                    for (const item of order.items) {
+                        let itemPrice = item.subtotal / item.quantity; // Base price per unit
+                        let finalPrice = itemPrice;
+
+                        // Apply product-specific offer if exists
+                        if (item.product.offer && item.product.offer.isActive) {
+                            finalPrice = itemPrice - (itemPrice * item.product.offer.discountValue / 100);
+                        }
+                        // Apply category offer if no product offer exists
+                        else if (item.product.category?.offer && item.product.category.offer.isActive) {
+                            finalPrice = itemPrice - (itemPrice * item.product.category.offer.discountValue / 100);
+                        }
+
+                        refundAmount += finalPrice * item.quantity;
+                    }
+                }
+
+                // Round the refund amount
+                refundAmount = Math.round(refundAmount);
+
+                // Add the refund to wallet
+                wallet.balance += refundAmount;
                 
                 // Add transaction record
                 wallet.transactions.push({
                     type: 'credit',
-                    amount: order.total,
-                    description: `Refund for Cancelled Order`,
+                    amount: refundAmount,
+                    description: `Refund for Cancelled Order `,
                     date: new Date()
                 });
 
@@ -1111,7 +1148,17 @@ module.exports={
         try {
             const orderId = req.params.id;
             const { reason } = req.body;
-            const order = await orderSchema.findById(orderId).populate('items.product');
+            const order = await orderSchema.findById(orderId)
+                .populate({
+                    path: 'items.product',
+                    populate: [
+                        { path: 'offer' },
+                        {
+                            path: 'category',
+                            populate: { path: 'offer' }
+                        }
+                    ]
+                });
              
             if(!order) {
                 return res.status(404).json({message:"Order not found"});
@@ -1133,14 +1180,42 @@ module.exports={
                     wallet = new walletSchema({ userId: order.userId, balance: 0 });
                 }
 
-                // Add the order amount to wallet
-                wallet.balance += order.total;
+                // Calculate refund amount considering offers
+                let refundAmount = 0;
+                
+                // If order used a coupon, calculate proportional refund
+                if (order.couponUsed) {
+                    refundAmount = order.total; // Use the final total that includes coupon discount
+                } else {
+                    // Calculate refund for each item considering individual offers
+                    for (const item of order.items) {
+                        let itemPrice = item.subtotal / item.quantity; // Base price per unit
+                        let finalPrice = itemPrice;
+
+                        // Apply product-specific offer if exists
+                        if (item.product.offer && item.product.offer.isActive) {
+                            finalPrice = itemPrice - (itemPrice * item.product.offer.discountValue / 100);
+                        }
+                        // Apply category offer if no product offer exists
+                        else if (item.product.category?.offer && item.product.category.offer.isActive) {
+                            finalPrice = itemPrice - (itemPrice * item.product.category.offer.discountValue / 100);
+                        }
+
+                        refundAmount += finalPrice * item.quantity;
+                    }
+                }
+
+                // Round the refund amount
+                refundAmount = Math.round(refundAmount);
+
+                // Add the refund to wallet
+                wallet.balance += refundAmount;
                 
                 // Add transaction record
                 wallet.transactions.push({
                     type: 'credit',
-                    amount: order.total,
-                    description: `Refund for Returned Order`,
+                    amount: refundAmount,
+                    description: `Refund for Returned Order `,
                     date: new Date()
                 });
 
@@ -1160,7 +1235,7 @@ module.exports={
 
         } catch (error) {
             console.log(error);
-            res.status(500).send("Error Occurred",error);
+            res.status(500).send("Error occurred",error);
         }  
     },
     loadOrders: async (req, res) => {
