@@ -85,11 +85,25 @@ router.post('/toggle-wishlist/:productId', userAuth.checkSession, userController
 router.get('/wallet',userAuth.checkSession,userController.loadWallet);
 
 //google authenctication
-router.get('/auth/google',passport.authenticate('google',{scope:['profile','email']}));
+router.get('/auth/google', 
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    prompt: 'consent',
+    access_type: 'offline'
+  })
+);
 
-router.get('/auth/google/callback',passport.authenticate('google',{failureRedirect:'/user/login'}),(req,res)=>{
-    res.redirect('/user/home')
-})
+router.get('/auth/google/callback', 
+  passport.authenticate('google', {
+    failureRedirect: '/user/login',
+    failureFlash: true
+  }),
+  (req, res) => {
+    // Successful authentication
+    req.session.user = req.user._id;
+    res.redirect('/user/home');
+  }
+);
 
 //wallet routes
 router.post('/addWalletMoney', userAuth.checkSession, userController.addWalletMoney);
@@ -106,15 +120,5 @@ router.post('/payment-failed', userAuth.checkSession, userController.handlePayme
 
 //logout
 router.get('/logout',userAuth.checkSession,userController.loadLogout)
-
-
-
-
-
-
-
-
-
-
 
 module.exports= router ;
