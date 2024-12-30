@@ -77,6 +77,8 @@ router.post('/toggleOfferStatus/:id', adminAuth.checkSession, adminController.to
 // sales data
 router.get('/sales-data', adminAuth.checkSession, adminController.getSalesData);
 
+// Add this new route
+router.get('/top-sellers', adminAuth.checkSession, adminController.getTopSellers);
 
 //logout
 router.get('/logout',adminAuth.checkSession,adminController.loadLogout);

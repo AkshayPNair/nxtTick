@@ -442,13 +442,13 @@ module.exports={
         try {
             const couponId = req.params.id;
             
-            // Find the coupon and toggle its status
+            // find the coupon and toggle its status
             const coupon = await couponSchema.findById(couponId);
             if (!coupon) {
                 return res.status(404).json({ status: false, message: 'Coupon not found' });
             }
 
-            // Toggle the status
+            // toggle the status
             coupon.isActive = !coupon.isActive;
             await coupon.save();
 
@@ -485,7 +485,7 @@ module.exports={
                 endDate
             } = req.body;
 
-            // Create new offer
+            // create new offer
             const offer = new offerSchema({
                 offerTitle,
                 offerType,
@@ -499,27 +499,27 @@ module.exports={
             await offer.save();
 
             if (offerType === 'product') {
-                // Get product and calculate discounted price
+                // get product and calculate discounted price
                 const product = await productSchema.findById(productId);
                 const discount = (product.price * Number(discountValue)) / 100;
                 const discountedPrice = product.price - discount;
 
-                // Update product with offer and calculated discounted price
+                // update product with offer and calculated discounted price
                 await productSchema.findByIdAndUpdate(
                     productId,
                     { 
                         offer: offer._id,
-                        discountedPrice: discountedPrice // Direct value instead of function
+                        discountedPrice: discountedPrice // direct value instead of function
                     }
                 );
             } else if (offerType === 'category') {
-                // Update category with offer
+                // update category with offer
                 await categorySchema.findByIdAndUpdate(
                     categoryId,
                     { offer: offer._id }
                 );
 
-                // Update all products in the category
+                // update all products in the category
                 const products = await productSchema.find({ category: categoryId });
                 
                 for (const product of products) {
@@ -645,7 +645,7 @@ module.exports={
             const offerId = req.params.id;
             const { offerTitle, discountValue, startDate, endDate } = req.body;
 
-            // Find the existing offer
+            // find the existing offer
             const offer = await offerSchema.findById(offerId);
             if (!offer) {
                 return res.status(404).json({
@@ -654,7 +654,7 @@ module.exports={
                 });
             }
 
-            // Update offer details
+            // update offer details
             offer.offerTitle = offerTitle;
             offer.discountValue = Number(discountValue);
             offer.startDate = startDate;
@@ -663,7 +663,7 @@ module.exports={
 
             await offer.save();
 
-            // Update discounted prices
+            // update discounted prices
             if (offer.offerType === 'product' && offer.isActive) {
                 const product = await productSchema.findById(offer.productId);
                 if (product) {
@@ -697,15 +697,6 @@ module.exports={
                 status: false,
                 message: "Error occurred while updating offer"
             });
-        }
-    },
-    loadLogout:(req,res)=>{
-        try {
-            delete req.session.admin;
-            res.redirect("/admin/login")
-        } catch (error) {
-            console.log(error)
-            res.status(500).send("Error occured")
         }
     },
     getSalesData: async (req, res) => {
@@ -754,10 +745,10 @@ module.exports={
                 { $sort: { "_id": 1 } }
             ]);
 
-            // Initialize sales data array with zeros
+            // initialize sales data array with zeros
             const values = new Array(labels.length).fill(0);
 
-            // Fill in actual sales data
+            // fill in actual sales data
             orders.forEach(order => {
                 const date = new Date(order._id);
                 let index;
@@ -785,6 +776,31 @@ module.exports={
             res.status(500).json({ error: 'Error fetching sales data' });
         }
     },
+    getTopSellers: async (req, res) => {
+        try {
+            // get top 10 products 
+            const topProducts = await productSchema.find({ isDeleted: false }).sort({ purchaseCount: -1 }).limit(10).select('name price images');
+
+            // get top categories
+            const topCategories = await categorySchema.find({}).sort({ purchaseCount: -1 }).select('name');
+
+            res.json({topProducts,topCategories});
+        } catch (error) {
+            console.error('Error fetching top sellers:', error);
+            res.status(500).json({ error: 'Error fetching top sellers data' });
+        }
+    },
+    loadLogout:(req,res)=>{
+        try {
+            delete req.session.admin;
+            res.redirect("/admin/login")
+        } catch (error) {
+            console.log(error)
+            res.status(500).send("Error occured")
+        }
+    },
+    
+    
 }
 
 

@@ -98,8 +98,16 @@ router.post('/verifyWalletPayment', userAuth.checkSession, userController.verify
 //reset password
 router.post('/resetPassword', userAuth.checkSession, userController.resetPassword);
 
+//repay order
+router.post('/repay-order/:orderId', userAuth.checkSession, userController.repayOrder);
+
+// Add this route with the proper controller reference
+router.post('/payment-failed', userAuth.checkSession, userController.handlePaymentFailure);
+
 //logout
 router.get('/logout',userAuth.checkSession,userController.loadLogout)
+
+
 
 
 

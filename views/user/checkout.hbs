@@ -212,7 +212,6 @@
 
             if (response.ok) {
                 if (data.paymentMethod === 'Razorpay') {
-                    // Initialize Razorpay payment
                     const options = {
                         key: result.key_id,
                         amount: result.amount,
@@ -220,51 +219,53 @@
                         name: "nxtTick",
                         description: "Purchase Payment",
                         order_id: result.razorpayOrderId,
-                        handler: async function (response) {
-                            try {
-                                // Get the final amount from the page
-                                const finalAmount = parseFloat(document.getElementById('final-total').textContent.replace('Rs. ', ''));
-                                
-                                // Get selected address and coupon
-                                const addressId = document.querySelector('input[name="addressId"]:checked').value;
-                                const couponCode = document.getElementById('coupon-code')?.value || '';
-
-                                // Create verification payload
-                                const verificationData = {
+                        handler: function (response) {
+                            fetch('/user/verify-payment', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
                                     razorpay_payment_id: response.razorpay_payment_id,
                                     razorpay_order_id: response.razorpay_order_id,
                                     razorpay_signature: response.razorpay_signature,
-                                    addressId: addressId,
-                                    couponCode: couponCode,
-                                    finalAmount: finalAmount,
-                                    orderDetails: {
-                                        total: finalAmount,
-                                        paymentMethod: 'Razorpay'
-                                    }
-                                };
-
-                                const verifyResponse = await fetch('/user/verify-payment', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify(verificationData)
-                                });
-                                
-                                const verifyResult = await verifyResponse.json();
-                                if (verifyResult.status) {
+                                    orderId: result.orderId
+                                })
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.status) {
+                                    // Show success alert before redirecting
                                     Swal.fire({
-                                        title: 'Order Placed Successfully',
+                                        title: 'Order Placed Successfully!',
                                         text: 'Thank you for shopping with us.',
                                         icon: 'success',
                                         confirmButtonText: 'OK'
-                                    }).then(() => {
-                                        window.location.href = '/user/orders';
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            window.location.href = '/user/orders';
+                                        }
                                     });
-                                } else {
-                                    throw new Error(verifyResult.message);
                                 }
-                            } catch (error) {
-                                console.error('Payment verification failed:', error);
-                                notyf.error('Payment verification failed');
+                            });
+                        },
+                        modal: {
+                            ondismiss: function() {
+                                fetch('/user/payment-failed', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ orderId: result.orderId })
+                                })
+                                .then(() => {
+                                    Swal.fire({
+                                        title: 'Payment Failed',
+                                        text: 'Your payment was not completed.',
+                                        icon: 'error',
+                                        confirmButtonText: 'OK'
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            window.location.href = '/user/orders';
+                                        }
+                                    });
+                                });
                             }
                         },
                         prefill: {
@@ -275,7 +276,27 @@
                             color: "#3B82F6"
                         }
                     };
+
                     const rzp = new Razorpay(options);
+                    rzp.on('payment.failed', function (response) {
+                        fetch('/user/payment-failed', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ orderId: result.orderId })
+                        })
+                        .then(() => {
+                            Swal.fire({
+                                title: 'Payment Failed',
+                                text: response.error.description || 'Payment failed',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.location.href = '/user/orders';
+                                }
+                            });
+                        });
+                    });
                     rzp.open();
                 } else {
                     // Handle other payment methods (COD, Wallet)

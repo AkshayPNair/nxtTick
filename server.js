@@ -61,6 +61,10 @@ hbs.registerHelper('and', function () {
     return Array.prototype.every.call(arguments, Boolean);
 });
 
+hbs.registerHelper('and', function() {
+    return Array.prototype.slice.call(arguments, 0, -1).every(Boolean);
+});
+
 hbs.registerHelper('includes', function(array, value) {
     if (!array) return false;
     return array.map(item => item.toString()).includes(value.toString());

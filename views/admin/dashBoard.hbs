@@ -10,6 +10,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
   <script src="/js/dashboard.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body class="bg-gray-100 font-sans text-gray-800">
   <div class="flex flex-col h-screen">
@@ -23,8 +24,8 @@
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-2xl font-bold">Dashboard</h2>
           <div class="flex items-center space-x-4">
-            <span class="text-gray-600">Oct 11, 2024 - Nov 11, 2024</span>
-            <button class="bg-blue-600 text-white px-4 py-2 hover:bg-blue-700 rounded">Admin</button>
+            <span class="text-gray-600">Oct 11, 2024 - Nov 11, 2024</span>           
+            <button class="bg-blue-600 text-white rounded-xl px-4 py-2 hover:bg-blue-700 rounded">Admin</button>
           </div>
         </div>
 
@@ -63,7 +64,7 @@
               <h3 class="text-gray-600 font-semibold text-sm uppercase tracking-wider mb-2 group-hover:text-purple-600 transition-colors duration-300">Total Discounts</h3>
               <p class="text-3xl font-bold text-gray-800 group-hover:text-purple-700">₹{{roundPrice statistics.totalDiscount}}</p>
               <div class="mt-2 text-purple-500 flex items-center">
-                <i class="fas fa-tags mr-2 animate-spin"></i>
+                <i class="fas fa-tags mr-2 animate-pulse"></i>
                 <span class="text-sm font-semibold group-hover:font-bold">Savings Offered</span>
               </div>
             </div>
@@ -84,42 +85,48 @@
           
         </div>
 
+        <!-- After the metrics cards section, add this button -->
+        <div class="flex justify-start mb-8">
+          <button onclick="openTopSellersModal()" class="group relative overflow-hidden px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
+            <span class="relative z-10 flex items-center font-semibold">
+              <i class="fas fa-crown text-yellow-300 mr-2"></i>
+              Top Sellers
+              <i class="fas fa-chevron-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+            </span>
+            <div class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-green-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </button>
+        </div>
+
         <!-- Sales Report Section -->
         <div class="bg-white shadow-lg rounded-2xl p-8 mb-8 transform  transition-all duration-300">
           <div class="flex justify-between items-center mb-8">
             <h2 class="text-3xl font-bold text-gray-800 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Sales Report</h2>
             
             <!-- Filter Controls -->
-           <div class="flex items-center space-x-6">
+           <div class="flex items-center space-x-8">
               <!-- Quick Filters -->
-              <div class="flex space-x-3">
-                <button onclick="filterSales('day'); setActiveFilter(this)" class="px-2 py-2.5 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-lg hover:from-blue-600 hover:to-blue-800 transform hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg active:shadow-[0_0_15px_rgba(59,130,246,0.5)]" id="dayFilter">
-                  Today
-                </button>
-                <button onclick="filterSales('week'); setActiveFilter(this)" class="px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-indigo-700 text-white rounded-lg hover:from-indigo-600 hover:to-indigo-800 transform hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg active:shadow-[0_0_15px_rgba(99,102,241,0.5)]" id="weekFilter">
-                  This Week
-                </button>
-                <button onclick="filterSales('month'); setActiveFilter(this)" class="px-5 py-2.5 bg-gradient-to-r from-purple-500 to-purple-700 text-white rounded-lg hover:from-purple-600 hover:to-purple-800 transform hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg active:shadow-[0_0_15px_rgba(147,51,234,0.5)]" id="monthFilter">
-                  This Month
-                </button>
+              <div class="flex items-center space-x-4 whitespace-nowrap">
+                <button onclick="filterSales('day'); setActiveFilter(this)" class="px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-lg hover:from-blue-600 hover:to-blue-800 transform hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg active:shadow-[0_0_15px_rgba(59,130,246,0.5)]" id="dayFilter">Today</button>
+                <button onclick="filterSales('week'); setActiveFilter(this)" class="px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-indigo-700 text-white rounded-lg hover:from-indigo-600 hover:to-indigo-800 transform hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg active:shadow-[0_0_15px_rgba(99,102,241,0.5)]" id="weekFilter">This Week</button>
+                <button onclick="filterSales('month'); setActiveFilter(this)" class="px-4 py-2.5 bg-gradient-to-r from-purple-500 to-purple-700 text-white rounded-lg hover:from-purple-600 hover:to-purple-800 transform hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg active:shadow-[0_0_15px_rgba(147,51,234,0.5)]" id="monthFilter">This Month</button>
               </div>
 
               <!-- Custom Date Range -->
-              <div class="flex items-center space-x-3">
+              <div class="flex items-center space-x-4 whitespace-nowrap">
                 <input type="date" id="startDate" class="px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200">
                 <span class="text-gray-500 font-medium">to</span>
                 <input type="date" id="endDate" class="px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200">
-                <button onclick="filterCustomRange(); setActiveFilter(this)" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg hover:from-blue-700 hover:to-blue-900 transform hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg active:shadow-[0_0_15px_rgba(37,99,235,0.5)]">
+                <button onclick="filterCustomRange(); setActiveFilter(this)" class="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg hover:from-blue-700 hover:to-blue-900 transform hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg active:shadow-[0_0_15px_rgba(37,99,235,0.5)]">
                   Apply
                 </button>
               </div>
 
               <!-- Export Buttons -->
-              <div class="flex space-x-3">
-                <button onclick="exportToPDF()" class="flex items-center px-5 py-2.5 bg-gradient-to-r from-red-500 to-red-700 text-white rounded-lg hover:from-red-600 hover:to-red-800 transform hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg">
+              <div class="flex items-center space-x-4 whitespace-nowrap">
+                <button onclick="exportToPDF()" class="flex items-center px-4 py-2.5 bg-gradient-to-r from-red-500 to-red-700 text-white rounded-lg hover:from-red-600 hover:to-red-800 transform hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg">
                   <i class="fas fa-file-pdf mr-2"></i> PDF
                 </button>
-                <button onclick="exportReport('excel')" class="flex items-center px-5 py-2.5 bg-gradient-to-r from-green-500 to-green-700 text-white rounded-lg hover:from-green-600 hover:to-green-800 transform hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg">
+                <button onclick="exportReport('excel')" class="flex items-center px-4 py-2.5 bg-gradient-to-r from-green-500 to-green-700 text-white rounded-lg hover:from-green-600 hover:to-green-800 transform hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg">
                   <i class="fas fa-file-excel mr-2"></i> Excel
                 </button>
               </div>
@@ -249,6 +256,114 @@
     </footer>
   </div>
   
+  <!-- Top Sellers Modal with adjusted dimensions -->
+  <div id="topSellersModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-gradient-to-br from-slate-50 to-white rounded-3xl shadow-2xl w-[95%] max-w-7xl p-6 max-h-[95vh] transform scale-95 opacity-0 transition-all duration-300" id="modalContent">
+      <!-- Decorative Elements -->
+      <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl -z-10"></div>
+      <div class="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-green-500/10 to-yellow-500/10 rounded-full blur-3xl -z-10"></div>
+
+      <!-- Header with animated gradient -->
+      <div class="relative mb-6">
+        <h3 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 animate-gradient-x">
+          Top Performers Dashboard
+        </h3>
+        <button onclick="closeTopSellersModal()" class="absolute -top-2 -right-2 group bg-white p-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+          <i class="fas fa-times text-gray-400 group-hover:text-red-500 text-xl transition-colors duration-300"></i>
+        </button>
+      </div>
+
+      <!-- Content Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Top Products Section -->
+        <div class="space-y-4">
+          <div class="flex items-center space-x-4 mb-4">
+            <div class="w-10 h-10 flex items-center justify-center rounded-xl bg-blue-100">
+              <i class="fas fa-trophy text-2xl text-blue-600"></i>
+            </div>
+            <h4 class="text-2xl font-bold text-gray-800">Best Selling Products</h4>
+          </div>
+          <div class="space-y-3 pr-4 overflow-y-auto custom-scrollbar" style="max-height: calc(85vh - 120px);" id="topProductsList">
+            <!-- Content will be dynamically inserted here -->
+          </div>
+        </div>
+
+        <!-- Top Categories Section -->
+        <div class="space-y-4">
+          <div class="flex items-center space-x-4 mb-4">
+            <div class="w-10 h-10 flex items-center justify-center rounded-xl bg-green-100">
+              <i class="fas fa-chart-pie text-2xl text-green-600"></i>
+            </div>
+            <h4 class="text-2xl font-bold text-gray-800">Top Categories</h4>
+          </div>
+          <div class="space-y-3 pr-4 overflow-y-auto custom-scrollbar" style="max-height: calc(85vh - 120px);" id="topCategoriesList">
+            <!-- Content will be dynamically inserted here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    @keyframes gradient-x {
+      0%, 100% {
+        background-size: 200% 200%;
+        background-position: left center;
+      }
+      50% {
+        background-size: 200% 200%;
+        background-position: right center;
+      }
+    }
+
+    .animate-gradient-x {
+      animation: gradient-x 8s ease infinite;
+    }
+
+    #topProductsList, #topCategoriesList {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 #f1f1f1;
+        padding-right: 8px;
+        margin-right: -8px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px; /* Made scrollbar thinner */
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+  </style>
+
   <script>
     function setActiveFilter(button) {
       // Remove active class from all filter buttons
@@ -745,6 +860,118 @@
     document.addEventListener('DOMContentLoaded', () => {
         initializeChart();
         updateChart('weekly'); // Load weekly data by default
+    });
+
+    function openTopSellersModal() {
+        const modal = document.getElementById('topSellersModal');
+        const modalContent = document.getElementById('modalContent');
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        // Trigger animation after a small delay
+        setTimeout(() => {
+            modalContent.classList.remove('scale-95', 'opacity-0');
+            modalContent.classList.add('scale-100', 'opacity-100');
+        }, 50);
+        
+        fetchTopSellers();
+    }
+
+    function closeTopSellersModal() {
+        const modal = document.getElementById('topSellersModal');
+        const modalContent = document.getElementById('modalContent');
+        
+        // Reverse animation
+        modalContent.classList.remove('scale-100', 'opacity-100');
+        modalContent.classList.add('scale-95', 'opacity-0');
+        
+        // Hide modal after animation
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300);
+    }
+
+    async function fetchTopSellers() {
+        try {
+            const response = await fetch('/admin/top-sellers');
+            const data = await response.json();
+            
+            // Render top products with compact design
+            const productsHTML = data.topProducts.map((product, index) => `
+                <div class="group relative bg-white rounded-xl shadow-sm hover:shadow-xl p-4 transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 mb-3">
+                    <div class="absolute inset-0 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div class="relative flex items-center space-x-4">
+                        <!-- Rank Badge -->
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 rounded-lg ${index < 3 ? 'bg-gradient-to-br from-yellow-400 to-orange-500' : 'bg-gradient-to-br from-gray-400 to-gray-500'} flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
+                                <span class="text-lg font-bold text-white">#${index + 1}</span>
+                            </div>
+                        </div>
+
+                        <!-- Product Image -->
+                        <div class="flex-shrink-0">
+                            <img src="${product.images?.[0] || '/images/placeholder.jpg'}"
+                                 alt="${product.name}"
+                                 class="w-16 h-16 object-cover rounded-lg shadow-md transform group-hover:scale-105 transition-transform duration-300"
+                                 onerror="this.src='/images/placeholder.jpg'">
+                        </div>
+
+                        <!-- Product Details -->
+                        <div class="flex-grow min-w-0"> <!-- Added min-w-0 to prevent text overflow -->
+                            <h5 class="font-bold text-sm text-gray-800 mb-1 group-hover:text-blue-600 transition-colors duration-300 truncate">${product.name}</h5>
+                            <div class="flex items-center">
+                                <span class="text-sm font-semibold text-green-600">₹${product.price.toLocaleString()}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Render top categories with compact design
+            const categoriesHTML = data.topCategories.map((category, index) => `
+                <div class="group relative bg-white rounded-xl shadow-sm hover:shadow-xl p-4 transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 mb-3">
+                    <div class="absolute inset-0 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div class="relative flex items-center space-x-4">
+                        <!-- Rank Badge -->
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 rounded-lg ${index < 3 ? 'bg-gradient-to-br from-emerald-400 to-green-500' : 'bg-gradient-to-br from-gray-400 to-gray-500'} flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
+                                <span class="text-lg font-bold text-white">#${index + 1}</span>
+                            </div>
+                        </div>
+
+                        <!-- Category Details -->
+                        <div class="flex-grow min-w-0"> <!-- Added min-w-0 to prevent text overflow -->
+                            <h5 class="font-bold text-sm text-gray-800 group-hover:text-emerald-600 transition-colors duration-300 truncate">${category.name}</h5>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('topProductsList').innerHTML = productsHTML;
+            document.getElementById('topCategoriesList').innerHTML = categoriesHTML;
+        } catch (error) {
+            console.error('Error fetching top sellers:', error);
+            const errorHTML = `
+                <div class="text-center py-8">
+                    <div class="bg-red-50 rounded-xl p-4 inline-block mb-3">
+                        <i class="fas fa-exclamation-circle text-3xl text-red-500"></i>
+                    </div>
+                    <h4 class="text-lg font-semibold text-gray-800 mb-2">Oops! Something went wrong</h4>
+                    <p class="text-sm text-gray-600">Failed to load the data. Please try again later.</p>
+                </div>
+            `;
+            document.getElementById('topProductsList').innerHTML = errorHTML;
+            document.getElementById('topCategoriesList').innerHTML = errorHTML;
+        }
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('topSellersModal').addEventListener('click', (e) => {
+        if (e.target.id === 'topSellersModal') {
+            closeTopSellersModal();
+        }
     });
   </script>
 </body>

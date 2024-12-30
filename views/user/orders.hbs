@@ -95,6 +95,19 @@
                                         {{../status}}
                                     </span>
                                 </p>
+                                
+                                {{#if (and (eq ../paymentMethod 'Razorpay') (eq ../paymentStatus 'Failed'))}}
+                                    <p class="text-sm text-gray-600">Payment Status : <span class="font-medium text-red-500 bg-red-200 rounded-xl font-medium px-1">{{../paymentStatus}}</span></p>
+                                    <button onclick="initiateRepayment('{{../_id}}')" 
+                                            class="bg-blue-600 text-white px-2 py-0.5 
+                                                   rounded-full font-medium
+                                                   transform hover:scale-105 transition-all duration-300 ease-out
+                                                   hover:shadow-blue-500/30 hover:shadow-xl
+                                                   hover:bg-blue-700
+                                                   border border-transparent hover:border-blue-300">
+                                        Retry Payment
+                                    </button>
+                                {{/if}}
 
                             </div>
                         </div>
@@ -171,6 +184,72 @@
             duration: 800,
             once: true
         });
+    </script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+    async function initiateRepayment(orderId) {
+        try {
+            const response = await fetch(`/user/repay-order/${orderId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const result = await response.json();
+
+            if (result.razorpayOrderId) {
+                const options = {
+                    key: result.key_id,
+                    amount: result.amount,
+                    currency: "INR",
+                    name: "nxtTick",
+                    description: "Order Repayment",
+                    order_id: result.razorpayOrderId,
+                    handler: function (response) {
+                        fetch('/user/verify-payment', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature,
+                                orderId: orderId
+                            })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.status) {
+                                location.reload(); // Reload page after successful payment
+                            }
+                        });
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            location.reload(); // Reload page when modal is dismissed
+                        }
+                    },
+                    theme: {
+                        color: "#3B82F6"
+                    }
+                };
+
+                const rzp = new Razorpay(options);
+                rzp.on('payment.failed', function (response) {
+                    fetch('/user/payment-failed', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ orderId: orderId })
+                    })
+                    .then(() => {
+                        location.reload(); // Reload page after payment failure
+                    });
+                });
+                rzp.open();
+            }
+        } catch (error) {
+            console.error('Error initiating repayment:', error);
+            location.reload(); // Reload page if there's an error
+        }
+    }
     </script>
 </body>
 </html>
