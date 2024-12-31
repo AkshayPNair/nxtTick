@@ -1039,36 +1039,6 @@ module.exports={
                 order.razorpayPaymentId = razorpay_payment_id;
                 await order.save();
 
-                // update product stock and category purchase counts
-                for (const item of order.items) {
-                    // Skip if product doesn't exist
-                    if (!item.product) {
-                        console.log('Product not found for item:', item);
-                        
-                    }
-
-                    try {
-                        // update product stock and purchase count
-                        await productSchema.findByIdAndUpdate(
-                            item.product._id,
-                            { $inc: { stock: -item.quantity,purchaseCount: 1 } }
-                        );
-
-                        // get the product with category information
-                        const product = await productSchema.findById(item.product._id);
-                        
-                        // update category purchase count if category exists
-                        if (product && product.category) {
-                            await categorySchema.findByIdAndUpdate(
-                                product.category,
-                                { $inc: { purchaseCount: 1 } }
-                            );
-                        }
-                    } catch (updateError) {
-                        console.error('Error updating counts:', updateError);
-                    }
-                }
-
                 // clear cart
                 await cart.deleteMany({ userId: order.userId });
 
@@ -1919,7 +1889,7 @@ module.exports={
                 });
             }
     
-            // Update order status to failed
+            // update order status to failed
             order.paymentStatus = 'Failed';
             await order.save();
     
@@ -1933,6 +1903,139 @@ module.exports={
                 status: false, 
                 message: "Error updating payment status" 
             });
+        }
+    },
+    searchProducts: async (req, res) => {
+        try {
+            const searchTerm = req.query.term;
+            const sortOption = req.query.sort || "default";
+            const userId = req.session.user;
+            const user = userId ? await userSchema.findById(userId) : null;
+
+            const escapedSearchTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+            let sortCriteria = {};
+            if (sortOption === "priceAsc") {
+                sortCriteria = { price: 1 };
+            } else if (sortOption === "priceDesc") {
+                sortCriteria = { price: -1 };
+            } else if (sortOption === "newArrivals") {
+                sortCriteria = { createdAt: -1 };
+            } else if (sortOption === "aToZ") {
+                sortCriteria = { name: 1 };
+            } else if (sortOption === "zToA") {
+                sortCriteria = { name: -1 };
+            }
+
+            // Find products with sorting
+            const products = await productSchema
+                .find({
+                    name: { $regex: escapedSearchTerm, $options: 'i' },
+                    isDeleted: false
+                })
+                .populate('offer')
+                .populate({
+                    path: 'category',
+                    populate: { path: 'offer' },
+                    match: { isBlock: false }
+                })
+                .sort(sortCriteria)
+                .exec();
+
+            // Filter out products with blocked categories
+            const filteredProducts = products.filter(product => product.category !== null);
+
+            // Process products like in shop controller
+            const processedProducts = filteredProducts.map(data => {
+                let basePrice = Math.round(Number(data.price));
+                let finalPrice = basePrice;
+                let activeOffer = null;
+
+                // Check for product offer first
+                if (data.offer && data.offer.isActive) {
+                    finalPrice = Math.round(basePrice - (basePrice * data.offer.discountValue / 100));
+                    activeOffer = {
+                        type: 'Product Offer',
+                        discountValue: data.offer.discountValue
+                    };
+                }
+                // Then check for category offer
+                else if (data.category.offer && data.category.offer.isActive) {
+                    finalPrice = Math.round(basePrice - (basePrice * data.category.offer.discountValue / 100));
+                    activeOffer = {
+                        type: 'Category Offer',
+                        discountValue: data.category.offer.discountValue
+                    };
+                }
+                // if order used coupon
+                else if (order.couponUsed) {
+                    // Calculate individual item's share of the coupon discount
+                    const totalOrderValue = order.items.reduce((sum, orderItem) => 
+                        sum + (orderItem.subtotal), 0);
+                    const itemDiscountShare = (data.subtotal / totalOrderValue) * order.couponUsed.discount;
+                    finalPrice = basePrice - (itemDiscountShare / data.quantity);
+                }
+
+                return {
+                    _id: data._id,
+                    name: data.name,
+                    description: data.description,
+                    category: data.category,
+                    brand: data.brand,
+                    price: basePrice,
+                    finalPrice: finalPrice,
+                    activeOffer: activeOffer,
+                    images: data.images,
+                    isInWishlist: user ? user.wishlist.includes(data._id) : false
+                };
+            });
+
+            // render  all  data
+            res.render('user/searchResults', {
+                searchTerm,
+                products: processedProducts,
+                user,
+                sortOption, // pass sort option to maintain selected state
+                helpers: {
+                    eq: (v1, v2) => v1 === v2,
+                    roundPrice: (price) => Math.round(price)
+                }
+            });
+
+        } catch (error) {
+            console.error('Search error:', error);
+            res.status(500).send('Error processing search');
+        }
+    },
+    getSearchSuggestions: async (req, res) => {
+        try {
+            const searchTerm = req.query.term;
+            
+            if (!searchTerm || searchTerm.length < 2) {
+                return res.json({ suggestions: [] });
+            }
+
+            
+            const escapedSearchTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+            const products = await productSchema.find({
+                name: { $regex: escapedSearchTerm, $options: 'i' },
+                isDeleted: false
+            })
+            .select('name images price')
+            .limit(5);
+
+            const suggestions = products.map(product => ({
+                _id: product._id,
+                name: product.name,
+                images: product.images,
+                price: product.price
+            }));
+
+            res.json({ suggestions });
+        } catch (error) {
+            console.error('Search suggestion error:', error);
+            res.status(500).json({ error: 'Error fetching suggestions' });
         }
     },
     loadLogout: (req, res) => {

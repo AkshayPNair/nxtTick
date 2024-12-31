@@ -8,6 +8,10 @@ const addressController=require("../controller/addressController");
 const productController = require("../controller/productController");
 const shopController=require('../controller/shopController');
 
+//search routes
+router.get('/search-suggestions', userController.getSearchSuggestions);
+router.get('/search', userController.searchProducts);
+
 //user signup
 router.get("/signup",userController.loadSignup)
 router.post('/signup',userController.registerUser)

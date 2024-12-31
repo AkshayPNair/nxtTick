@@ -183,41 +183,52 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200" id="salesReportBody">
-                {{#each orders}}
-                <tr class="hover:bg-gray-50 transition-colors duration-200">
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                      <i class="far fa-calendar-alt text-gray-400 mr-2"></i>
-                      <span>{{formatDate this.createdAt}}</span>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                      <i class="fas fa-hashtag text-blue-400 mr-2"></i>
-                      <span class="text-blue-600 font-medium">{{this._id}}</span>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">{{this.userId.name}}</td>
-                  <td class="px-6 py-4 whitespace-nowrap">₹{{this.items.[0].subtotal}}</td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    {{#if this.items.[0].product.offer}}
-                       <span class="text-green-600 font-medium">{{this.items.[0].product.offer.discountValue}}% {{!-- (-₹{{calculateOfferDiscount this.items.[0].product.price this.items.[0].product.offer.discountValue}})--}}</span> 
-                    {{else if this.items.[0].product.category.offer}}
-                      <span class="text-green-600 font-medium">{{this.items.[0].product.category.offer.discountValue}}% {{!--(-₹{{calculateOfferDiscount this.items.[0].product.price this.items.[0].product.category.offer.discountValue}})--}}</span>
-                    {{else}}
-                      <span class="text-gray-500 font-medium">0%</span>
-                    {{/if}}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    {{#if this.couponUsed.discount}}
-                      <span class="text-red-600 font-medium">₹{{this.couponUsed.discount}}</span>
-                    {{else}}
-                      <span class="text-gray-500 font-medium">₹0</span>
-                    {{/if}}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap font-medium">₹{{this.total}}</td>
-                </tr>
-                {{/each}}
+                {{#if orders.length}}
+                  {{#each orders}}
+                  <tr class="hover:bg-gray-50 transition-colors duration-200">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <i class="far fa-calendar-alt text-gray-400 mr-2"></i>
+                        <span>{{formatDate this.createdAt}}</span>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <i class="fas fa-hashtag text-blue-400 mr-2"></i>
+                        <span class="text-blue-600 font-medium">{{this._id}}</span>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{this.userId.name}}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">₹{{this.items.[0].subtotal}}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      {{#if this.items.[0].product.offer}}
+                         <span class="text-green-600 font-medium">{{this.items.[0].product.offer.discountValue}}%</span> 
+                      {{else if this.items.[0].product.category.offer}}
+                        <span class="text-green-600 font-medium">{{this.items.[0].product.category.offer.discountValue}}%</span>
+                      {{else}}
+                        <span class="text-gray-500 font-medium">0%</span>
+                      {{/if}}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      {{#if this.couponUsed.discount}}
+                        <span class="text-red-600 font-medium">₹{{this.couponUsed.discount}}</span>
+                      {{else}}
+                        <span class="text-gray-500 font-medium">₹0</span>
+                      {{/if}}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap font-medium">₹{{this.total}}</td>
+                  </tr>
+                  {{/each}}
+                {{else}}
+                  <tr>
+                    <td colspan="7" class="px-6 py-8 text-center">
+                      <div class="flex flex-col items-center">
+                        <i class="fas fa-box-open text-4xl text-gray-300 mb-3"></i>
+                        <p class="text-gray-500 font-medium">No orders found</p>
+                      </div>
+                    </td>
+                  </tr>
+                {{/if}}
               </tbody>
               <tfoot class="bg-gradient-to-r from-gray-50 to-gray-100 font-semibold">
                 <tr>
@@ -410,18 +421,61 @@
         const tbody = document.getElementById('salesReportBody');
         tbody.innerHTML = '';
 
+        if (orders.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="px-6 py-8 text-center">
+                        <div class="flex flex-col items-center">
+                            <i class="fas fa-box-open text-4xl text-gray-300 mb-3"></i>
+                            <p class="text-gray-500 font-medium">No orders found for this period</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            
+            // Update footer totals to zero
+            document.querySelector('tfoot').innerHTML = `
+                <tr>
+                    <td colspan="3" class="px-6 py-4 font-semibold text-right">Totals:</td>
+                    <td class="px-6 py-4 font-semibold">₹0</td>
+                    <td class="px-6 py-4 font-semibold text-green-600">₹0</td>
+                    <td class="px-6 py-4 font-semibold text-red-600">₹0</td>
+                    <td class="px-6 py-4 font-semibold text-blue-600">₹0</td>
+                </tr>
+            `;
+            return;
+        }
+
         orders.forEach(order => {
             const row = `
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 whitespace-nowrap">${formatDate(order.createdAt)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">#${order._id}</td>
+                <tr class="hover:bg-gray-50 transition-colors duration-200">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <i class="far fa-calendar-alt text-gray-400 mr-2"></i>
+                            <span>${formatDate(order.createdAt)}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <i class="fas fa-hashtag text-blue-400 mr-2"></i>
+                            <span class="text-blue-600 font-medium">${order._id}</span>
+                        </div>
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap">${order.userId.name}</td>
                     <td class="px-6 py-4 whitespace-nowrap">₹${order.items[0].subtotal}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        ${getOfferText(order.items[0].product)}
+                        ${order.items[0].product.offer ? 
+                            `<span class="text-green-600 font-medium">${order.items[0].product.offer.discountValue}%</span>` :
+                            order.items[0].product.category?.offer ?
+                            `<span class="text-green-600 font-medium">${order.items[0].product.category.offer.discountValue}%</span>` :
+                            `<span class="text-gray-500 font-medium">0%</span>`
+                        }
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        ${order.couponUsed ? `<span class="text-red-600">₹${order.couponUsed.discount}</span>` : '<span class="text-gray-500">₹0</span>'}
+                        ${order.couponUsed?.discount ? 
+                            `<span class="text-red-600 font-medium">₹${order.couponUsed.discount}</span>` : 
+                            `<span class="text-gray-500 font-medium">₹0</span>`
+                        }
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap font-medium">₹${order.total}</td>
                 </tr>
@@ -447,11 +501,11 @@
         // Update footer totals
         document.querySelector('tfoot').innerHTML = `
             <tr>
-                <td colspan="3" class="px-6 py-4 font-bold text-right">Totals:</td>
-                <td class="px-6 py-4 font-bold">₹${Math.round(totalGross)}</td>
-                <td class="px-6 py-4 font-bold text-green-600">-₹${Math.round(totalOfferDiscount)}</td>
-                <td class="px-6 py-4 font-bold text-red-600">-₹${Math.round(totalCouponDiscount)}</td>
-                <td class="px-6 py-4 font-bold">₹${Math.round(totalNet)}</td>
+                <td colspan="3" class="px-6 py-4 font-semibold text-right">Totals:</td>
+                <td class="px-6 py-4 font-semibold">₹${Math.round(totalGross)}</td>
+                <td class="px-6 py-4 font-semibold text-green-600">₹${Math.round(totalOfferDiscount)}</td>
+                <td class="px-6 py-4 font-semibold text-red-600">₹${Math.round(totalCouponDiscount)}</td>
+                <td class="px-6 py-4 font-semibold text-blue-600">₹${Math.round(totalNet)}</td>
             </tr>
         `;
     }

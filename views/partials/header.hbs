@@ -12,12 +12,60 @@
     </div>
 
     {{!-- searchBar --}}
-    <div class="mx-4 hidden md:flex">
-      <input
-        type="text"
-        placeholder="Search"
-        class="w-96 h-15 rounded-lg border border-black px-4 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
+    <div class="relative mx-4 hidden md:block group">
+      <form id="searchForm" action="/user/search" method="GET" class="relative" autocomplete="off">
+        <input
+          type="text"
+          id="searchInput"
+          name="term"
+          autocomplete="off"
+          placeholder="Search for products..."
+          class="w-[400px] h-10 pl-14 pr-12 rounded-full border-2 border-gray-200 
+                 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none 
+                 transition-all duration-300 text-gray-600 text-base
+                 placeholder-gray-400 shadow-sm hover:shadow-md"
+          oninput="showSpinner()"
+        />
+        <!-- Search Icon with animation -->
+        <div class="absolute left-5 top-1/2 transform -translate-y-1/2 transition-transform group-hover:scale-110">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 group-hover:text-blue-500 transition-colors duration-300" 
+               fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <!-- Loading Spinner (hidden by default) -->
+        <div id="searchSpinner" class="hidden absolute right-5 top-1/2 transform -translate-y-1/2">
+          <svg class="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" 
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+            </path>
+          </svg>
+        </div>
+      </form>
+
+      <!-- Enhanced Suggestions Dropdown -->
+      <div id="searchSuggestions" 
+           class="hidden absolute left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-100 z-50 
+                  transform transition-all duration-300 opacity-0 translate-y-2">
+        <!-- Loading State -->
+        <div id="suggestionsLoading" class="hidden p-4">
+          <div class="flex items-center justify-center space-x-2">
+            <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+            <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+            <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+          </div>
+        </div>
+        <!-- Results Container -->
+        <div id="suggestionsContent" class="max-h-[400px] overflow-y-auto">
+          <!-- Suggestions will be populated here -->
+        </div>
+        <!-- Search Footer -->
+        <div class="px-4 py-2 bg-gray-50 text-xs text-gray-500 rounded-b-xl border-t border-gray-100">
+          Press Enter to see all results
+        </div>
+      </div>
     </div>
 
     {{!-- navigation --}}
@@ -70,25 +118,167 @@
     </div>
   </div>
 </header>
+<style>
+  /* Custom Scrollbar for Suggestions */
+  #suggestionsContent::-webkit-scrollbar {
+    width: 6px;
+  }
+  #suggestionsContent::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+  #suggestionsContent::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+  }
+  #suggestionsContent::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
 
+  /* Animations */
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
+  .suggestions-enter {
+    animation: slideDown 0.2s ease-out;
+  }
 
-      <script>
+  /* Hover Effects */
+  .suggestion-item {
+    transition: all 0.2s ease;
+  }
+  .suggestion-item:hover {
+    background-color: #f8fafc;
+    transform: translateX(5px);
+  }
+</style>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchForm = document.getElementById('searchForm');
+    const searchInput = document.getElementById('searchInput');
+    const searchSuggestions = document.getElementById('searchSuggestions');
+    const suggestionsContent = document.getElementById('suggestionsContent');
+    const searchSpinner = document.getElementById('searchSpinner');
+    const suggestionsLoading = document.getElementById('suggestionsLoading');
+    let debounceTimer;
+
+    function showSuggestions() {
+        searchSuggestions.classList.remove('hidden', 'opacity-0', 'translate-y-2');
+        searchSuggestions.classList.add('opacity-100', 'translate-y-0');
+    }
+
+    function showSpinner() {
+        const spinner = document.getElementById('searchSpinner');
+        spinner.classList.remove('hidden');
         
-        const hamburger = document.getElementById('hamburger');
-        const mobileMenu = document.getElementById('mobile-menu');
-        const closeMenu = document.getElementById('close-menu');
-    
-        hamburger.addEventListener('click', () => {
-          mobileMenu.classList.remove('hidden');
-        });
-    
-        closeMenu.addEventListener('click', () => {
-          mobileMenu.classList.add('hidden');
-        });
+        // Hide spinner after 2 seconds
+        setTimeout(() => {
+          spinner.classList.add('hidden');
+        }, 2000);
+      }
 
-       
+    function hideSuggestions() {
+        searchSuggestions.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => {
+            searchSuggestions.classList.add('hidden');
+        }, 200);
+    }
 
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.trim();
+        clearTimeout(debounceTimer);
 
-      </script>
+        if (searchTerm.length < 2) {
+            hideSuggestions();
+            return;
+        }
+
+        // Show loading state
+        searchSpinner.classList.remove('hidden');
+        suggestionsLoading.classList.remove('hidden');
+        showSuggestions();
+
+        debounceTimer = setTimeout(() => {
+            fetch(`/user/search-suggestions?term=${encodeURIComponent(searchTerm)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.suggestions && data.suggestions.length > 0) {
+                        const suggestionsHtml = data.suggestions
+                            .map(product => `
+                                <a href="/user/productView/${product._id}" 
+                                   class="suggestion-item block px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-0">
+                                    <div class="flex items-center space-x-4">
+                                        <img src="${product.images[0]}" 
+                                             alt="${product.name}" 
+                                             class="w-12 h-12 object-cover rounded-lg shadow-sm">
+                                        <div class="flex-1">
+                                            <div class="font-medium text-gray-800">${product.name}</div>
+                                            <div class="text-sm text-gray-500">₹${product.price}</div>
+                                        </div>
+                                        <div class="text-blue-500">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </a>
+                            `)
+                            .join('');
+                        suggestionsContent.innerHTML = suggestionsHtml;
+                    } else {
+                        suggestionsContent.innerHTML = `
+                            <div class="px-4 py-3 text-gray-500 text-center">
+                                <svg class="mx-auto h-6 w-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                          d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                No products found
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    suggestionsContent.innerHTML = `
+                        <div class="px-4 py-3 text-red-500 text-center">
+                            <svg class="mx-auto h-6 w-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            Error loading suggestions
+                        </div>
+                    `;
+                })
+                .finally(() => {
+                    searchSpinner.classList.add('hidden');
+                    suggestionsLoading.classList.add('hidden');
+                });
+        }, 300);
+    });
+
+    // Close suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
+            hideSuggestions();
+        }
+    });
+
+    // Handle form submission
+    searchForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const searchTerm = searchInput.value.trim();
+        if (searchTerm) {
+            window.location.href = `/user/search?term=${encodeURIComponent(searchTerm)}`;
+        }
+    });
+});
+</script>

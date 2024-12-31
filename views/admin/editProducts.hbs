@@ -179,11 +179,11 @@
           text: "Please provide a product name.",
         });
         return false;
-      } else if (productName.length > 30) {
+      } else if (productName.length > 50) {
         Swal.fire({
           icon: "error",
           title: "Invalid Product Name",
-          text: "Product name cannot exceed 30 characters.",
+          text: "Product name cannot exceed 50 characters.",
         });
         return false;
       } else if (!/^[A-Za-z\s\(\)\[\]\{\}\-\&]+$/.test(productName)) {
