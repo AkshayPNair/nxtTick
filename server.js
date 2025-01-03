@@ -4,7 +4,7 @@ const path=require("path");
 const hbs=require("hbs");
 const moment = require('moment');
 
-const port= process.env.PORT || 1111 ;
+const port= process.env.PORT || 3000 ;
 
 const userRoutes=require("./routes/user")
 const adminRoutes=require("./routes/admin")
