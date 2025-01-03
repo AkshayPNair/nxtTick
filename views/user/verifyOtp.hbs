@@ -6,16 +6,27 @@
     <title>OTP Verification Page</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        h2, .font-montserrat {
+            font-family: 'Montserrat', sans-serif;
+        }
+    </style>
 </head>
-<body class="bg-white-100">
+<body class="bg-white-100 font-['Inter']">
     <!-- Navbar -->
     <header class="flex justify-between items-center px-6 py-4 bg-white shadow">
         <div class="mx-10 flex items-center space-x-2">
             <img src="/images/logo nxtTick.png" alt="Logo" style="width: 130px; height: 30px;"> 
         </div>
         <div>
-            <a href="/user/login" class="px-4 py-2 font-semibold text-gray-700 hover:text-gray-900 border-2 border-gray-200 rounded-xl hover:bg-gray-200">Login</a>
-            <a href="/user/signup" class="px-4 py-2 ml-2 font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700">Sign Up</a>
+            <a href="/user/login" class="px-4 py-2 font-semibold text-gray-700 hover:text-gray-900 border-2 border-gray-200 rounded-xl hover:bg-gray-200 font-['Montserrat']">Login</a>
+            <a href="/user/signup" class="px-4 py-2 ml-2 font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 font-['Montserrat']">Sign Up</a>
         </div>
     </header>
 
@@ -28,21 +39,21 @@
 
         <!-- OTP Verification Form Section -->
         <div class="w-full lg:w-[35%] max-w-md bg-white p-8 rounded-lg">
-            <h2 class="text-3xl font-bold text-gray-800 mb-6">OTP Verification</h2>
-            <p class="text-lg text-blue-600 mb-4">Enter OTP</p>
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 font-['Montserrat']">OTP Verification</h2>
+            <p class="text-lg text-blue-600 mb-4 font-['Montserrat']">Enter OTP</p>
             <form class="space-y-5" id="otpForm">
                 <div class="flex justify-between space-x-2">
                     <!-- OTP Input Boxes -->
-                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="w-16 h-16 text-center text-xl border rounded-2xl bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" id="otp1" required>
-                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="w-16 h-16 text-center text-xl border rounded-2xl bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" id="otp2" required>
-                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="w-16 h-16 text-center text-xl border rounded-2xl bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" id="otp3" required>
-                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="w-16 h-16 text-center text-xl border rounded-2xl bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500" id="otp4" required>
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="w-16 h-16 text-center text-xl border rounded-2xl bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 font-['Inter']" id="otp1" required>
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="w-16 h-16 text-center text-xl border rounded-2xl bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 font-['Inter']" id="otp2" required>
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="w-16 h-16 text-center text-xl border rounded-2xl bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 font-['Inter']" id="otp3" required>
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="w-16 h-16 text-center text-xl border rounded-2xl bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 font-['Inter']" id="otp4" required>
                 </div>
-                <button type="submit" class="w-full py-2 mt-4 text-white bg-blue-600 rounded-2xl hover:bg-blue-700 transition duration-300">Verify OTP</button>
+                <button type="submit" class="w-full py-2 mt-4 text-white bg-blue-600 rounded-2xl hover:bg-blue-700 transition duration-300 font-['Montserrat']">Verify OTP</button>
             </form>
             <div class="flex justify-between items-center mt-4">
-                <button id="resendOtp" class="text-sm text-gray-600 hover:underline focus:outline-none">Resend OTP</button>
-                <span id="timer" class="text-sm text-gray-600">60s</span>
+                <button id="resendOtp" class="text-sm text-gray-600 hover:underline focus:outline-none font-['Inter']">Resend OTP</button>
+                <span id="timer" class="text-sm text-gray-600 font-['Inter']">60s</span>
             </div>
         </div>
     </div>

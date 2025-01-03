@@ -8,8 +8,49 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
     <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+        }
+
+        .section-heading {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+        }
+
+        .address-card {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .address-name {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+        }
+
+        .button-text {
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+        }
+
+        .modal-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+        }
+
+        .form-label {
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+        }
+    </style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-50 font-['Inter']">
 
     <!-- Header -->
     {{>header}}
@@ -20,42 +61,69 @@
 
         <!-- Main Content -->
         <main class="flex-grow p-6 ">
-            <h1 class="text-2xl font-semibold mb-4">Manage Addresses</h1>
+            <h1 class="text-2xl font-semibold mb-4 section-heading">Manage Addresses</h1>
 
             <!-- Add New Address Button -->
-            <button class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 mb-4" id="addAddressButton" data-modal-toggle="addAddressModal">
+            <button class="group px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-semibold rounded-lg shadow hover:from-blue-700 hover:to-blue-800 transform hover:scale-[1.02] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1 mb-4 button-text flex items-center gap-1.5" id="addAddressButton" data-modal-toggle="addAddressModal">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transform group-hover:translate-y-[-1px] transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
                 Add New Address
             </button>
 
             <!-- Saved Addresses -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {{#each addresses}}
-                <div class="bg-white p-4 rounded shadow-md">
-                    <h2 class="text-xl font-semibold">{{name}}</h2>
-                    <p class="mt-2 text-gray-700">
-                        {{addressLine1}}, {{addressLine2}}<br>
-                        {{city}}, {{state}}, {{pinCode}}<br>
-                        {{country}}<br>
-                        <strong>Phone:</strong> {{phone}}
-                    </p>
-                    {{#if isDefault}}
-                    <span class="inline-block mt-2 bg-green-500 text-white px-2 py-1 rounded text-sm">Default</span>
-                    {{/if}}
-                    <div class="flex justify-end space-x-2 mt-4">
-                        <!-- Edit button -->
+                <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 address-card border border-gray-100">
+                    <div class="flex justify-between items-start">
+                        <h2 class="text-xl address-name text-gray-800">{{name}}</h2>
+                        {{#if isDefault}}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm button-text bg-gradient-to-r from-green-500 to-green-600 text-white shadow-sm">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Default
+                        </span>
+                        {{/if}}
+                    </div>
+                    <div class="mt-4 space-y-2 text-gray-600">
+                        <p class="flex items-start">
+                            <svg class="w-5 h-5 mr-2 text-blue-500 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span>
+                                {{addressLine1}},<br>
+                                {{addressLine2}}<br>
+                                {{city}}, {{state}}, {{pinCode}}<br>
+                                {{country}}
+                            </span>
+                        </p>
+                        <p class="flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                            </svg>
+                            {{phone}}
+                        </p>
+                    </div>
+                    <div class="flex justify-end space-x-3 mt-6">
                         <button 
-                            class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600" 
+                            class="group px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transform hover:scale-[1.02] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 button-text flex items-center gap-2"
                             data-modal-toggle="editAddressModal" 
                             onclick="openEditModal({{json this}})"
                         >
+                            <svg class="w-4 h-4 transform group-hover:-translate-y-0.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                            </svg>
                             Edit
                         </button>
-                        
-                        <!-- Delete button -->
                         <button 
-                            class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                            class="group px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white text-sm font-semibold rounded-lg hover:from-red-600 hover:to-red-700 transform hover:scale-[1.02] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 button-text flex items-center gap-2"
                             onclick="deleteAddress('{{_id}}')"
                         >
+                            <svg class="w-4 h-4 transform group-hover:rotate-12 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
                             Delete
                         </button>
                     </div>
@@ -67,51 +135,101 @@
     </div>
 
     <!-- Add Address Modal -->
-    <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden" id="addAddressModal">
-        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 class="text-xl font-semibold mb-4">Add New Address</h2>
-            <form id="addAddressForm" class="space-y-4">
-                <input type="text" placeholder="Name" name="name" class="w-full p-2 border rounded" required>
-                <input type="text" placeholder="Phone" name="phone" class="w-full p-2 border rounded" required>
-                <input type="text" placeholder="PinCode" name="pinCode" class="w-full p-2 border rounded" required>
-                <input type="text" placeholder="Address Line 1" name="addressLine1" class="w-full p-2 border rounded" required>
-                <input type="text" placeholder="Address Line 2" name="addressLine2" class="w-full p-2 border rounded">
-                <input type="text" placeholder="City" name="city" class="w-full p-2 border rounded" required>
-                <input type="text" placeholder="State" name="state" class="w-full p-2 border rounded" required>
-                <input type="text" placeholder="Country" name="country" class="w-full p-2 border rounded" required>
-                <label class="flex items-center">
-                    <input type="checkbox" name="isDefault" class="mr-2">
-                    Set as Default
+    <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm hidden transform transition-all duration-300" id="addAddressModal">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-[32rem] transform transition-all duration-300 scale-95 hover:shadow-blue-200">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">Add New Address</h2>
+                <button type="button" class="text-gray-400 hover:text-gray-600 transition-colors duration-200" data-modal-close="addAddressModal">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <form id="addAddressForm" class="space-y-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <input type="text" placeholder="Full Name" name="name" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200" >
+                    </div>
+                    <div>
+                        <input type="text" placeholder="Phone Number" name="phone" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200" >
+                    </div>
+                    <div>
+                        <input type="text" placeholder="PIN Code" name="pinCode" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200" >
+                    </div>
+                    <div class="col-span-2">
+                        <input type="text" placeholder="Address Line 1" name="addressLine1" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200" >
+                    </div>
+                    <div class="col-span-2">
+                        <input type="text" placeholder="Address Line 2 (Optional)" name="addressLine2" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200">
+                    </div>
+                    <div>
+                        <input type="text" placeholder="City" name="city" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200" >
+                    </div>
+                    <div>
+                        <input type="text" placeholder="State" name="state" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200" >
+                    </div>
+                    <div class="col-span-2">
+                        <input type="text" placeholder="Country" name="country" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200" >
+                    </div>
+                </div>
+                <label class="flex items-center space-x-3 py-2">
+                    <input type="checkbox" name="isDefault" class="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-400">
+                    <span class="text-gray-700 font-medium">Set as Default Address</span>
                 </label>
-                <div class="flex justify-end space-x-4">
-                    <button type="button" class="bg-gray-300 px-4 py-2 rounded" data-modal-close="addAddressModal">Cancel</button>
-                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Save Address</button>
+                <div class="flex justify-end space-x-4 mt-8">
+                    <button type="button" class="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-all duration-200" data-modal-close="addAddressModal">Cancel</button>
+                    <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transform hover:scale-[1.02] transition-all duration-200">Save Address</button>
                 </div>
             </form>
         </div>
     </div>
 
     {{!-- edit address model --}}
-   <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden" id="editAddressModal">
-        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 class="text-xl font-semibold mb-4">Edit Address</h2>
-            <form id="editAddressForm" class="space-y-4">
+    <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm hidden transform transition-all duration-300" id="editAddressModal">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-[32rem] transform transition-all duration-300 scale-95 hover:shadow-blue-200">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">Edit Address</h2>
+                <button type="button" class="text-gray-400 hover:text-gray-600 transition-colors duration-200" data-modal-close="editAddressModal">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <form id="editAddressForm" class="space-y-5">
                 <input type="hidden" name="id" id="edit-id">
-                <input type="text" id="edit-name" name="name" placeholder="Name" class="w-full p-2 border rounded" required>
-                <input type="text" id="edit-phone" name="phone" placeholder="Phone" class="w-full p-2 border rounded" required>
-                <input type="text" id="edit-pinCode" name="pinCode" placeholder="PinCode" class="w-full p-2 border rounded" required>
-                <input type="text" id="edit-addressLine1" name="addressLine1" placeholder="Address Line 1" class="w-full p-2 border rounded" required>
-                <input type="text" id="edit-addressLine2" name="addressLine2" placeholder="Address Line 2" class="w-full p-2 border rounded">
-                <input type="text" id="edit-city" name="city" placeholder="City" class="w-full p-2 border rounded" required>
-                <input type="text" id="edit-state" name="state" placeholder="State" class="w-full p-2 border rounded" required>
-                <input type="text" id="edit-country" name="country" placeholder="Country" class="w-full p-2 border rounded" required>
-                <label class="flex items-center">
-                    <input type="checkbox" id="edit-isDefault" name="isDefault" class="mr-2">
-                    Set as Default
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <input type="text" id="edit-name" name="name" placeholder="Full Name" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200" >
+                    </div>
+                    <div>
+                        <input type="text" id="edit-phone" name="phone" placeholder="Phone Number" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200" >
+                    </div>
+                    <div>
+                        <input type="text" id="edit-pinCode" name="pinCode" placeholder="PIN Code" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200" >
+                    </div>
+                    <div class="col-span-2">
+                        <input type="text" id="edit-addressLine1" name="addressLine1" placeholder="Address Line 1" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200" >
+                    </div>
+                    <div class="col-span-2">
+                        <input type="text" id="edit-addressLine2" name="addressLine2" placeholder="Address Line 2 (Optional)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200">
+                    </div>
+                    <div>
+                        <input type="text" id="edit-city" name="city" placeholder="City" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200" >
+                    </div>
+                    <div>
+                        <input type="text" id="edit-state" name="state" placeholder="State" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200" >
+                    </div>
+                    <div class="col-span-2">
+                        <input type="text" id="edit-country" name="country" placeholder="Country" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200" >
+                    </div>
+                </div>
+                <label class="flex items-center space-x-3 py-2">
+                    <input type="checkbox" id="edit-isDefault" name="isDefault" class="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-400">
+                    <span class="text-gray-700 font-medium">Set as Default Address</span>
                 </label>
-                <div class="flex justify-end space-x-4">
-                    <button type="button" class="bg-gray-300 px-4 py-2 rounded" data-modal-close="editAddressModal">Cancel</button>
-                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Update Address</button>
+                <div class="flex justify-end space-x-4 mt-8">
+                    <button type="button" class="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-all duration-200" data-modal-close="editAddressModal">Cancel</button>
+                    <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transform hover:scale-[1.02] transition-all duration-200">Update Address</button>
                 </div>
             </form>
         </div>
@@ -173,6 +291,12 @@
             e.preventDefault();
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData);
+
+            // Check for empty name or only spaces
+            if (!data.name.trim()) {
+                notyf.error('Please enter a valid name');
+                return;
+            }
 
             // Validate name
             if (!validateName(data.name)) {
@@ -242,6 +366,12 @@
             e.preventDefault();
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData);
+
+            // Check for empty name or only spaces
+            if (!data.name.trim()) {
+                notyf.error('Please enter a valid name');
+                return;
+            }
 
             // Validate name
             if (!validateName(data.name)) {

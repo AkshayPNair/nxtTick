@@ -3,149 +3,223 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Responsive Cart</title>
+  <title>Your Shopping Cart</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/notyf/notyf.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf/notyf.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+    
+    .product-card {
+      transition: all 0.4s ease;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .filter-container {
+      backdrop-filter: blur(12px);
+      background-color: rgba(255, 255, 255, 0.95);
+    }
+    .cart-table {
+      animation: fadeIn 0.6s ease-out;
+    }
+    .quantity-input {
+      transition: all 0.3s ease;
+    }
+    .quantity-input:focus {
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+    }
+    .remove-btn {
+      transition: all 0.3s ease;
+    }
+    .remove-btn:hover {
+      transform: scale(1.1);
+    }
+  </style>
 </head>
-<body class="bg-white-50">
+<body class="bg-gray-50 font-['Inter'] antialiased">
 
   {{!-- header section --}}
   {{>header}}
 
   <!-- Mobile Menu -->
-  <div id="mobile-menu" class="md:hidden fixed inset-0 bg-gray-800 bg-opacity-75 z-50 hidden">
+  <div id="mobile-menu" class="md:hidden fixed inset-0 bg-gray-800 bg-opacity-90 backdrop-blur-sm z-50 hidden">
     <div class="flex justify-end p-4">
-      <button id="close-menu" class="text-white">
+      <button id="close-menu" class="text-white hover:text-blue-400 transition-colors">
         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
       </button>
     </div>
-    <div class="flex flex-col items-center space-y-6 text-white py-10">
-      <a href="home" class="text-lg hover:text-blue-400">Home</a>
-      <a href="shop" class="text-lg hover:text-blue-400">Shop</a>
-      <a href="#" class="text-lg hover:text-blue-400">Contact</a>
+    <div class="flex flex-col items-center space-y-8 text-white py-10">
+      <a href="home" class="text-xl hover:text-blue-400 transition-colors">Home</a>
+      <a href="shop" class="text-xl hover:text-blue-400 transition-colors">Shop</a>
+      <a href="#" class="text-xl hover:text-blue-400 transition-colors">Contact</a>
     </div>
   </div>
 
   {{!-- herosection --}}
-  <section class="relative w-full h-[300px] bg-cover bg-center" style="background-image: url('/images/mrvl gng.jpg');">
-    <div class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center text-center">
-      <div class="text-white">
-        <h1 class="text-4xl md:text-7xl font-bold mb-4">Cart</h1>
-        <nav class="text-sm md:text-base">
-          <ol class="inline-flex space-x-2">
-            <li><a href="/user/home" class="text-gray-300 hover:text-white">Home</a></li>
-            <li><span class="text-gray-300">/</span></li>
-            <li><a href="/user/cart" class="text-gray-300 hover:text-white">Cart</a></li>
+  <section class="relative w-full h-[400px] bg-cover bg-center bg-fixed overflow-hidden" style="background-image: url('/images/mrvl gng.jpg');">
+    <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70">
+      <div class="absolute inset-0 bg-[url('/images/pattern.png')] opacity-20"></div>
+    </div>
+    <div class="absolute inset-0 flex items-center justify-center">
+      <div class="text-center transform hover:scale-105 transition-transform duration-500">
+        <h1 class="text-5xl md:text-8xl font-extrabold mb-6 font-['Montserrat'] text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-100">
+           Cart
+        </h1>
+        <nav class="text-base md:text-lg">
+          <ol class="inline-flex items-center space-x-3">
+            <li>
+              <a href="/user/home" class="text-gray-300 hover:text-white transition-all duration-300 hover:scale-110 inline-block">
+                Home
+              </a>
+            </li>
+            <li>
+              <span class="text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </span>
+            </li>
+            <li>
+              <a href="/user/cart" class="text-white font-semibold hover:text-blue-400 transition-all duration-300 hover:scale-110 inline-block">
+                Cart
+              </a>
+            </li>
           </ol>
         </nav>
+        <div class="mt-8">
+          <div class="h-1 w-24 mx-auto bg-gradient-to-r from-transparent via-white to-transparent rounded-full"></div>
+        </div>
       </div>
     </div>
   </section>
 
-  <div class="container mx-auto p-4 mt-10 mb-10">
-    <div class="flex flex-col lg:flex-row gap-6">
+  <div class="container mx-auto p-6 mt-12 mb-16">
+    <div class="flex flex-col lg:flex-row gap-8">
       
       <!-- Cart Table -->
-      <div class="flex-1 bg-white shadow-md rounded-lg p-4">
+      <div class="flex-1 bg-white shadow-lg rounded-xl p-6 cart-table">
         <table class="w-full text-left">
-          <thead class="bg-blue-100">
-            <tr>
-              <th class="p-4">Product</th>
-              <th class="p-4">Details</th>
-              <th class="p-4">Price</th>
-              <th class="p-4">Quantity</th>
-              <th class="p-4">Subtotal</th>
+          <thead>
+            <tr class="border-b-2 border-blue-100">
+              <th class="p-4 text-gray-700">Product</th>
+              <th class="p-4 text-gray-700">Details</th>
+              <th class="p-4 text-gray-700">Price</th>
+              <th class="p-4 text-gray-700">Quantity</th>
+              <th class="p-4 text-gray-700">Subtotal</th>
               <th class="p-4"></th>
             </tr>
           </thead>
           <tbody>
-  {{#if cartItems.length}}
-  {{#each cartItems}}
-  <tr class="border-b">
-    <td class="p-4">
-      <img src="{{this.product.images.[0]}}" alt="Product Image" class="w-12 h-12">
-    </td>
-    <td class="p-4 text-gray-600">{{this.product.name}}</td>
-    <td class="p-4">
-      {{#if this.product.activeOffer}}
-        <div class="flex flex-col">
-          <div class="flex items-center gap-2">
-            <span class="text-red-600 font-semibold">Rs. {{roundPrice this.product.finalPrice}}</span>
-            <span class="text-gray-400 font-semibold line-through text-sm">Rs. {{roundPrice this.product.price}}</span> 
-            <span class="bg-green-200 text-green-600 font-semibold rounded-md text-xs">{{this.product.activeOffer.discountValue}}% OFF</span>
-        </div>
-      {{else}}
-        <span class="text-red-600 font-semibold">Rs. {{roundPrice this.product.price}}</span>
-      {{/if}}
-    </td>
-    
-    <td class="p-4">
-      <div class="flex items-center justify-center border border-gray-300 rounded w-24">
-        <button type="button" 
-                class="px-2 py-1 text-gray-600 hover:bg-gray-100 font-medium"
-                onclick="const input = this.nextElementSibling; if(input.value > 1) { input.value--; input.dispatchEvent(new Event('change')); }">
-          -
-        </button>
-        <input
-          type="number"
-          value="{{this.quantity}}"
-          class="w-10 text-center border-x border-gray-300 py-1 font-medium focus:outline-none"
-          min="1"
-          readonly
-          onchange="updateSubtotal(this, {{this.product.price}}, 'subtotal-{{this.product._id}}', '{{this.product._id}}')"
-        />
-        <button type="button"
-                class="px-2 py-1 text-gray-600 hover:bg-gray-100 font-medium" 
-                onclick="const input = this.previousElementSibling; input.value++; input.dispatchEvent(new Event('change'));">
-          +
-        </button>
-      </div>
-    </td>
-    <!-- Subtotal element with unique ID -->
-    <td class="p-4 text-red-500 font-semibold subtotal" id="subtotal-{{this.product._id}}">
-      Rs. {{#if this.product.activeOffer}}
-            {{multiply this.product.finalPrice this.quantity}}
-          {{else}}
-            {{multiply this.product.price this.quantity}}
-          {{/if}}
-    </td>
-    <td class="p-4">
-      <button onclick="removeFromCart('{{this.product._id}}')" class="text-black hover:text-red-500">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7L5 7M10 11V17M14 11V17M5 7L7 21H17L19 7H5Z" />
-        </svg>
-      </button>
-    </td>
-  </tr>
-  {{/each}}
-  {{else}}
-  <tr>
-    <td colspan="6" class="text-center font-semibold p-4 text-gray-600">Your cart is empty.</td>
-  </tr>
-  {{/if}}
-</tbody>
-
+            {{#if cartItems.length}}
+            {{#each cartItems}}
+            <tr class="border-b hover:bg-gray-50 transition-colors">
+              <td class="p-4">
+                <img src="{{this.product.images.[0]}}" alt="Product Image" class="w-16 h-16 rounded-lg object-cover">
+              </td>
+              <td class="p-4">
+                <span class="font-medium text-gray-800">{{this.product.name}}</span>
+              </td>
+              <td class="p-4">
+                {{#if this.product.activeOffer}}
+                  <div class="flex flex-col gap-1">
+                    <div class="flex items-center gap-2">
+                      <span class="text-red-600 font-bold">Rs. {{roundPrice this.product.finalPrice}}</span>
+                      <span class="text-gray-400 line-through text-sm">Rs. {{roundPrice this.product.price}}</span>
+                      <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">{{this.product.activeOffer.discountValue}}% OFF</span>
+                    </div>
+                  </div>
+                {{else}}
+                  <span class="text-gray-800 font-bold">Rs. {{roundPrice this.product.price}}</span>
+                {{/if}}
+              </td>
+              <td class="p-4">
+                <div class="flex items-center justify-center border border-gray-200 rounded-lg shadow-sm w-32">
+                  <button type="button" 
+                          class="px-3 py-2 text-blue-600 hover:bg-blue-50 font-medium transition-colors"
+                          onclick="const input = this.nextElementSibling; if(input.value > 1) { input.value--; input.dispatchEvent(new Event('change')); }">
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    value="{{this.quantity}}"
+                    class="w-12 text-center border-x border-gray-200 py-2 font-medium focus:outline-none quantity-input"
+                    min="1"
+                    readonly
+                    data-stock="{{this.product.stock}}"
+                    onchange="updateSubtotal(this, {{this.product.price}}, 'subtotal-{{this.product._id}}', '{{this.product._id}}')"
+                  />
+                  <button type="button"
+                          class="px-3 py-2 text-blue-600 hover:bg-blue-50 font-medium transition-colors" 
+                          onclick="const input = this.previousElementSibling; const stock = parseInt(input.dataset.stock); if(parseInt(input.value) < Math.min(4, stock)) { input.value++; input.dispatchEvent(new Event('change')); } else { notyf.error(stock < 4 ? `Only ${stock} items left in stock` : 'Maximum quantity limit is 4'); }">
+                    +
+                  </button>
+                </div>
+              </td>
+              <td class="p-4 text-red-600 font-bold subtotal" id="subtotal-{{this.product._id}}">
+                Rs. {{#if this.product.activeOffer}}
+                      {{multiply this.product.finalPrice this.quantity}}
+                    {{else}}
+                      {{multiply this.product.price this.quantity}}
+                    {{/if}}
+              </td>
+              <td class="p-4">
+                <button onclick="removeFromCart('{{this.product._id}}')" class="text-gray-400 hover:text-red-500 remove-btn">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7L5 7M10 11V17M14 11V17M5 7L7 21H17L19 7H5Z" />
+                  </svg>
+                </button>
+              </td>
+            </tr>
+            {{/each}}
+            {{else}}
+            <tr>
+              <td colspan="6" class="text-center py-10">
+                <div class="flex flex-col items-center gap-5">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                  </svg>
+                  <p class="text-xl text-gray-700 font-medium">Your cart is empty</p>
+                  <a href="/user/shop" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-7 py-2.5 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-sm hover:shadow-md">Start Shopping</a>
+                </div>
+              </td>
+            </tr>
+            {{/if}}
+          </tbody>
         </table>
       </div>
 
       <!-- Cart Totals -->
-      <div class="bg-blue-50 shadow-md rounded-lg p-6 w-full lg:w-1/4">
-        <h2 class="text-2xl text-center font-bold text-black mb-8">Cart Totals</h2>
+      <div class="bg-gradient-to-br from-blue-50 to-white shadow-lg rounded-xl p-6 w-full lg:w-1/4">
+        <h2 class="text-2xl text-center font-bold text-gray-800 mb-6">Order Summary</h2>
         
-        <div class="flex justify-between items-center mb-4">
-          <span class="text-gray-600 font-medium">Subtotal</span>
-          <span class="text-gray-600 font-medium">Rs. {{total}}</span>
+        <div class="space-y-4">
+          <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+            <span class="text-gray-600 text-sm font-medium">Subtotal</span>
+            <span class="text-gray-800 font-bold">Rs. {{total}}</span>
+          </div>
+          <div class="flex justify-between items-center pb-3">
+            <span class="text-gray-800 font-bold">Total Amount</span>
+            <span id="total" class="text-xl text-blue-600 font-bold">Rs. {{total}}</span>
+          </div>
+          <button class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-lg px-6 py-3 rounded-lg shadow-md hover:from-blue-700 hover:to-blue-800 transform hover:scale-[1.02] transition-all duration-300" onclick="validateCart()">
+            Proceed to Checkout
+          </button>
         </div>
-        <div class="flex justify-between items-center mb-6">
-          <span class="text-black font-semibold">Total</span>
-          <span id="total" class="text-red-500 font-semibold">Rs. {{total}}</span>
-        </div>
-        <button class="mt-3 bg-blue-500 text-white font-semibold text-xl px-6 py-3 rounded-full w-full hover:bg-blue-600 transition-all" onclick="validateCart()">
-          Check Out
-        </button>
       </div>
 
     </div>
@@ -259,10 +333,10 @@ async function validateCart() {
     }
 }
 const notyf = new Notyf({
-    duration: 3000, // Duration of the notification
+    duration: 3000,
     position: {
-      x: 'right', // Notify position (right or left)
-      y: 'top', // Notify position (top or bottom)
+      x: 'right',
+      y: 'top',
     },
     types: [
       {

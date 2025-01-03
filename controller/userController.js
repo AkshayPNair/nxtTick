@@ -181,7 +181,7 @@ module.exports={
                     populate: { path: 'offer' },
                     match: { isBlock: false } 
                 })
-                .sort({ createdAt: -1 })
+                .sort({purchaseCount:-1})
                 .limit(4)
                 .exec();
                 
@@ -192,8 +192,8 @@ module.exports={
                     populate: { path: 'offer' },
                     match: { isBlock: false } 
                 })
-                .sort({ createdAt: -1 })
-                .skip(4)
+                .sort({purchaseCount:-1})
+                .skip(6)
                 .limit(4)
                 .exec();
 
@@ -393,11 +393,14 @@ module.exports={
      loadCart: async (req, res) => {
         try {
             const userId = req.session.user;
-            const user = await userSchema.findById(userId);
+            
+            // Check if user is logged in
             if (!userId) {
                 return res.redirect('/user/login'); 
             }
 
+            const user = await userSchema.findById(userId);
+            
             // Fetch cart items with populated product and offer information
             const cartItems = await cart.find({ userId })
                 .populate({
@@ -609,6 +612,14 @@ module.exports={
             const cartItems = await cart.find({ userId })
                 .populate('productId');
 
+            // Check if cart is empty
+            if (!cartItems || cartItems.length === 0) {
+                return res.status(400).json({
+                    status: false,
+                    message: "Your cart is empty. Please add items to proceed to checkout."
+                });
+            }
+
             // Check for deleted or unavailable products
             const deletedProducts = cartItems.filter(item => 
                 !item.productId || item.productId.isDeleted
@@ -653,17 +664,30 @@ module.exports={
         }
     },
 
-    loadProfile:async(req,res)=>{
+    loadProfile: async (req, res) => {
         try {
-            const userId=req.session.user;
-            const user=await userSchema.findById(userId)
-            if(!user){
-                return res.status(404).send("User not found")
+            const userId = req.session.user;
+            const user = await userSchema.findById(userId);
+            
+            if (!user) {
+                return res.status(404).send("User not found");
             }
-            res.render('user/profile',{user });
+
+            // Create a safe user object with default values for undefined properties
+            const userData = {
+                name: user.name || '',
+                email: user.email || '',
+                gender: user.gender || '',
+                profileImage: user.profileImage || '',
+                googleId: user.googleId || '',
+                createdAt: user.createdAt ? user.createdAt.toString() : '',
+                _id: user._id ? user._id.toString() : ''
+            };
+
+            res.render('user/profile', { user: userData });
         } catch (error) {
             console.log(error);
-            res.status(500).send("Error occured")
+            res.status(500).send("Error occurred");
         }
     },
     updateProfile: async(req,res)=>{
@@ -1569,24 +1593,61 @@ module.exports={
     },
     loadWishlist: async(req,res)=>{
         try {
-            const userId=req.session.user;
-            const user=await userSchema.findById(userId).populate('wishlist');
+            const userId = req.session.user;
+            const user = await userSchema.findById(userId)
+                .populate({
+                    path: 'wishlist',
+                    populate: [
+                        { path: 'offer' },
+                        {
+                            path: 'category',
+                            populate: { path: 'offer' }
+                        }
+                    ]
+                });
             
-            const Obj = user.wishlist.map((data) => {
-                return {
-                    _id: data._id,
-                    name: data.name,
-                    description: data.description,
-                    category: data.category,
-                    brand: data.brand,
-                    price: data.price,
-                    images: data.images
+            const processedProducts = user.wishlist.map(product => {
+                let basePrice = Number(product.price);
+                let finalPrice = basePrice;
+                let activeOffer = null;
+
+                // Check for product offer first
+                if (product.offer && product.offer.isActive) {
+                    finalPrice = Math.round(basePrice - (basePrice * product.offer.discountValue / 100));
+                    activeOffer = {
+                        type: 'Product Offer',
+                        discountValue: product.offer.discountValue
+                    };
                 }
+                // Then check for category offer
+                else if (product.category?.offer && product.category.offer.isActive) {
+                    finalPrice = Math.round(basePrice - (basePrice * product.category.offer.discountValue / 100));
+                    activeOffer = {
+                        type: 'Category Offer',
+                        discountValue: product.category.offer.discountValue
+                    };
+                }
+
+                return {
+                    _id: product._id,
+                    name: product.name,
+                    description: product.description,
+                    category: product.category,
+                    brand: product.brand,
+                    price: basePrice,
+                    finalPrice: finalPrice,
+                    activeOffer: activeOffer,
+                    images: product.images
+                };
             });
-            res.render('user/wishlist',{user,data:Obj});
+
+            res.render('user/wishlist', {
+                user,
+                data: processedProducts
+            });
         } catch (error) {
             console.log(error);
-            res.status(500).send("Error Occured",error);
+            res.status(500).send("Error Occurred", error);
         }
     },
     resetPassword: async(req,res)=>{
@@ -1670,14 +1731,6 @@ module.exports={
                 });
             }
 
-            // check if coupon has expired
-            if (coupon.expiryDate && new Date() > coupon.expiryDate) {
-                return res.status(400).json({
-                    status: false,
-                    message: 'This coupon has expired'
-                });
-            }
-
             // check minimum purchase amount
             if (total < coupon.minimumPrice) {
                 return res.status(400).json({
@@ -1697,7 +1750,6 @@ module.exports={
 
             // calculate discount
             let discount = coupon.discountValue;
-
             const finalTotal = total - discount;
 
             // check if user has already used this coupon maximum times
@@ -1732,9 +1784,9 @@ module.exports={
         try {
             const userId = req.session.user;
             const user = await userSchema.findById(userId);
-            const wallet = await walletSchema.findOne({ userId });
+            const wallet = await walletSchema.findOne({ userId }).populate('transactions').sort({ 'transactions.date': -1 }); 
             
-            // if wallet do not  exist, create one
+            // if wallet does not exist, create one
             if (!wallet) {
                 const newWallet = new walletSchema({
                     userId,
@@ -1744,6 +1796,9 @@ module.exports={
                 await newWallet.save();
                 return res.render("user/wallet", { user, wallet: newWallet });
             }
+
+            // Sort transactions in LIFO order
+            wallet.transactions.sort((a, b) => b.date - a.date);
 
             res.render("user/wallet", { user, wallet });
         } catch (error) {
@@ -1927,7 +1982,7 @@ module.exports={
                 sortCriteria = { name: -1 };
             }
 
-            // Find products with sorting
+            // find products with sorting
             const products = await productSchema
                 .find({
                     name: { $regex: escapedSearchTerm, $options: 'i' },
@@ -1959,21 +2014,13 @@ module.exports={
                         discountValue: data.offer.discountValue
                     };
                 }
-                // Then check for category offer
+                // If category has an active offer (and no product offer)
                 else if (data.category.offer && data.category.offer.isActive) {
                     finalPrice = Math.round(basePrice - (basePrice * data.category.offer.discountValue / 100));
                     activeOffer = {
                         type: 'Category Offer',
                         discountValue: data.category.offer.discountValue
                     };
-                }
-                // if order used coupon
-                else if (order.couponUsed) {
-                    // Calculate individual item's share of the coupon discount
-                    const totalOrderValue = order.items.reduce((sum, orderItem) => 
-                        sum + (orderItem.subtotal), 0);
-                    const itemDiscountShare = (data.subtotal / totalOrderValue) * order.couponUsed.discount;
-                    finalPrice = basePrice - (itemDiscountShare / data.quantity);
                 }
 
                 return {
@@ -2036,6 +2083,258 @@ module.exports={
         } catch (error) {
             console.error('Search suggestion error:', error);
             res.status(500).json({ error: 'Error fetching suggestions' });
+        }
+    },
+    loadMarvalCategory:async(req,res)=>{
+        try {
+            const sortOption = req.query.sort || "default"; 
+            const userId= req.session.user;
+            const user= userId ?await userSchema.findById(userId) : null;
+
+            const category = await categorySchema.findOne({ name : /marval/i });
+
+            if(!category){
+                return res.status(404).send("Category not found");
+            }
+
+            let sortCriteria = {}; 
+            if (sortOption === "priceAsc") {
+                sortCriteria = { price: 1 }; // price ascending
+            } else if (sortOption === "priceDesc") {
+                sortCriteria = { price: -1 }; //  price descending
+            } else if (sortOption === "newArrivals") {
+                sortCriteria = { createdAt: -1 }; //  newest first
+            } else if (sortOption === "aToZ") {
+                sortCriteria = { name: 1 }; // alphabetically A-Z
+            } else if (sortOption === "zToA") {
+                sortCriteria = { name: -1 }; // alphabetically Z-A
+            }
+
+            const products = await productSchema.find({ category: category._id,isDeleted: false })
+                .populate('offer')
+                .populate({
+                    path: "category",
+                    populate: { path: "offer" },
+                    match: { isBlock: false }
+                })
+                .sort(sortCriteria)
+                .exec();
+
+            const filterProduct = products.filter((product) => product.category !== null);
+
+            // Map products with rounded prices and offer information
+            const processedProducts = filterProduct.map((data) => {
+                let basePrice = Math.round(Number(data.price));
+                let finalPrice = basePrice;
+                let activeOffer = null;
+
+                // Check for product offer first
+                if (data.offer && data.offer.isActive) {
+                    finalPrice = Math.round(basePrice - (basePrice * data.offer.discountValue / 100));
+                    activeOffer = {
+                        type: 'Product Offer',
+                        discountValue: data.offer.discountValue
+                    };
+                }
+                // Then check for category offer
+                else if (data.category.offer && data.category.offer.isActive) {
+                    finalPrice = Math.round(basePrice - (basePrice * data.category.offer.discountValue / 100));
+                    activeOffer = {
+                        type: 'Category Offer',
+                        discountValue: data.category.offer.discountValue
+                    };
+                }
+
+                return {
+                    _id: data._id,
+                    name: data.name,
+                    description: data.description,
+                    category: data.category,
+                    brand: data.brand,
+                    price: basePrice,
+                    finalPrice: finalPrice,
+                    activeOffer: activeOffer,
+                    images: data.images,
+                    isInWishlist: user ? user.wishlist.includes(data._id) : false
+                };
+            });
+
+            res.render("user/marvalCategory", {
+                data: processedProducts,
+                user,
+                sortOption
+            });
+        } catch (error) {
+            console.log(error);
+            res.status(500).send("Error occurred ",error);
+        }
+    },
+    loadDcComicsCategory:async(req,res)=>{
+        try {
+            const sortOption = req.query.sort || "default"; 
+            const userId= req.session.user;
+            const user= userId ?await userSchema.findById(userId) : null;
+
+            const category = await categorySchema.findOne({ name : /dc comics/i });
+
+            if(!category){
+                return res.status(404).send("Category not found");
+            }
+
+            let sortCriteria = {}; 
+            if (sortOption === "priceAsc") {
+                sortCriteria = { price: 1 }; // price ascending
+            } else if (sortOption === "priceDesc") {
+                sortCriteria = { price: -1 }; //  price descending
+            } else if (sortOption === "newArrivals") {
+                sortCriteria = { createdAt: -1 }; //  newest first
+            } else if (sortOption === "aToZ") {
+                sortCriteria = { name: 1 }; // alphabetically A-Z
+            } else if (sortOption === "zToA") {
+                sortCriteria = { name: -1 }; // alphabetically Z-A
+            }
+
+            const products = await productSchema.find({ category: category._id,isDeleted: false })
+                .populate('offer')
+                .populate({
+                    path: "category",
+                    populate: { path: "offer" },
+                    match: { isBlock: false }
+                })
+                .sort(sortCriteria)
+                .exec();
+
+            const filterProduct = products.filter((product) => product.category !== null);
+
+            // Map products with rounded prices and offer information
+            const processedProducts = filterProduct.map((data) => {
+                let basePrice = Math.round(Number(data.price));
+                let finalPrice = basePrice;
+                let activeOffer = null;
+
+                // Check for product offer first
+                if (data.offer && data.offer.isActive) {
+                    finalPrice = Math.round(basePrice - (basePrice * data.offer.discountValue / 100));
+                    activeOffer = {
+                        type: 'Product Offer',
+                        discountValue: data.offer.discountValue
+                    };
+                }
+                // Then check for category offer
+                else if (data.category.offer && data.category.offer.isActive) {
+                    finalPrice = Math.round(basePrice - (basePrice * data.category.offer.discountValue / 100));
+                    activeOffer = {
+                        type: 'Category Offer',
+                        discountValue: data.category.offer.discountValue
+                    };
+                }
+
+                return {
+                    _id: data._id,
+                    name: data.name,
+                    description: data.description,
+                    category: data.category,
+                    brand: data.brand,
+                    price: basePrice,
+                    finalPrice: finalPrice,
+                    activeOffer: activeOffer,
+                    images: data.images,
+                    isInWishlist: user ? user.wishlist.includes(data._id) : false
+                };
+            });
+
+            res.render("user/DcComicsCategory", {
+                data: processedProducts,
+                user,
+                sortOption
+            });
+        } catch (error) {
+            console.log(error);
+            res.status(500).send("Error occurred ",error);
+        }
+    },
+    loadTransformersCategory:async(req,res)=>{
+        try {
+            const sortOption = req.query.sort || "default"; 
+            const userId= req.session.user;
+            const user= userId ?await userSchema.findById(userId) : null;
+
+            const category = await categorySchema.findOne({ name : /transformers/i });
+
+            if(!category){
+                return res.status(404).send("Category not found");
+            }
+
+            let sortCriteria = {}; 
+            if (sortOption === "priceAsc") {
+                sortCriteria = { price: 1 }; // price ascending
+            } else if (sortOption === "priceDesc") {
+                sortCriteria = { price: -1 }; //  price descending
+            } else if (sortOption === "newArrivals") {
+                sortCriteria = { createdAt: -1 }; //  newest first
+            } else if (sortOption === "aToZ") {
+                sortCriteria = { name: 1 }; // alphabetically A-Z
+            } else if (sortOption === "zToA") {
+                sortCriteria = { name: -1 }; // alphabetically Z-A
+            }
+
+            const products = await productSchema.find({ category: category._id,isDeleted: false })
+                .populate('offer')
+                .populate({
+                    path: "category",
+                    populate: { path: "offer" },
+                    match: { isBlock: false }
+                })
+                .sort(sortCriteria)
+                .exec();
+
+            const filterProduct = products.filter((product) => product.category !== null);
+
+            // Map products with rounded prices and offer information
+            const processedProducts = filterProduct.map((data) => {
+                let basePrice = Math.round(Number(data.price));
+                let finalPrice = basePrice;
+                let activeOffer = null;
+
+                // Check for product offer first
+                if (data.offer && data.offer.isActive) {
+                    finalPrice = Math.round(basePrice - (basePrice * data.offer.discountValue / 100));
+                    activeOffer = {
+                        type: 'Product Offer',
+                        discountValue: data.offer.discountValue
+                    };
+                }
+                // Then check for category offer
+                else if (data.category.offer && data.category.offer.isActive) {
+                    finalPrice = Math.round(basePrice - (basePrice * data.category.offer.discountValue / 100));
+                    activeOffer = {
+                        type: 'Category Offer',
+                        discountValue: data.category.offer.discountValue
+                    };
+                }
+
+                return {
+                    _id: data._id,
+                    name: data.name,
+                    description: data.description,
+                    category: data.category,
+                    brand: data.brand,
+                    price: basePrice,
+                    finalPrice: finalPrice,
+                    activeOffer: activeOffer,
+                    images: data.images,
+                    isInWishlist: user ? user.wishlist.includes(data._id) : false
+                };
+            });
+
+            res.render("user/transformersCategory", {
+                data: processedProducts,
+                user,
+                sortOption
+            });
+        } catch (error) {
+            console.log(error);
+            res.status(500).send("Error occurred ",error);
         }
     },
     loadLogout: (req, res) => {

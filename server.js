@@ -153,6 +153,10 @@ hbs.registerHelper('calculateSubtotal', function(price, quantity) {
 });
 
 
+hbs.registerHelper('eq', function (a, b) {
+    return a.toString() === b.toString();
+});
+
 //view engine setup
 app.set('views',path.join(__dirname,'views'));
 app.set('view engine','hbs');

@@ -133,20 +133,20 @@ module.exports={
 
     loadEditProducts:async (req,res)=>{
         try {
-            const productId=req.params.id;
+            const productId = req.params.id;
             
-            const product= await productSchema.findById(productId).populate('category','_id name');
-            
+            // Fully populate the category
+            const product = await productSchema.findById(productId).populate('category');
 
             if(!product){
                 return res.status(404).send("Product not found")
             }
-            const categories=await categorySchema.find({isBlock:false})
+            const categories = await categorySchema.find({isBlock:false});
 
-            console.log("Product:", product);
-            console.log("Categories:", categories);
-
-            res.render('admin/editProducts',{product,categories});
+            res.render('admin/editProducts',{
+                product,
+                categories
+            });
         } catch (error) {
             console.error(error);
             res.status(500).send("Error Occured")
@@ -570,11 +570,45 @@ module.exports={
                 });
             }
 
+            // Toggle the status
             offer.isActive = !offer.isActive;
             await offer.save();
 
-            // If offer is deactivated, remove it from products/categories
-            if (!offer.isActive) {
+            if (offer.isActive) {
+                // Reapply offer when unblocking
+                if (offer.offerType === 'product') {
+                    // Update single product
+                    const product = await productSchema.findById(offer.productId);
+                    if (product) {
+                        const discount = (product.price * offer.discountValue) / 100;
+                        const discountedPrice = product.price - discount;
+                        await productSchema.findByIdAndUpdate(
+                            offer.productId,
+                            { 
+                                offer: offer._id,
+                                discountedPrice: discountedPrice 
+                            }
+                        );
+                    }
+                } else if (offer.offerType === 'category') {
+                    // Update category and all its products
+                    await categorySchema.findByIdAndUpdate(
+                        offer.categoryId,
+                        { offer: offer._id }
+                    );
+
+                    const products = await productSchema.find({ category: offer.categoryId });
+                    for (const product of products) {
+                        const discount = (product.price * offer.discountValue) / 100;
+                        const discountedPrice = product.price - discount;
+                        await productSchema.findByIdAndUpdate(
+                            product._id,
+                            { discountedPrice: discountedPrice }
+                        );
+                    }
+                }
+            } else {
+                // Remove offer when blocking
                 if (offer.offerType === 'product') {
                     await productSchema.updateOne(
                         { _id: offer.productId },
@@ -715,11 +749,11 @@ module.exports={
                     format = '%Y-%m-%d';
                     break;
                 case 'monthly':
-                    startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-                    labels = Array.from({length: 30}, (_, i) => {
-                        const d = new Date(startDate.getTime() + (i * 24 * 60 * 60 * 1000));
-                        return d.getDate();
-                    });
+                    // Get first day of current month
+                    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                    // Get number of days in current month
+                    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+                    labels = Array.from({length: daysInMonth}, (_, i) => i + 1);
                     format = '%Y-%m-%d';
                     break;
                 case 'yearly':
@@ -745,23 +779,24 @@ module.exports={
                 { $sort: { "_id": 1 } }
             ]);
 
-            // initialize sales data array with zeros
+            // Initialize sales data array with zeros
             const values = new Array(labels.length).fill(0);
 
-            // fill in actual sales data
+            // Fill in actual sales data
             orders.forEach(order => {
-                const date = new Date(order._id);
+                const orderDate = new Date(order._id);
                 let index;
                 
                 switch (period) {
                     case 'weekly':
-                        index = 6 - Math.floor((now - date) / (24 * 60 * 60 * 1000));
+                        index = 6 - Math.floor((now - orderDate) / (24 * 60 * 60 * 1000));
                         break;
                     case 'monthly':
-                        index = date.getDate() - 1;
+                        // For monthly view, use the day of the month (1-based) as index
+                        index = orderDate.getDate() - 1;
                         break;
                     case 'yearly':
-                        index = date.getMonth();
+                        index = orderDate.getMonth();
                         break;
                 }
                 

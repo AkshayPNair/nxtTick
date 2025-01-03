@@ -68,8 +68,10 @@
                         <a href="editCoupon/{{this._id}}">
                             <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Edit</button>
                         </a>
-                        <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600" onclick="toggleCouponStatus('{{this._id}}', {{this.isActive}})">
-                          {{#if this.isActive}}Block{{else}}Unblock{{/if}}
+                        <button 
+                            class="{{#if this.isActive}}bg-red-500 hover:bg-red-600{{else}}bg-green-500 hover:bg-green-600{{/if}} text-white px-4 py-2 rounded" 
+                            onclick="toggleCouponStatus('{{this._id}}', {{this.isActive}})">
+                            {{#if this.isActive}}Block{{else}}Unblock{{/if}}
                         </button>
                     </td>
                   </tr>

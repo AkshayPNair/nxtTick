@@ -152,11 +152,11 @@
         title: 'Category name must be at least 4 characters long.',
       });
       return;
-    } else if (categoryNameValue.length > 10) {
+    } else if (categoryNameValue.length > 20) {
       isValid = false;
       await Swal.fire({
         icon: 'error',
-        title: 'Category name cannot exceed 10 characters.',
+        title: 'Category name cannot exceed 20 characters.',
       });
       return;
     }

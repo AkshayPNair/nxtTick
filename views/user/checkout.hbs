@@ -9,9 +9,58 @@
   <script src="https://cdn.jsdelivr.net/npm/notyf/notyf.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf/notyf.min.css">
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+    }
 
+    .section-heading {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+    }
+
+    .product-name {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+    }
+
+    .price-text {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+    }
+
+    .button-text {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+    }
+
+    .address-text {
+      font-family: 'Inter', sans-serif;
+    }
+
+    .modal-title {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+    }
+
+    .form-label {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+    }
+
+    .summary-text {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-50 font-['Inter']">
   {{>header}}
   <div class="container mx-auto px-4 py-8">
     <div class="flex flex-col lg:flex-row gap-8">
@@ -19,23 +68,23 @@
       <div class="flex-grow">
         <!-- Product Details -->
         <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-          <h2 class="text-xl font-semibold mb-4">Product Details</h2>
+          <h2 class="text-xl font-semibold mb-4 section-heading">Product Details</h2>
           {{#each cartItems}}
           <div class="flex items-center space-x-4 mb-5 border-b">
             <img src="{{this.product.images.[0]}}" alt="Product" class="w-20 h-20 object-cover rounded-md">
             <div class="flex-1">
-              <h3 class="text-lg font-semibold">{{this.product.name}}</h3>
-              <p class="text-gray-500">Quantity : {{this.quantity}}</p>
+              <h3 class="text-lg font-semibold product-name">{{this.product.name}}</h3>
+              <p class="text-gray-500 summary-text">Quantity : {{this.quantity}}</p>
               {{#if this.product.activeOffer}}
                 <div class="flex items-center gap-2 mb-5">
-                  <span class="text-red-600 font-semibold">Rs. {{roundPrice this.product.finalPrice}}</span>
-                  <span class="text-gray-400 font-semibold line-through text-sm">Rs. {{roundPrice this.product.price}}</span>
-                  <span class="bg-green-200 text-green-600 font-semibold rounded-md text-xs px-2">
+                  <span class="text-red-600 font-semibold price-text">Rs. {{roundPrice this.product.finalPrice}}</span>
+                  <span class="text-gray-400 font-semibold line-through text-sm price-text">Rs. {{roundPrice this.product.price}}</span>
+                  <span class="bg-green-200 text-green-600 font-semibold rounded-md text-xs px-2 price-text">
                     {{this.product.activeOffer.discountValue}}% OFF
                   </span>
                 </div>
               {{else}}
-                <p class="text-lg font-bold text-red-600 mb-5">Rs. {{roundPrice this.product.price}}</p>
+                <p class="text-lg font-bold text-red-600 mb-5 price-text">Rs. {{roundPrice this.product.price}}</p>
               {{/if}}
             </div>
           </div>
@@ -44,13 +93,13 @@
 
         <!-- Address Selection -->
         <div class="bg-white p-6 rounded-lg shadow-md">
-          <h2 class="text-xl font-semibold mb-4">Select Address</h2>
+          <h2 class="text-xl font-semibold mb-4 section-heading">Select Address</h2>
           <!-- Begin Form -->
           <form id="checkoutForm">
             <div class="grid grid-cols-1 gap-4">
               {{#each address}}  
-              <label class="block border border-gray-300 rounded-lg p-4 flex items-start space-x-4 cursor-pointer">
-                <input type="radio" name="addressId" value="{{_id}}" class="mt-1 mr-2" required>
+              <label class="block border-2 border-gray-300 rounded-lg p-4 flex items-start space-x-4 cursor-pointer transition-all duration-200 hover:border-blue-400 peer-checked:border-blue-600 peer-checked:ring-2 peer-checked:ring-blue-600">
+                <input type="radio" name="addressId" value="{{_id}}" class="mt-1 mr-2 peer" required>
                 <div>
                   <p class="text-sm font-medium">{{name}}</p>
                   <p class="text-sm text-gray-500">
@@ -63,7 +112,10 @@
               </label>
               {{/each}}
             </div>
-            <button type="button" onclick="openAddressModal()" class="bg-blue-600 text-white px-4 py-2 mt-4 rounded-lg hover:bg-blue-700">
+            <button type="button" onclick="openAddressModal()" class="group px-4 py-2.5 mt-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-semibold rounded-lg shadow hover:from-blue-700 hover:to-blue-800 transform hover:scale-[1.02] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transform group-hover:translate-y-[-1px] transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+              </svg>
               Add New Address
             </button>
         </div>
@@ -71,44 +123,44 @@
 
       <!-- Right Section: Order Summary -->
       <div class="lg:w-1/3 flex-shrink-0">
-        <div class="bg-white p-6 rounded-lg shadow-md">
-          <h2 class="text-xl font-semibold mb-4">Order Summary</h2>
+        <div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+          <h2 class="text-xl font-semibold mb-6 section-heading  bg-clip-text ">Order Summary</h2>
 
           {{#if hasActiveOffers}}
             <!-- Show message when products have discounts -->
-            <div class="mb-4 text-sm text-gray-600">
-              <p>Coupon cannot be applied with existing product discounts</p>
+            <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
+              <p class="text-sm text-blue-700 font-medium">Coupon cannot be applied with existing product discounts</p>
             </div>
           {{else}}
             <!-- Discount Code - Only show if no product has discounts -->
-            <div class="mb-4">
-              <label for="coupon-code" class="block text-sm font-medium">Discount Code</label>
-              <div class="flex items-center mt-1">
-                <select id="coupon-code" name="couponCode" class="block w-full border border-gray-300 rounded-l-lg p-2">
+            <div class="mb-6">
+              <label for="coupon-code" class="block text-sm font-medium text-gray-700 mb-2">Discount Code</label>
+              <div class="flex items-center gap-2">
+                <select id="coupon-code" name="couponCode" class="block w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200">
                   <option value="">Select a coupon</option>
                   {{#each coupons}}
                     <option value="{{this.couponCode}}">{{this.couponCode}}</option>
                   {{/each}}
                 </select>
-                <button type="button" onclick="applyCoupon()" class="bg-blue-600 text-white px-4 py-2 rounded-r-lg hover:bg-blue-700">Apply</button>
+                <button type="button" onclick="applyCoupon()" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transform hover:scale-[1.02] transition-all duration-200">Apply</button>
               </div>
             </div>
           {{/if}}
 
           <!-- Pricing Details -->
-          <div class="border-t border-gray-300 pt-4 mb-4">
-            <div class="flex justify-between mb-2">
-              <span>Subtotal</span>
-              <span>Rs. {{total}}</span>
+          <div class="border-t border-gray-200 pt-6 mb-6 space-y-4">
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600">Subtotal</span>
+              <span class="font-medium">Rs. {{total}}</span>
             </div>
 
             {{#each cartItems}}
               {{#if this.product.activeOffer}}
-              <div class="flex justify-between mb-2">
+              <div class="flex justify-between items-center">
                 <span class="text-gray-600">Discount</span>
                 <div class="flex items-center gap-2">
-                  <span class="text-green-600">-{{this.product.activeOffer.discountValue}}%</span>
-                  <span class="bg-green-200 text-green-600 text-xs rounded px-1">
+                  <span class="text-green-600 font-medium">-{{this.product.activeOffer.discountValue}}%</span>
+                  <span class="bg-green-100 text-green-700 text-xs font-medium px-2 py-1 rounded-full">
                     {{this.product.activeOffer.type}}
                   </span>
                 </div>
@@ -116,39 +168,43 @@
               {{/if}}
             {{/each}}
 
-            <div id="discount-row" class="flex justify-between mb-2 hidden">
-              <span>Coupon Discount</span>
-              <span id="discount-amount" class="text-green-600 font-semibold">-Rs. 0</span>
+            <div id="discount-row" class="flex justify-between items-center {{#unless appliedCoupon}}hidden{{/unless}}">
+              <span class="text-gray-600">Coupon Discount</span>
+              <span id="discount-amount" class="text-green-600 font-semibold">
+                {{#if appliedCoupon}}Rs. {{appliedCoupon.discount}}{{/if}}
+              </span>
             </div>
 
-            <div class="flex justify-between text-lg font-semibold text-red-600">
-              <span>Total</span>
-              <span id="final-total">Rs. {{finalTotal}}</span>
+            <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+              <span class="text-lg font-semibold">Total</span>
+              <span id="final-total" class="text-lg font-bold text-red-600">
+                Rs. {{#if appliedCoupon}}{{appliedCoupon.finalTotal}}{{else}}{{total}}{{/if}}
+              </span>
             </div>
           </div>
 
           <!-- Payment Options -->
-          <div>
-            <p class="text-sm mb-2">Select Payment Method:</p>
-            <label class="block text-sm font-medium mb-2 ">
-              <input type="radio" name="paymentMethod" value="Wallet"  class="mr-2 " required>
-              Wallet (Balance: <span class="text-red-600"> Rs. {{wallet.balance}}</span>)
+          <div class="space-y-4">
+            <p class="font-medium text-gray-700">Select Payment Method:</p>
+            <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-blue-400 transition-all duration-200 cursor-pointer">
+              <input type="radio" name="paymentMethod" value="Wallet" class="mr-3" required>
+              <span class="text-gray-700">Wallet (Balance: <span class="text-red-600 font-medium">Rs. {{wallet.balance}}</span>)</span>
             </label>
-            <label class="block text-sm font-medium mb-2">
-              <input type="radio" name="paymentMethod" value="Razorpay" class="mr-2" required>
-              Razorpay
+            <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-blue-400 transition-all duration-200 cursor-pointer">
+              <input type="radio" name="paymentMethod" value="Razorpay" class="mr-3" required>
+              <span class="text-gray-700">Razorpay</span>
             </label>
-            <label class="block text-sm font-medium">
-              <input type="radio" name="paymentMethod" value="COD" class="mr-2" required>
-              Cash on Delivery
+            <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-blue-400 transition-all duration-200 cursor-pointer">
+              <input type="radio" name="paymentMethod" value="COD" class="mr-3" required>
+              <span class="text-gray-700">Cash on Delivery</span>
             </label>
-            <div id="cod-message" class="ml-6 text-red-500 text-xs font-semibold mt-1 hidden">
+            <div id="cod-message" class="ml-6 text-red-500 text-sm font-medium mt-2 hidden">
               COD not available for orders above Rs. 1000.
             </div>
           </div>
 
           <!-- Place Order Button -->
-          <button type="submit" class="bg-blue-600 text-white w-full mt-6 py-2 rounded-lg hover:bg-blue-700" onclick="submitOrder()">
+          <button type="submit" class="w-full mt-8 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transform hover:scale-[1.02] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2" onclick="submitOrder()">
             Place Order
           </button>
         </div>
@@ -157,25 +213,50 @@
     </div>
   </div>
    <!-- Add Address Modal -->
-    <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden" id="addAddressModal">
-        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 class="text-xl font-semibold mb-4">Add New Address</h2>
-            <form id="addAddressForm" class="space-y-4">
-                <input type="text" placeholder="Name" name="name" class="w-full p-2 border rounded" required>
-                <input type="text" placeholder="Phone" name="phone" class="w-full p-2 border rounded" required>
-                <input type="text" placeholder="PinCode" name="pinCode" class="w-full p-2 border rounded" required>
-                <input type="text" placeholder="Address Line 1" name="addressLine1" class="w-full p-2 border rounded" required>
-                <input type="text" placeholder="Address Line 2" name="addressLine2" class="w-full p-2 border rounded">
-                <input type="text" placeholder="City" name="city" class="w-full p-2 border rounded" required>
-                <input type="text" placeholder="State" name="state" class="w-full p-2 border rounded" required>
-                <input type="text" placeholder="Country" name="country" class="w-full p-2 border rounded" required>
-                <label class="flex items-center">
-                    <input type="checkbox" name="isDefault" class="mr-2">
-                    Set as Default
+    <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm hidden transform transition-all duration-300" id="addAddressModal">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-[32rem] transform transition-all duration-300 scale-95 hover:shadow-blue-200">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent modal-title">Add New Address</h2>
+                <button type="button" class="text-gray-400 hover:text-gray-600 transition-colors duration-200" data-modal-close="addAddressModal">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <form id="addAddressForm" class="space-y-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <input type="text" placeholder="Full Name" name="name" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200" >
+                    </div>
+                    <div>
+                        <input type="text" placeholder="Phone Number" name="phone" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200" >
+                    </div>
+                    <div>
+                        <input type="text" placeholder="PIN Code" name="pinCode" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200" >
+                    </div>
+                    <div class="col-span-2">
+                        <input type="text" placeholder="Address Line 1" name="addressLine1" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200" >
+                    </div>
+                    <div class="col-span-2">
+                        <input type="text" placeholder="Address Line 2 (Optional)" name="addressLine2" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200">
+                    </div>
+                    <div>
+                        <input type="text" placeholder="City" name="city" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200" >
+                    </div>
+                    <div>
+                        <input type="text" placeholder="State" name="state" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200" >
+                    </div>
+                    <div class="col-span-2">
+                        <input type="text" placeholder="Country" name="country" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200" >
+                    </div>
+                </div>
+                <label class="flex items-center space-x-3 py-2">
+                    <input type="checkbox" name="isDefault" class="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-400">
+                    <span class="text-gray-700 font-medium">Set as Default Address</span>
                 </label>
-                <div class="flex justify-end space-x-4">
-                    <button type="button" class="bg-gray-300 px-4 py-2 rounded" data-modal-close="addAddressModal">Cancel</button>
-                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Save Address</button>
+                <div class="flex justify-end space-x-4 mt-8">
+                    <button type="button" class="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-all duration-200" data-modal-close="addAddressModal">Cancel</button>
+                    <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transform hover:scale-[1.02] transition-all duration-200">Save Address</button>
                 </div>
             </form>
         </div>
@@ -441,7 +522,17 @@
     }
   });
 
-  document.querySelector('[data-modal-close="addAddressModal"]').addEventListener('click', closeAddressModal);
+  document.querySelectorAll('[data-modal-close="addAddressModal"]').forEach(button => {
+    button.addEventListener('click', closeAddressModal);
+  });
+
+  document.getElementById('addAddressModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeAddressModal();
+    }
+  });
+
+ 
 
   async function applyCoupon() {
     const couponCode = document.getElementById('coupon-code').value;
@@ -450,8 +541,7 @@
         return;
     }
 
-    // Get the subtotal amount directly from the page
-    const subtotalAmount = {{total}}; // This will be replaced with the actual value from server
+    const subtotalAmount = {{total}};
 
     try {
         const response = await fetch('/user/apply-coupon', {
@@ -468,11 +558,8 @@
         const result = await response.json();
 
         if (result.status) {
-            // Show discount row
             document.getElementById('discount-row').classList.remove('hidden');
-            // Update discount amount
-            document.getElementById('discount-amount').textContent = `-Rs. ${result.discount}`;
-            // Update final total
+            document.getElementById('discount-amount').textContent = `Rs. ${result.discount}`;
             document.getElementById('final-total').textContent = `Rs. ${result.finalTotal}`;
             updateCODAvailability();
             notyf.success(result.message);

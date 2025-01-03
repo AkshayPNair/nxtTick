@@ -247,22 +247,26 @@
   saveCropBtn.addEventListener('click', () => {
     if (currentCropper && currentImageIndex !== null) {
       const canvas = currentCropper.getCroppedCanvas({
-        width: 300,
-        height: 300
+        maxWidth: 4096,
+        maxHeight: 4096,
+        imageSmoothingEnabled: false,
+        imageSmoothingQuality: 'high'
       });
 
       canvas.toBlob((blob) => {
-        // Create new file from blob
-        const file = new File([blob], `cropped-image-${currentImageIndex + 1}.jpg`, { type: 'image/jpeg' });
+        // Create new file from blob with original quality
+        const file = new File([blob], `cropped-image-${currentImageIndex + 1}.jpg`, { 
+          type: 'image/jpeg',
+        });
         
         // Update file input
         const dataTransfer = new DataTransfer();
         dataTransfer.items.add(file);
         imageInputs[currentImageIndex].files = dataTransfer.files;
 
-        // Update preview for the specific image
+        // Update preview (preview can be lower quality for performance)
         const previewImage = previewImages[currentImageIndex];
-        previewImage.src = canvas.toDataURL();
+        previewImage.src = canvas.toDataURL('image/jpeg', 0.8); // Lower quality for preview only
         previewImage.classList.remove('hidden');
         previewImage.parentElement.querySelector('span').classList.add('hidden');
 
@@ -270,7 +274,7 @@
         cropModal.classList.add('hidden');
         currentCropper.destroy();
         currentCropper = null;
-      }, 'image/jpeg');
+      }, 'image/jpeg', 1.0); // Set quality to 1.0 for maximum quality
     }
   });
 

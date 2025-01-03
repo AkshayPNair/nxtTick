@@ -7,119 +7,172 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to bottom right, #f8fafc, #f1f5f9);
+        }
+
+        .order-heading {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            background: black;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
         .order-card {
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
+            border: 1px solid rgba(209, 213, 219, 0.5);
+            backdrop-filter: blur(8px);
         }
+        
         .order-card:hover {
-            transform: scale(1.02);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transform: translateY(-5px) scale(1.01);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-color: rgba(59, 130, 246, 0.5);
         }
+
         .view-details {
             transition: all 0.3s ease;
+            position: relative;
         }
+
         .view-details:hover {
             transform: translateX(5px);
         }
+
+        .view-details::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background: #3b82f6;
+            transition: width 0.3s ease;
+        }
+
+        .view-details:hover::after {
+            width: 100%;
+        }
+
         @keyframes slowBounce {
             0%, 100% {
-                transform: translateY(0);
+                transform: translateY(0) rotate(0deg);
             }
             50% {
-                transform: translateY(-25px);
+                transform: translateY(-25px) rotate(5deg);
             }
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            transition: all 0.3s ease;
+        }
+
+        .status-badge:hover {
+            transform: scale(1.05);
+        }
+
+        .product-image {
+            transition: transform 0.3s ease;
+        }
+
+        .order-card:hover .product-image {
+            transform: scale(1.05);
         }
     </style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 font-['Inter']">
     {{>header}}
 
-    <div class="flex">
+    <div class="flex min-h-screen">
         <!-- Sidebar -->
-            {{>profilebar}}
+        {{>profilebar}}
 
         <!-- Page Content -->
-        <div class="flex-1 p-6">
-            <h1 class="text-2xl font-semibold text-gray-800 mb-6">My Orders</h1>
+        <div class="flex-1 p-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-8 order-heading">My Orders</h1>
 
             <!-- Orders List -->
-            <div class="space-y-6">
-                <!-- Single Order Card -->
+            <div class="space-y-8">
                 {{#if orders.length}} 
                 {{#each orders}}
-                <div class="order-card bg-white shadow-md rounded-lg overflow-hidden" data-aos="fade-up">
+                <div class="order-card bg-white/90 shadow-lg rounded-xl overflow-hidden" data-aos="fade-up">
                     {{#each this.items}}
-                    <div class="flex items-center p-4">
+                    <div class="flex items-center p-4 border-b border-gray-100 last:border-0">
                         <!-- Product Image -->
-                        <img src="{{this.product.images.[0]}}" alt="Product Image" class="w-20 h-20 object-cover rounded-lg border">
+                        <div class="overflow-hidden rounded-xl border-2 border-gray-100">
+                            <img src="{{this.product.images.[0]}}" alt="Product Image" class="w-20 h-20 object-cover product-image">
+                        </div>
                         
                         <!-- Product Details -->
-                        
                         <div class="ml-4 flex-1">
-                            <h2 class="text-lg font-semibold text-gray-800">{{this.product.name}}</h2>
+                            <h2 class="text-lg font-bold text-gray-800 mb-1 hover:text-blue-600 transition-colors">{{this.product.name}}</h2>
 
                             <!-- Horizontal Details -->
-                            <div class="flex items-center space-x-8 mt-2">
-                                <p class="text-sm text-gray-600">Quantity : <span class="font-medium text-black-500">{{this.quantity}}</span></p>
+                            <div class="flex flex-wrap items-center gap-4 mt-2">
+                                <p class="text-sm text-gray-600">Quantity: <span class="font-semibold text-gray-800">{{this.quantity}}</span></p>
                                 <p class="text-sm text-gray-600 flex items-center gap-2">
-                                    Order Price : 
+                                    Order Price: 
                                     {{#if this.activeOffer}}
-                                        <!-- Product/Category Offer Applied -->
-                                        <span class="font-medium text-red-600">Rs. {{this.finalPrice}}</span>
-                                        <span class="font-medium text-gray-400 line-through text-sm">Rs. {{this.originalPrice}}</span>
-                                        <span class="bg-green-200 text-green-600 font-semibold rounded-md text-xs px-2">
+                                        <span class="font-semibold text-red-600">₹{{this.finalPrice}}</span>
+                                        <span class="font-medium text-gray-400 line-through text-sm">₹{{this.originalPrice}}</span>
+                                        <span class="status-badge bg-green-100 text-green-700">
                                             {{this.activeOffer.discountValue}}% OFF
                                         </span>
                                     {{else if ../couponUsed}}
-                                        <!-- Coupon Applied -->
-                                        <span class="font-medium text-red-600">Rs. {{this.finalPrice}}</span>
-                                        <span class="font-medium text-gray-400 line-through text-sm">Rs. {{this.originalPrice}}</span>
-                                        <span class="bg-green-200 text-green-600 font-semibold rounded-md text-xs px-2">
+                                        <span class="font-semibold text-red-600">₹{{this.finalPrice}}</span>
+                                        <span class="font-medium text-gray-400 line-through text-sm">₹{{this.originalPrice}}</span>
+                                        <span class="status-badge bg-blue-100 text-blue-700">
                                             COUPON APPLIED
                                         </span>
                                     {{else}}
-                                        <!-- Regular Price -->
-                                        <span class="font-medium text-red-600">Rs. {{this.originalPrice}}</span>
+                                        <span class="font-semibold text-red-600">₹{{this.originalPrice}}</span>
                                     {{/if}}
                                 </p>
-                                <p class="text-sm text-gray-600 ">
-                                    Status : 
-                                    <span class="font-medium text-white rounded-xl px-1 
-                                        {{#if (eq ../status 'Pending')}}bg-orange-200 text-orange-500{{/if}}
-                                        {{#if (eq ../status 'Shipped')}}bg-blue-200 text-blue-500{{/if}}
-                                        {{#if (eq ../status 'Out for Delivery')}}bg-yellow-100 text-yellow-500{{/if}}
-                                        {{#if (eq ../status 'Delivered')}}bg-green-200 text-green-500{{/if}}
-                                        {{#if (eq ../status 'Cancelled')}}bg-red-200 text-red-500{{/if}}
-                                        {{#if (eq ../status 'Returned')}}bg-red-200 text-red-500{{/if}}">
+                                <p class="text-sm text-gray-600">
+                                    Status: 
+                                    <span class="status-badge
+                                        {{#if (eq ../status 'Pending')}}bg-orange-100 text-orange-700{{/if}}
+                                        {{#if (eq ../status 'Shipped')}}bg-blue-100 text-blue-700{{/if}}
+                                        {{#if (eq ../status 'Out for Delivery')}}bg-yellow-100 text-yellow-700{{/if}}
+                                        {{#if (eq ../status 'Delivered')}}bg-green-100 text-green-700{{/if}}
+                                        {{#if (eq ../status 'Cancelled')}}bg-red-100 text-red-700{{/if}}
+                                        {{#if (eq ../status 'Returned')}}bg-red-100 text-red-700{{/if}}">
                                         {{../status}}
                                     </span>
                                 </p>
-                                
-                                {{#if (and (eq ../paymentMethod 'Razorpay') (eq ../paymentStatus 'Failed'))}}
-                                    <p class="text-sm text-gray-600">Payment Status : <span class="font-medium text-red-500 bg-red-200 rounded-xl font-medium px-1">{{../paymentStatus}}</span></p>
-                                    <button onclick="initiateRepayment('{{../_id}}')" 
-                                            class="bg-blue-600 text-white px-2 py-0.5 
-                                                   rounded-full font-medium
-                                                   transform hover:scale-105 transition-all duration-300 ease-out
-                                                   hover:shadow-blue-500/30 hover:shadow-xl
-                                                   hover:bg-blue-700
-                                                   border border-transparent hover:border-blue-300">
-                                        Retry Payment
-                                    </button>
-                                {{/if}}
-
                             </div>
                         </div>
-                        
                     </div>
-
                     {{/each}}
                     <!-- Buttons -->
-                    <div class="flex justify-end items-center px-4 py-2 bg-gray-50">
+                    <div class="flex justify-end items-center gap-4 px-4 py-2 bg-gray-50/80">
+                        {{#if (and (eq this.paymentMethod 'Razorpay') (eq this.paymentStatus 'Failed'))}}
+                            <button onclick="initiateRepayment('{{this._id}}')" 
+                                    class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-1.5
+                                           rounded-full font-medium shadow-lg
+                                           transform hover:scale-105 transition-all duration-300
+                                           hover:shadow-blue-500/30 hover:shadow-xl
+                                           hover:from-blue-700 hover:to-blue-800
+                                           focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                Retry Payment
+                            </button>
+                        {{/if}}
                         <a href="/user/orderView/{{this._id}}" class="view-details inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800">
                             <span>View Details</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-2" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
                             </svg>
                         </a>
@@ -127,54 +180,50 @@
                 </div>
                 {{/each}}
                 {{else}}
-                    <div class="flex flex-col items-center justify-center min-h-[400px]" data-aos="fade-up">
-                        <div class="relative">
-                            <!-- Shopping bag icon with slower animation -->
-                            <svg class="w-32 h-32 text-gray-300 mb-4 animate-[slowBounce_3s_ease-in-out_infinite]" 
-                                 fill="none" 
-                                 stroke="currentColor" 
-                                 viewBox="0 0 24 24">
-                                <path stroke-linecap="round" 
-                                      stroke-linejoin="round" 
-                                      stroke-width="1.5" 
-                                      d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z">
-                                </path>
-                            </svg>
-                        </div>
-                        <h2 class="text-2xl font-bold text-gray-700 mb-2" data-aos="fade-up" data-aos-delay="100">
-                            No Orders Yet
-                        </h2>
-                        <p class="text-gray-500 text-center mb-6 max-w-md" data-aos="fade-up" data-aos-delay="200">
-                            Looks like you haven't made any orders yet. Start shopping to fill your order history!
-                        </p>
-                        <a href="/user/shop" 
-                           class="group relative inline-flex items-center justify-center px-4 py-3 
-                                  bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold
-                                  rounded-full overflow-hidden shadow-xl
-                                  hover:from-blue-600 hover:to-blue-800
-                                  transform hover:scale-105 transition-all duration-300 ease-out
-                                  hover:shadow-blue-500/30 hover:shadow-2xl"
-                           data-aos="fade-up" data-aos-delay="300">
-                            <span class="relative flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:animate-bounce" 
-                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                          d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
-                                </svg>
-                                Start Shopping
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:translate-x-1 transition-transform" 
-                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                          d="M9 5l7 7-7 7"/>
-                                </svg>
-                            </span>
-                        </a>
+                <div class="flex flex-col items-center justify-center min-h-[500px] bg-white/80 rounded-2xl shadow-lg p-12" data-aos="fade-up">
+                    <div class="relative mb-8">
+                        <svg class="w-40 h-40 text-blue-200 animate-[slowBounce_3s_ease-in-out_infinite]" 
+                             fill="none" 
+                             stroke="currentColor" 
+                             viewBox="0 0 24 24">
+                            <path stroke-linecap="round" 
+                                  stroke-linejoin="round" 
+                                  stroke-width="1.5" 
+                                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z">
+                            </path>
+                        </svg>
                     </div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4" data-aos="fade-up" data-aos-delay="100">
+                        No Orders Yet
+                    </h2>
+                    <p class="text-gray-600 text-center mb-8 max-w-md" data-aos="fade-up" data-aos-delay="200">
+                        Looks like you haven't made any orders yet. Start shopping to fill your order history!
+                    </p>
+                    <a href="/user/shop" 
+                       class="group relative inline-flex items-center justify-center px-6 py-3 
+                              bg-gradient-to-r from-blue-600 to-blue-800 text-white font-bold
+                              rounded-full overflow-hidden shadow-xl
+                              hover:from-blue-700 hover:to-blue-900
+                              transform hover:scale-105 transition-all duration-300
+                              hover:shadow-blue-500/30 hover:shadow-2xl
+                              focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                       data-aos="fade-up" data-aos-delay="300">
+                        <span class="relative flex items-center gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 group-hover:animate-bounce" 
+                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                            </svg>
+                            Start Shopping
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:translate-x-1 transition-transform" 
+                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </span>
+                    </a>
+                </div>
                 {{/if}}
-                
-                <!-- End Single Order Card -->
-
-                <!-- Repeat the above card structure for each order dynamically -->
             </div>
         </div>
     </div>
@@ -184,9 +233,8 @@
             duration: 800,
             once: true
         });
-    </script>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <script>
+    
+
     async function initiateRepayment(orderId) {
         try {
             const response = await fetch(`/user/repay-order/${orderId}`, {
@@ -218,13 +266,13 @@
                         .then(res => res.json())
                         .then(data => {
                             if (data.status) {
-                                location.reload(); // Reload page after successful payment
+                                location.reload();
                             }
                         });
                     },
                     modal: {
                         ondismiss: function() {
-                            location.reload(); // Reload page when modal is dismissed
+                            location.reload();
                         }
                     },
                     theme: {
@@ -240,14 +288,14 @@
                         body: JSON.stringify({ orderId: orderId })
                     })
                     .then(() => {
-                        location.reload(); // Reload page after payment failure
+                        location.reload();
                     });
                 });
                 rzp.open();
             }
         } catch (error) {
             console.error('Error initiating repayment:', error);
-            location.reload(); // Reload page if there's an error
+            location.reload();
         }
     }
     </script>

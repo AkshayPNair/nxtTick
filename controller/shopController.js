@@ -86,7 +86,7 @@ module.exports = {
         });
 
 
-        // Pass the selected sort option to the view
+        
         res.render("user/shop", { 
           data: Obj, 
           user, 

@@ -8,6 +8,9 @@ const addressController=require("../controller/addressController");
 const productController = require("../controller/productController");
 const shopController=require('../controller/shopController');
 
+//  checkBlockStatus 
+router.use(userAuth.checkBlockStatus);
+
 //search routes
 router.get('/search-suggestions', userController.getSearchSuggestions);
 router.get('/search', userController.searchProducts);
@@ -121,6 +124,15 @@ router.post('/repay-order/:orderId', userAuth.checkSession, userController.repay
 
 // Add this route with the proper controller reference
 router.post('/payment-failed', userAuth.checkSession, userController.handlePaymentFailure);
+
+//load Marval Category
+router.get('/marvalCategory',userController.loadMarvalCategory);
+
+//load Dc Comics Category
+router.get('/dcComicsCategory',userController.loadDcComicsCategory);
+
+//load Transformers Category
+router.get('/transformersCategory',userController.loadTransformersCategory);
 
 //logout
 router.get('/logout',userAuth.checkSession,userController.loadLogout)

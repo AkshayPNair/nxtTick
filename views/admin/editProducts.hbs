@@ -50,6 +50,7 @@
                   {{#each categories}}
                       <option value="{{this._id}}" {{#if (eq this._id ../product.category._id)}}selected{{/if}}>{{this.name}}</option>
                   {{/each}}
+                  </select>
                 </div>
                 <div>
                   <label class="block text-sm font-medium">Brand Name</label>

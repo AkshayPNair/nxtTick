@@ -8,11 +8,15 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf/notyf.min.css">
     <script src="https://cdn.jsdelivr.net/npm/notyf/notyf.min.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
         .product-card {
             transition: transform 0.3s ease-in-out;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         .product-card:hover {
             transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
         .heart-icon {
             transition: all 0.3s ease;
@@ -25,9 +29,25 @@
         .heart-icon:hover {
             transform: scale(1.1);
         }
+        .discount-badge {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .product-card {
+            animation: fadeIn 0.5s ease-out;
+        }
     </style>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-gray-50 font-['Inter']">
     {{!-- header --}}
     {{>header}}
       <!-- Mobile Menu -->
@@ -48,131 +68,295 @@
     
       
     <!-- Hero Section -->
-    <section class="relative w-full h-[500px] bg-cover bg-center" style="background-image: url(/images/dc\ comics.jpg);">
-        <div class="absolute inset-0 bg-black bg-opacity-50"></div>
-    </section>
+    <section class="relative w-full h-[600px] overflow-hidden">
+        <!-- Slideshow container -->
+        <div class="slideshow-container h-full">
+            <!-- Slides -->
+            <div class="slide fade relative h-full">
+                <img src="/images/banner2.jpg" class="w-full h-full object-cover transform scale-105 transition-transform duration-[2000ms]">
+                <div class="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent"></div>
+                <div class="absolute bottom-20 left-20 text-white max-w-lg">
+                    <h2 class="text-5xl font-extrabold mb-4 animate-slideUp tracking-tight font-montserrat">DC Heroes</h2>
+                    <p class="text-lg mb-6 animate-slideUp animation-delay-200 font-inter leading-relaxed">Premium DC Comics collectibles</p>
+                    <a href="/user/dcComicsCategory" class="inline-block px-8 py-3 bg-blue-600 hover:bg-blue-700 rounded-full transition-all duration-300 transform hover:scale-105 animate-slideUp animation-delay-400 font-semibold tracking-wide shadow-lg hover:shadow-blue-500/50">Explore</a>
+                </div>
+            </div>
 
-    <!-- Collection List Section -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h2 class="text-4xl font-bold text-gray-800 mb-8">Collection List</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Collection Card -->
-            <div class="relative bg-gray-900 text-white rounded-lg overflow-hidden shadow-md group">
-                <img src="/images/MRVL.jpg" alt="Marvel" class="w-full h-96 object-cover group-hover:opacity-80 transition-opacity">
-                <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 group-hover:bg-opacity-70 transition-opacity">
-                    <h3 class="text-xl font-bold">MARVEL</h3>
+            <div class="slide fade relative h-full">
+                <img src="/images/banner3.jpg" class="w-full h-full object-cover transform scale-105 transition-transform duration-[2000ms]">
+                <div class="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent"></div>
+                <div class="absolute bottom-20 left-20 text-white max-w-lg">
+                    <h2 class="text-5xl font-extrabold mb-4 animate-slideUp tracking-tight font-montserrat">Marvel Collection</h2>
+                    <p class="text-lg mb-6 animate-slideUp animation-delay-200 font-inter leading-relaxed">Discover our exclusive Marvel figurines</p>
+                    <a href="/user/marvalCategory" class="inline-block px-8 py-3 bg-red-600 hover:bg-red-700 rounded-full transition-all duration-300 transform hover:scale-105 animate-slideUp animation-delay-400 font-semibold tracking-wide shadow-lg hover:shadow-red-500/50">Shop Now</a>
                 </div>
             </div>
-            <div class="relative bg-gray-900 text-white rounded-lg overflow-hidden shadow-md group">
-                <img src="/images/DC.jpg" alt="DC Comics" class="w-full h-96 object-cover group-hover:opacity-80 transition-opacity">
-                <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 group-hover:bg-opacity-70 transition-opacity">
-                    <h3 class="text-xl font-bold">DC COMICS</h3>
+
+            <div class="slide fade relative h-full">
+                <img src="/images/banner4.jpg" class="w-full h-full object-cover transform scale-105 transition-transform duration-[2000ms]">
+                <div class="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent"></div>
+                <div class="absolute bottom-20 left-20 text-white max-w-lg">
+                    <h2 class="text-5xl font-extrabold mb-4 animate-slideUp tracking-tight font-montserrat">Limited Edition</h2>
+                    <p class="text-lg mb-6 animate-slideUp animation-delay-200 font-inter leading-relaxed">Get your exclusive collectibles</p>
+                    <a href="/user/shop" class="inline-block px-8 py-3 bg-purple-600 hover:bg-purple-700 rounded-full transition-all duration-300 transform hover:scale-105 animate-slideUp animation-delay-400 font-semibold tracking-wide shadow-lg hover:shadow-purple-500/50">View All</a>
                 </div>
             </div>
-            <div class="relative bg-gray-900 text-white rounded-lg overflow-hidden shadow-md group">
-                <img src="/images/TRANSFORMERS.jpg" alt="Transformers" class="w-full h-96 object-cover group-hover:opacity-80 transition-opacity">
-                <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 group-hover:bg-opacity-70 transition-opacity">
-                    <h3 class="text-xl font-bold">TRANSFORMERS</h3>
+
+            <div class="slide fade relative h-full">
+                <img src="/images/wol.jpg" class="w-full h-full object-cover transform scale-105 transition-transform duration-[2000ms]">
+                <div class="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent"></div>
+                <div class="absolute bottom-20 left-20 text-white max-w-lg">
+                    <h2 class="text-5xl font-extrabold mb-4 animate-slideUp tracking-tight font-montserrat">New Arrivals</h2>
+                    <p class="text-lg mb-6 animate-slideUp animation-delay-200 font-inter leading-relaxed">Latest additions to our collection</p>
+                    <a href="/user/shop" class="inline-block px-8 py-3 bg-green-600 hover:bg-green-700 rounded-full transition-all duration-300 transform hover:scale-105 animate-slideUp animation-delay-400 font-semibold tracking-wide shadow-lg hover:shadow-green-500/50">Discover</a>
                 </div>
             </div>
+
+            <div class="slide fade relative h-full">
+                <img src="/images/banner5.jpg" class="w-full h-full object-cover transform scale-105 transition-transform duration-[2000ms]">
+                <div class="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent"></div>
+                <div class="absolute bottom-20 left-20 text-white max-w-lg">
+                    <h2 class="text-5xl font-extrabold mb-4 animate-slideUp tracking-tight font-montserrat">Premium Quality</h2>
+                    <p class="text-lg mb-6 animate-slideUp animation-delay-200 font-inter leading-relaxed">Handcrafted with precision</p>
+                    <a href="/user/shop" class="inline-block px-8 py-3 bg-yellow-600 hover:bg-yellow-700 rounded-full transition-all duration-300 transform hover:scale-105 animate-slideUp animation-delay-400 font-semibold tracking-wide shadow-lg hover:shadow-yellow-500/50">Learn More</a>
+                </div>
+            </div>
+
+            <div class="slide fade relative h-full">
+                <img src="/images/banner6.jpg" class="w-full h-full object-cover transform scale-105 transition-transform duration-[2000ms]">
+                <div class="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent"></div>
+                <div class="absolute bottom-20 left-20 text-white max-w-lg">
+                    <h2 class="text-5xl font-extrabold mb-4 animate-slideUp tracking-tight font-montserrat">Special Edition</h2>
+                    <p class="text-lg mb-6 animate-slideUp animation-delay-200 font-inter leading-relaxed">One-of-a-kind collectibles</p>
+                    <a href="/user/shop" class="inline-block px-8 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-full transition-all duration-300 transform hover:scale-105 animate-slideUp animation-delay-400 font-semibold tracking-wide shadow-lg hover:shadow-indigo-500/50">Shop Now</a>
+                </div>
+            </div>
+
+            <!-- Navigation buttons -->
+            <button class="prev absolute left-8 top-1/2 -translate-y-1/2 bg-white/30 backdrop-blur-md text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/50 transition-all duration-300 shadow-lg hover:shadow-white/30 group" onclick="changeSlide(-1)">
+                <svg class="w-6 h-6 transform group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <button class="next absolute right-8 top-1/2 -translate-y-1/2 bg-white/30 backdrop-blur-md text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/50 transition-all duration-300 shadow-lg hover:shadow-white/30 group" onclick="changeSlide(1)">
+                <svg class="w-6 h-6 transform group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Dots -->
+        <div class="absolute bottom-8 left-0 right-0 flex justify-center space-x-3">
+            <span class="dot w-2.5 h-2.5 rounded-full bg-white/30 backdrop-blur-sm cursor-pointer transition-all duration-300 hover:bg-white/75 hover:scale-110 shadow-md" onclick="currentSlide(1)"></span>
+            <span class="dot w-2.5 h-2.5 rounded-full bg-white/30 backdrop-blur-sm cursor-pointer transition-all duration-300 hover:bg-white/75 hover:scale-110 shadow-md" onclick="currentSlide(2)"></span>
+            <span class="dot w-2.5 h-2.5 rounded-full bg-white/30 backdrop-blur-sm cursor-pointer transition-all duration-300 hover:bg-white/75 hover:scale-110 shadow-md" onclick="currentSlide(3)"></span>
+            <span class="dot w-2.5 h-2.5 rounded-full bg-white/30 backdrop-blur-sm cursor-pointer transition-all duration-300 hover:bg-white/75 hover:scale-110 shadow-md" onclick="currentSlide(4)"></span>
+            <span class="dot w-2.5 h-2.5 rounded-full bg-white/30 backdrop-blur-sm cursor-pointer transition-all duration-300 hover:bg-white/75 hover:scale-110 shadow-md" onclick="currentSlide(5)"></span>
+            <span class="dot w-2.5 h-2.5 rounded-full bg-white/30 backdrop-blur-sm cursor-pointer transition-all duration-300 hover:bg-white/75 hover:scale-110 shadow-md" onclick="currentSlide(6)"></span>
         </div>
     </section>
 
+
+    <!-- Collection List Section -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="text-center mb-16">
+            <h2 class="text-5xl font-bold text-gray-800 mb-4 font-['Montserrat'] tracking-tight">Explore Our Collections</h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Marvel Collection -->
+            <a href="/user/marvalCategory" class="group">
+                <div class="relative bg-gray-900 text-white rounded-2xl overflow-hidden shadow-xl transform transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl">
+                    <img src="/images/MRVL.jpg" alt="Marvel" class="w-full h-[450px] object-cover transition-transform duration-700 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-center justify-center">
+                        <div class="text-center transform transition-all duration-300 group-hover:-translate-y-4">
+                            <h3 class="text-3xl font-bold font-['Montserrat'] mb-3">MARVEL</h3>
+                            <div class="w-10 h-10 bg-white rounded-full mx-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-2 flex items-center justify-center">
+                                <svg class="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- DC Comics Collection -->
+            <a href="/user/dcComicsCategory" class="group">
+                <div class="relative bg-gray-900 text-white rounded-2xl overflow-hidden shadow-xl transform transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl">
+                    <img src="/images/DC.jpg" alt="DC Comics" class="w-full h-[450px] object-cover transition-transform duration-700 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-center justify-center">
+                        <div class="text-center transform transition-all duration-300 group-hover:-translate-y-4">
+                            <h3 class="text-3xl font-bold font-['Montserrat'] mb-3">DC COMICS</h3>
+                            <div class="w-10 h-10 bg-white rounded-full mx-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-2 flex items-center justify-center">
+                                <svg class="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Transformers Collection -->
+            <a href="/user/transformersCategory" class="group">
+                <div class="relative bg-gray-900 text-white rounded-2xl overflow-hidden shadow-xl transform transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl">
+                    <img src="/images/TRANSFORMERS.jpg" alt="Transformers" class="w-full h-[450px] object-cover transition-transform duration-700 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-center justify-center">
+                        <div class="text-center transform transition-all duration-300 group-hover:-translate-y-4">
+                            <h3 class="text-3xl font-bold font-['Montserrat'] mb-3">TRANSFORMERS</h3>
+                            <div class="w-10 h-10 bg-white rounded-full mx-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-2 flex items-center justify-center">
+                                <svg class="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </section>
+
+     <!-- Animated Marquee Text Section -->
+    <div class="section section-blends section-full bg-gradient-to-br from-black via-gray-900 to-black relative overflow-hidden min-h-[25vh]">
+        <!-- Enhanced decorative background elements -->
+        <div class="absolute inset-0">
+            <div class="absolute w-full h-full">
+                <!-- Smaller, more dynamic background elements -->
+                <div class="absolute top-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-xl animate-pulse"></div>
+                <div class="absolute top-10 right-40 w-20 h-20 bg-blue-500/5 rounded-full blur-lg animate-pulse delay-75"></div>
+                <div class="absolute bottom-5 left-1/4 w-28 h-28 bg-purple-500/5 rounded-full blur-xl animate-pulse delay-100"></div>
+                <div class="absolute top-1/3 right-1/4 w-24 h-24 bg-red-500/5 rounded-full blur-lg animate-pulse delay-150"></div>
+                <div class="absolute bottom-10 right-20 w-20 h-20 bg-white/10 rounded-full blur-xl animate-pulse delay-200"></div>
+            </div>
+            <!-- Enhanced pattern overlay -->
+            <div class="absolute inset-0 opacity-20" style="background-image: url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"%23FFFFFF\" fill-opacity=\"0.1\" fill-rule=\"evenodd\"%3E%3Cpath d=\"M0 60L60 0H30L0 30M60 60V30L30 60\"/%3E%3C/g%3E%3C/svg%3E')"></div>
+        </div>
+
+        <div class="scrolling-text scrolling-text--auto py-8 relative z-10">
+            <div class="scrolling-text_wrapper">
+                <div class="scroll-content">
+                    <span class="scrolling-text_text heading text-[90px] text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-400 to-white font-black tracking-tighter">UNLEASH YOUR INNER HERO</span>
+                    <span class="scrolling-text_text heading text-[90px] text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-400 to-white font-black tracking-tighter motion-reduce:hidden" aria-hidden="true">UNLEASH YOUR INNER HERO</span>
+                    <span class="scrolling-text_text heading text-[90px] text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-400 to-white font-black tracking-tighter motion-reduce:hidden" aria-hidden="true">UNLEASH YOUR INNER HERO</span>
+                </div>
+                <div class="scroll-content" aria-hidden="true">
+                    <span class="scrolling-text_text heading text-[90px] text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-400 to-white font-black tracking-tighter ">UNLEASH YOUR INNER HERO</span>
+                    <span class="scrolling-text_text heading text-[90px] text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-400 to-white font-black tracking-tighter motion-reduce:hidden" aria-hidden="true">UNLEASH YOUR INNER HERO</span>
+                    <span class="scrolling-text_text heading text-[90px] text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-400 to-white font-black tracking-tighter motion-reduce:hidden" aria-hidden="true">UNLEASH YOUR INNER HERO</span>
+                </div>
+            </div>
+        </div>
+    </div>
+   
     <!-- New Products Section -->
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h2 class="text-4xl font-bold text-gray-800 mb-6">New Products</h2>
+        <h2 class="text-4xl font-bold text-gray-800 mb-6 relative">
+            New Products
+            <span class="absolute bottom-0 left-0 w-24 h-1 bg-blue-600"></span>
+        </h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <!-- Product Card -->
-             {{#each data}}
-          <div class="bg-white shadow-md rounded-lg overflow-hidden product-card">
-            <img src="{{this.images.[0]}}" onclick="load('{{this._id}}')" alt="{{this.name}}" class="w-full h-70 object-cover">
-            <div class="p-4">
-              <h2 class="text-lg font-bold text-gray-800">{{this.name}}</h2>
-              <p class="text-sm text-gray-600 ">Sixth Scale Figure</p>
-              <div class="flex justify-between items-center mt-2">
-                {{#if this.activeOffer}}
-                    <div class="flex flex-col">
-                        <div class="flex items-center gap-2">
-                            <span class="text-red-600 font-semibold">₹{{roundPrice this.finalPrice}}</span>
-                            <span class="text-gray-400 font-semibold line-through text-sm">₹{{roundPrice this.price}}</span>
-                             <span class="bg-green-200 text-green-600  font-semibold rounded-md text-xs">
-                               {{this.activeOffer.discountValue}}% OFF
-                            </span>
+            {{#each data}}
+            <div class="bg-white rounded-lg overflow-hidden product-card">
+                <div class="relative">
+                    <img src="{{this.images.[0]}}" onclick="load('{{this._id}}')" alt="{{this.name}}" 
+                         class="w-full h-70 object-cover cursor-pointer hover:opacity-90 transition-opacity">
+                    <button onclick="toggleWishlist(this,'{{this._id}}')" 
+                            class="heart-icon absolute top-3 right-3 bg-white p-2 rounded-full shadow-md {{#if this.isInWishlist}}active{{/if}}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="{{#if this.isInWishlist}}red{{else}}none{{/if}}" 
+                             viewBox="0 0 24 24" stroke="{{#if this.isInWishlist}}red{{else}}currentColor{{/if}}">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="p-4">
+                    <h2 class="text-lg font-bold text-gray-800 hover:text-blue-600 transition-colors cursor-pointer">{{this.name}}</h2>
+                    <p class="text-sm text-gray-600 mb-2">Sixth Scale Figure</p>
+                    <div class="flex justify-between items-center mt-2">
+                        {{#if this.activeOffer}}
+                        <div class="flex flex-col">
+                            <div class="flex items-center gap-2">
+                                <span class="text-red-600 font-semibold text-lg">₹{{roundPrice this.finalPrice}}</span>
+                                <span class="text-gray-400 line-through font-semibold text-sm">₹{{roundPrice this.price}}</span>
+                                <span class="discount-badge text-white px-2 py-1 rounded-md text-xs font-semibold">
+                                    {{this.activeOffer.discountValue}}% OFF
+                                </span>
+                            </div>
                         </div>
-                        
+                        {{else}}
+                        <span class="text-red-600 font-semibold text-lg">₹{{roundPrice this.price}}</span>
+                        {{/if}}
                     </div>
-                {{else}}
-                    <span class="text-red-600 font-semibold">₹{{roundPrice this.price}}</span>
-                {{/if}}
-                <button onclick="toggleWishlist(this,'{{this._id}}')" class="heart-icon {{#if this.isInWishlist}}active{{/if}}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="{{#if this.isInWishlist}}red{{else}}none{{/if}}" viewBox="0 0 24 24" stroke="{{#if this.isInWishlist}}red{{else}}currentColor{{/if}}">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                </button>
-              </div>
+                </div>
             </div>
-          </div>
-          {{/each}}
+            {{/each}}
         </div>
         
         <!-- show more button -->
         <div class="flex justify-center mt-10">
           <a href="/user/shop">
-            <button class="w-48 px-6 py-2 bg-white border border-gray-200 font-semibold rounded-md text-gray-800 hover:bg-gray-100 shadow-lg">
+            <button class="w-48 px-6 py-3 bg-white border-2 border-gray-200 font-semibold rounded-lg text-gray-800 hover:bg-gray-100 hover:border-gray-300 shadow-lg transition duration-300 transform hover:-translate-y-1">
               Show More
             </button>
-            </a>
-          </div>
+          </a>
+        </div>
     </section>
     
     <!-- banner 2 -->
-    <section class="relative w-full h-[500px] bg-cover bg-center" style="background-image: url(/images/wol.jpg);">
+    <section class="relative w-full h-[500px] bg-cover bg-center bg-fixed" style="background-image: url(/images/wol.jpg);">
         <div class="absolute inset-0 bg-black bg-opacity-50"></div>
     </section>
 
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <!-- Section Title -->
-        <h1 class="text-center text-4xl font-bold text-gray-800 mb-10">POPULARS</h1>
+        <h1 class="text-center text-4xl font-bold text-gray-800 mb-10 relative">
+            POPULARS
+            <span class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-blue-600"></span>
+        </h1>
          <!-- Cards Container -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           <!-- Card 1 -->
           {{#each data2}}
-          <div class="bg-white shadow-md rounded-lg overflow-hidden product-card">
-            <img src="{{this.images.[0]}}" onclick="load('{{this._id}}')" alt="{{this.name}}" class="w-full h-70 object-cover">
-            <div class="p-4">
-              <h2 class="text-lg font-bold text-gray-800">{{this.name}}</h2>
-              <p class="text-sm text-gray-600">{{this.brand}}</p>
-              <div class="flex justify-between items-center mt-2">
-                {{#if this.activeOffer}}
-                    <div class="flex flex-col">
-                        <div class="flex items-center gap-2">
-                            <span class="text-red-600 font-semibold">₹{{roundPrice this.finalPrice}}</span>
-                            <span class="text-gray-400 font-semibold line-through text-sm">₹{{roundPrice this.price}}</span>
-                            <span class="bg-green-200 text-green-600  font-semibold rounded-md text-xs">
-                               {{this.activeOffer.discountValue}}% OFF
-                            </span>
-                        </div>
-                        
-                    </div>
-                {{else}}
-                    <span class="text-red-600 font-semibold">₹{{roundPrice this.price}}</span>
-                {{/if}}
-                <button onclick="toggleWishlist(this,'{{this._id}}')" class="heart-icon {{#if this.isInWishlist}}active{{/if}}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="{{#if this.isInWishlist}}red{{else}}none{{/if}}" viewBox="0 0 24 24" stroke="{{#if this.isInWishlist}}red{{else}}currentColor{{/if}}">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          <div class="bg-white rounded-lg overflow-hidden product-card">
+            <div class="relative">
+                <img src="{{this.images.[0]}}" onclick="load('{{this._id}}')" alt="{{this.name}}" 
+                     class="w-full h-70 object-cover cursor-pointer hover:opacity-90 transition-opacity">
+                <button onclick="toggleWishlist(this,'{{this._id}}')" 
+                        class="heart-icon absolute top-3 right-3 bg-white p-2 rounded-full shadow-md {{#if this.isInWishlist}}active{{/if}}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="{{#if this.isInWishlist}}red{{else}}none{{/if}}" 
+                         viewBox="0 0 24 24" stroke="{{#if this.isInWishlist}}red{{else}}currentColor{{/if}}">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                     </svg>
                 </button>
-              </div>
+            </div>
+            <div class="p-4">
+                <h2 class="text-lg font-bold text-gray-800 hover:text-blue-600 transition-colors cursor-pointer">{{this.name}}</h2>
+                <p class="text-sm text-gray-600 mb-2">Sixth Scale Figure</p>
+                <div class="flex justify-between items-center mt-2">
+                    {{#if this.activeOffer}}
+                    <div class="flex flex-col">
+                        <div class="flex items-center gap-2">
+                            <span class="text-red-600 font-semibold text-lg">₹{{roundPrice this.finalPrice}}</span>
+                            <span class="text-gray-400 line-through font-semibold text-sm">₹{{roundPrice this.price}}</span>
+                            <span class="discount-badge text-white px-2 py-1 rounded-md text-xs font-semibold">
+                                {{this.activeOffer.discountValue}}% OFF
+                            </span>
+                        </div>
+                    </div>
+                    {{else}}
+                    <span class="text-red-600 font-semibold text-lg">₹{{roundPrice this.price}}</span>
+                    {{/if}}
+                </div>
             </div>
           </div>
           {{/each}}
         </div>
     
-    
         <!-- Show More Button -->
         <div class="flex justify-center mt-10">
           <a href="/user/shop">
-          <button class="w-48 px-6 py-2 bg-white border border-gray-200 font-semibold rounded-md text-gray-800 hover:bg-gray-100 shadow-lg">
+          <button class="w-48 px-6 py-3 bg-white border-2 border-gray-200 font-semibold rounded-lg text-gray-800 hover:bg-gray-100 hover:border-gray-300 shadow-lg transition duration-300 transform hover:-translate-y-1">
             Show More
           </button>
           </a>
@@ -322,7 +506,151 @@
             notyf.error('Something went wrong');
         }
     }
+
+     let slideIndex = 1;
+            showSlides(slideIndex);
+
+            function changeSlide(n) {
+                showSlides(slideIndex += n);
+            }
+
+            function currentSlide(n) {
+                showSlides(slideIndex = n);
+            }
+
+            function showSlides(n) {
+                let slides = document.getElementsByClassName("slide");
+                let dots = document.getElementsByClassName("dot");
+                
+                if (n > slides.length) {slideIndex = 1}    
+                if (n < 1) {slideIndex = slides.length}
+
+                for (let i = 0; i < slides.length; i++) {
+                    slides[i].style.display = "none";
+                    slides[i].classList.remove("active");
+                    dots[i].classList.remove("active-dot");
+                }
+
+                slides[slideIndex-1].style.display = "block";
+                slides[slideIndex-1].classList.add("active");
+                dots[slideIndex-1].classList.add("active-dot");
+            }
+
+            // Auto slide with smoother transition
+            setInterval(() => {
+                changeSlide(1);
+            }, 6000);
   </script>
+  <style>
+            @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+            .slide {display: none}
+            .fade {
+                animation-name: fade;
+                animation-duration: 1.5s;
+            }
+            @keyframes fade {
+                from {opacity: .4} 
+                to {opacity: 1}
+            }
+            .active-dot {
+                opacity: 1 !important;
+                transform: scale(1.2);
+                background-color: white !important;
+                box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            }
+            @keyframes slideUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            .animate-slideUp {
+                animation: slideUp 0.8s ease-out forwards;
+            }
+            .animation-delay-200 {
+                animation-delay: 0.2s;
+            }
+            .animation-delay-400 {
+                animation-delay: 0.4s;
+            }
+            .slide.active img {
+                transform: scale(1);
+            }
+
+
+             .scrolling-text {
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.1) 100%);
+        }
+
+        .scrolling-text_wrapper {
+            display: flex;
+            white-space: nowrap;
+            filter: drop-shadow(0 20px 13px rgb(0 0 0 / 0.08)) drop-shadow(0 8px 5px rgb(0 0 0 / 0.12));
+        }
+
+        .scroll-content {
+            display: flex;
+            animation: scroll 60s linear infinite;
+        }
+
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .scrolling-text_text {
+            padding: 0 2rem;
+            font-family: 'Montserrat', sans-serif;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .scrolling-text_text:hover {
+            transform: scale(1.05);
+            letter-spacing: 0.05em;
+        }
+
+        .scrolling-text_text::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #fff, transparent);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .scrolling-text_text:hover::after {
+            width: 80%;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .scroll-content {
+                animation: none;
+            }
+            
+            .scrolling-text_text:hover {
+                transform: none;
+                letter-spacing: normal;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .scrolling-text_text {
+                font-size: 50px !important;
+            }
+        }
+        </style>
     
 </body>
 </html>

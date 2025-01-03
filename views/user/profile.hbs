@@ -11,62 +11,137 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/notyf/notyf.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf/notyf.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+
+
+    .profile-heading {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+    }
+
+    .form-label {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+    }
+  </style>
 </head>
-<body>
+<body class="bg-gray-50 font-['Inter']">
   {{>header}}
-  <div class="flex flex-col md:flex-row h-screen">
+  <div class="flex flex-col md:flex-row h-screen ">
     
     <!-- Updated Sidebar -->
     {{>profilebar}}
 
     <!-- Profile Content -->
-    <div class="flex-1 p-8">
-      <h1 class="text-2xl font-semibold mb-6">My Profile</h1>
-      <div class="flex items-center space-x-4 mb-8">
-        <div class="relative">
-          <img id="profile-image" src="{{#if user.profileImage}}{{user.profileImage}}{{else}}https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png{{/if}}" alt="Profile" class="rounded-full w-20 h-20 object-cover">
-          <label for="profile-image-upload" class="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-1 cursor-pointer hover:bg-blue-700">
+    <div class="flex-1 p-8 ">
+      <h1 class="text-3xl font-bold mb-8 profile-heading bg-clip-text text-black">My Profile</h1>
+      <div class="flex items-center space-x-6 mb-8 p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+        <div class="relative group">
+          <img id="profile-image" src="{{#if user.profileImage}}{{user.profileImage}}{{else}}https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png{{/if}}" 
+               alt="Profile" 
+               class="rounded-full w-24 h-24 object-cover ring-4 ring-blue-100 transition-transform duration-300 group-hover:scale-105">
+          <label for="profile-image-upload" 
+                 class="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-2 cursor-pointer hover:bg-blue-700 transform transition-all duration-300 hover:scale-110 shadow-lg">
             <input type="file" class="hidden" name="profileImage" id="profile-image-upload" accept="image/*">
             <span class="text-sm">&#9998;</span>
           </label>
         </div>
-        <div>
-          <h2 class="text-lg font-semibold">{{user.name}}</h2>
-          <p class="text-sm text-gray-500">{{user.email}}</p>
+        <div class="space-y-1">
+          <h2 class="text-xl font-bold text-gray-800">{{user.name}}</h2>
+          <p class="text-sm text-gray-500 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            {{user.email}}
+          </p>
         </div>
       </div>
 
       <!-- Form -->
-      <form class="grid grid-cols-1 md:grid-cols-2 gap-6" id="profile-form" action="/user/updateProfile" method="POST" enctype="multipart/form-data">
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Name</label>
-          <input type="text" placeholder="Name" name="name" value="{{user.name}}" class="mt-1 w-full border rounded p-2 focus:outline-blue-600">
+      <form class="bg-white rounded-xl shadow-lg p-8 space-y-8" id="profile-form" action="/user/updateProfile" method="POST" enctype="multipart/form-data">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">Name</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                </svg>
+              </span>
+              <input type="text" 
+                     placeholder="Enter your name" 
+                     name="name" 
+                     value="{{user.name}}" 
+                     class="pl-10 w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200">
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700" for="gender">Gender</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </span>
+              <select class="pl-10 w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 appearance-none bg-white" name="gender">
+                <option value="">Select a gender</option>
+                <option value="male" {{#if (eq user.gender "male")}}selected{{/if}}>Male</option>
+                <option value="female" {{#if (eq user.gender "female")}}selected{{/if}}>Female</option>
+                <option value="other" {{#if (eq user.gender "other")}}selected{{/if}}>Other</option>
+              </select>
+              <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-500">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </span>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700" for="email">Email</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </span>
+              <input type="email" 
+                     name="email" 
+                     placeholder="Your email address" 
+                     value="{{user.email}}" 
+                     class="pl-10 w-full border border-gray-300 rounded-lg p-3 bg-gray-50 cursor-not-allowed" 
+                     readonly>
+            </div>
+          </div>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700" for="gender">Gender</label>
-          <select class="mt-1 w-full border rounded p-2 focus:outline-blue-600" name="gender">
-            <option value="">Select a gender</option>
-            <option value="male" {{#if (eq user.gender "male")}}selected{{/if}}>Male</option>
-            <option value="female" {{#if (eq user.gender "female")}}selected{{/if}}>Female</option>
-            <option value="other" {{#if (eq user.gender "other")}}selected{{/if}}>Other</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700" for="email">Email</label>
-          <input type="email" name="email" placeholder="Email" value="{{user.email}}" class="mt-1 w-full border rounded p-2 focus:outline-blue-600" readonly>
-        </div>
-        
+
         <div style="display: none;">
           <input type="hidden" name="croppedImage" id="cropped-image-input">
         </div>
-        <div class="col-span-1 md:col-span-2">
-          <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 shadow-lg mb-4">
+
+        <div class="pt-6 space-y-4">
+          <button type="submit" 
+                  class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-lg hover:from-blue-700 hover:to-blue-800 transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-blue-500/30">
             Save Changes
           </button>
-          <button type="button" id="reset-password-btn" class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-2 rounded-lg hover:from-green-600 hover:to-green-700 shadow-lg flex items-center justify-center space-x-2">
-            <i class="fas fa-key"></i>
+          
+          {{#if user.googleId}}
+          {{else}}
+          <button type="button" 
+                  id="reset-password-btn" 
+                  class="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg hover:from-green-600 hover:to-green-700 transform hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-green-500/30 flex items-center justify-center space-x-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+            </svg>
             <span>Reset Password</span>
           </button>
+          {{/if}}
         </div>
       </form>
     </div>
