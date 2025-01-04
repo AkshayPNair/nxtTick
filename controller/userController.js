@@ -487,8 +487,11 @@ module.exports={
             const { productId, quantity } = req.body;
             const userId = req.session.user; 
 
-            if (!userId){
-                res.redirect('/user/login')
+            if (!userId) {
+                return res.status(200).json({
+                    status: 'false',
+                    message: 'Please login to add items to cart'
+                });
             }
     
             // Check if product exists and is not deleted
@@ -1674,12 +1677,16 @@ module.exports={
     toggleWishlist: async (req, res) => {
         try {
             const userId = req.session.user;
-            const productId = req.params.productId;
-
+            
+            
             if (!userId) {
-                return res.status(401).json({success: false,redirect: '/user/login'});
+                return res.status(200).json({
+                    status: 'false',
+                    message: 'Please login to continue'
+                });
             }
 
+            const productId = req.params.productId;
             const user = await userSchema.findById(userId);
             const wishlistIndex = user.wishlist.indexOf(productId);
 
@@ -1687,7 +1694,7 @@ module.exports={
                 // Add to wishlist
                 user.wishlist.push(productId);
                 await user.save();
-                res.json({
+                res.status(200).json({
                     success: true,
                     message: 'Added to wishlist'
                 });
@@ -1695,16 +1702,16 @@ module.exports={
                 // Remove from wishlist
                 user.wishlist.splice(wishlistIndex, 1);
                 await user.save();
-                res.json({
+                res.status(200).json({
                     success: true,
                     message: 'Removed from wishlist'
                 });
             }
         } catch (error) {
-            console.error('Wishlist toggle error:', error);
+            console.error('Error in toggleWishlist:', error);
             res.status(500).json({
                 success: false,
-                message: 'Error updating wishlist'
+                message: 'Internal server error'
             });
         }
     },

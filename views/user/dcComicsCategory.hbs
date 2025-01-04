@@ -228,23 +228,29 @@
 
                 const data = await response.json();
 
+                if (data.status === 'false') {
+                    notyf.error('Please login to add items to wishlist');
+                    setTimeout(() => {
+                        window.location.href = '/user/login';
+                    }, 1500);
+                    return;
+                }
+
                 if (data.success) {
                     button.classList.toggle('active');
                     const heartIcon = button.querySelector('svg');
                     
                     if (button.classList.contains('active')) {
-                        heartIcon.style.fill = 'red';
-                        heartIcon.style.stroke = 'red';
+                        heartIcon.setAttribute('fill', 'red');
+                        heartIcon.setAttribute('stroke', 'red');
                         notyf.success('Added to wishlist');
                     } else {
-                        heartIcon.style.fill = 'none';
-                        heartIcon.style.stroke = 'currentColor';
+                        heartIcon.setAttribute('fill', 'none');
+                        heartIcon.setAttribute('stroke', 'currentColor');
                         notyf.success('Removed from wishlist');
                     }
-                } else if (data.redirect) {
-                    window.location.href = data.redirect;
                 } else {
-                    notyf.error(data.message || 'Something went wrong');
+                    throw new Error(data.message || 'Failed to update wishlist');
                 }
             } catch (error) {
                 console.error('Error:', error);

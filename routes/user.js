@@ -34,14 +34,14 @@ router.post('/login',userController.loginUser)
 router.get('/home', userController.loadHome)
 
 //product view
-router.get("/productView/:productId",userAuth.checkSession,userController.loadproductView)
+router.get("/productView/:productId",userController.loadproductView)
 
 //shop page
 router.get("/shop",shopController.loadShopPage);
 
 //cart
 router.get("/cart",userAuth.checkSession,userController.loadCart);
-router.post("/addToCart",userAuth.checkSession,userController.addToCart);
+router.post("/addToCart",userController.addToCart);
 router.post("/updateCartQuantity",userAuth.checkSession,userController.updateCartQuantity);
 router.post("/removeFromCart", userAuth.checkSession, userController.removeFromCart);
 
@@ -86,7 +86,7 @@ router.post('/forgetPassword',userController.forgetPassword);
 
 //load wishlist
 router.get('/wishlist',userAuth.checkSession,userController.loadWishlist);
-router.post('/toggle-wishlist/:productId', userAuth.checkSession, userController.toggleWishlist);
+router.post('/toggle-wishlist/:productId', userController.toggleWishlist);
 
 //load wallet
 router.get('/wallet',userAuth.checkSession,userController.loadWallet);

@@ -474,6 +474,7 @@
 
     async function toggleWishlist(button, productId) {
         try {
+            // Check if user is logged in by making the request
             const response = await fetch(`/user/toggle-wishlist/${productId}`, {
                 method: 'POST',
                 headers: {
@@ -482,6 +483,15 @@
             });
 
             const data = await response.json();
+
+            if (data.status === 'false') {
+                // User is not logged in
+                notyf.error('Please login to add items to wishlist');
+                setTimeout(() => {
+                    window.location.href = '/user/login';
+                }, 1500); 
+                return;
+            }
 
             if (data.success) {
                 button.classList.toggle('active');
@@ -496,8 +506,6 @@
                     heartIcon.style.stroke = 'currentColor';
                     notyf.success('Removed from wishlist');
                 }
-            } else if (data.redirect) {
-                window.location.href = data.redirect;
             } else {
                 notyf.error(data.message || 'Something went wrong');
             }

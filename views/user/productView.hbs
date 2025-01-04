@@ -329,6 +329,15 @@ async function addToCart(productId) {
     });
     
     const data = await response.json();
+
+    
+    if (data.status === 'false') {
+        notyf.error('Please login to add items to cart');
+        setTimeout(() => {
+          window.location.href = '/user/login';
+        }, 2000);
+        return;
+    }
     
      if (data.status) {
         notyf.success(data.message);
@@ -342,39 +351,49 @@ async function addToCart(productId) {
 }
 
 async function toggleWishlist(button, productId) {
-        try {
-            const response = await fetch(`/user/toggle-wishlist/${productId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
+    try {
+        const response = await fetch(`/user/toggle-wishlist/${productId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'false') {
+            notyf.error('Please login to add items to wishlist');
+            setTimeout(() => {
+                window.location.href = '/user/login';
+            }, 1500);
+            return;
+        }
+
+        if (data.success) {
+            // Update both the main product heart icon and similar products heart icons
+            const heartIcons = document.querySelectorAll(`.heart-icon[onclick*="${productId}"]`);
+            heartIcons.forEach(heartBtn => {
+                const heartSvg = heartBtn.querySelector('svg');
+                if (heartBtn.classList.contains('active')) {
+                    heartBtn.classList.remove('active');
+                    heartSvg.setAttribute('fill', 'none');
+                    heartSvg.setAttribute('stroke', 'currentColor');
+                } else {
+                    heartBtn.classList.add('active');
+                    heartSvg.setAttribute('fill', 'red');
+                    heartSvg.setAttribute('stroke', 'red');
                 }
             });
-
-            const data = await response.json();
-
-            if (data.success) {
-                button.classList.toggle('active');
-                const heartIcon = button.querySelector('svg');
-                
-                if (button.classList.contains('active')) {
-                    heartIcon.style.fill = 'red';
-                    heartIcon.style.stroke = 'red';
-                    notyf.success('Added to wishlist');
-                } else {
-                    heartIcon.style.fill = 'none';
-                    heartIcon.style.stroke = 'currentColor';
-                    notyf.success('Removed from wishlist');
-                }
-            } else if (data.redirect) {
-                window.location.href = data.redirect;
-            } else {
-                notyf.error(data.message || 'Something went wrong');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            notyf.error('Something went wrong');
+            
+            notyf.success(data.message || (button.classList.contains('active') ? 'Added to wishlist' : 'Removed from wishlist'));
+        } else {
+            throw new Error(data.message || 'Failed to update wishlist');
         }
+    } catch (error) {
+        console.error('Error:', error);
+        notyf.error('Something went wrong');
     }
+}
 
   </script>
 
