@@ -2243,7 +2243,7 @@ module.exports={
                 };
             });
 
-            res.render("user/DcComicsCategory", {
+            res.render("user/dcComicsCategory", {
                 data: processedProducts,
                 user,
                 sortOption

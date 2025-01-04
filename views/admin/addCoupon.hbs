@@ -107,6 +107,10 @@
       Swal.fire({icon: "error", title: "Error", text: "Please enter coupon code"});
       return;
     }
+    if (couponCode.length > 10) {
+      Swal.fire({icon: "error", title: "Error", text: "Coupon code cannot exceed 10 characters"});
+      return;
+    }
     if (!discountValue || discountValue <= 0) {
       Swal.fire({icon: "error", title: "Error", text: "Please enter valid discount value"});
       return;

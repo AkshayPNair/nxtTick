@@ -126,19 +126,19 @@
                                 <p class="text-sm text-gray-600 flex items-center gap-2">
                                     Order Price: 
                                     {{#if this.activeOffer}}
-                                        <span class="font-semibold text-red-600">₹{{this.finalPrice}}</span>
-                                        <span class="font-medium text-gray-400 line-through text-sm">₹{{this.originalPrice}}</span>
+                                        <span class="font-semibold text-red-600">₹{{multiply this.finalPrice this.quantity}}</span>
+                                        <span class="font-medium text-gray-400 line-through text-sm">₹{{multiply this.originalPrice this.quantity}}</span>
                                         <span class="status-badge bg-green-100 text-green-700">
                                             {{this.activeOffer.discountValue}}% OFF
                                         </span>
                                     {{else if ../couponUsed}}
-                                        <span class="font-semibold text-red-600">₹{{this.finalPrice}}</span>
-                                        <span class="font-medium text-gray-400 line-through text-sm">₹{{this.originalPrice}}</span>
+                                        <span class="font-semibold text-red-600">₹{{multiply this.finalPrice this.quantity}}</span>
+                                        <span class="font-medium text-gray-400 line-through text-sm">₹{{multiply this.originalPrice this.quantity}}</span>
                                         <span class="status-badge bg-blue-100 text-blue-700">
                                             COUPON APPLIED
                                         </span>
                                     {{else}}
-                                        <span class="font-semibold text-red-600">₹{{this.originalPrice}}</span>
+                                        <span class="font-semibold text-red-600">₹{{multiply this.originalPrice this.quantity}}</span>
                                     {{/if}}
                                 </p>
                                 <p class="text-sm text-gray-600">

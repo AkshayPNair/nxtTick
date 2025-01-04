@@ -60,12 +60,18 @@
                             <span class="text-gray-500 font-medium">Price:</span>
                             {{#if this.activeOffer}}
                             <div class="flex items-center gap-2">
-                                <span class="text-lg font-bold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">₹{{this.finalPrice}}</span>
-                                <span class="text-gray-400 line-through text-sm">₹{{this.originalPrice}}</span>
+                                <span class="text-lg font-bold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">₹{{ multiply this.finalPrice this.quantity}}</span>
+                                <span class="text-gray-400 line-through text-sm">₹{{multiply this.originalPrice this.quantity}}</span>
                                 <span class="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-sm">{{this.activeOffer.discountValue}}% OFF</span>
                             </div>
+                            {{else if ../couponUsed}}
+                                <span class="font-semibold text-red-600">₹{{multiply this.finalPrice this.quantity}}</span>
+                                <span class="font-medium text-gray-400 line-through text-sm">₹{{multiply this.originalPrice this.quantity}}</span>
+                                <span class="status-badge rounded-full bg-blue-100 text-blue-700">
+                                    COUPON APPLIED
+                                </span>
                             {{else}}
-                            <span class="text-lg font-bold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">₹{{this.originalPrice}}</span>
+                            <span class="text-lg font-bold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">₹{{ multiply this.originalPrice this.quantity}}</span>
                             {{/if}}
                         </div>
                         <div class="flex items-center gap-2 mt-2">
@@ -397,21 +403,37 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire({
-                        title: 'Cancel Reason',
-                        input: 'textarea',
-                        inputLabel: 'Please provide a reason for Cancelling',
-                        inputPlaceholder: 'Enter your reason here...',
-                        inputAttributes: {
-                            'aria-label': 'Cancel reason'
-                        },
+                        title: 'Why do you want to cancel?',
+                        html: `
+                            <div class="flex flex-col gap-4 text-left p-4">
+                                <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-red-400 hover:bg-red-50 transition-all duration-200 cursor-pointer">
+                                    <input type="radio" name="cancelReason" value="Changed my mind" class="mr-3 h-4 w-4 text-red-500 focus:ring-red-400">
+                                    <span class="text-gray-700 font-medium">Changed my mind</span>
+                                </label>
+                                <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-red-400 hover:bg-red-50 transition-all duration-200 cursor-pointer">
+                                    <input type="radio" name="cancelReason" value="Found better price elsewhere" class="mr-3 h-4 w-4 text-red-500 focus:ring-red-400">
+                                    <span class="text-gray-700 font-medium">Found better price elsewhere</span>
+                                </label>
+                                <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-red-400 hover:bg-red-50 transition-all duration-200 cursor-pointer">
+                                    <input type="radio" name="cancelReason" value="Ordered by mistake" class="mr-3 h-4 w-4 text-red-500 focus:ring-red-400">
+                                    <span class="text-gray-700 font-medium">Too expensive</span>
+                                </label>
+                                <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-red-400 hover:bg-red-50 transition-all duration-200 cursor-pointer">
+                                    <input type="radio" name="cancelReason" value="Ordered by mistake" class="mr-3 h-4 w-4 text-red-500 focus:ring-red-400">
+                                    <span class="text-gray-700 font-medium">Ordered by mistake</span>
+                                </label>
+                                
+                            </div>
+                        `,
                         showCancelButton: true,
                         confirmButtonText: 'Submit',
                         showLoaderOnConfirm: true,
-                        preConfirm: (reason) => {
-                            if (!reason) {
-                                Swal.showValidationMessage('Please enter a reason')
+                        preConfirm: () => {
+                            const selectedReason = document.querySelector('input[name="cancelReason"]:checked')?.value;
+                            if (!selectedReason) {
+                                Swal.showValidationMessage('Please select a reason')
                             }
-                            return reason;
+                            return selectedReason;
                         }
                     }).then((result)=>{
                         if(result.isConfirmed){
@@ -454,21 +476,36 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire({
-                        title: 'Return Reason',
-                        input: 'textarea',
-                        inputLabel: 'Please provide a reason for returning',
-                        inputPlaceholder: 'Enter your reason here...',
-                        inputAttributes: {
-                            'aria-label': 'Return reason'
-                        },
+                        title: 'Why do you want to return?',
+                        html: `
+                            <div class="flex flex-col gap-4 text-left p-4">
+                                <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-red-400 hover:bg-red-50 transition-all duration-200 cursor-pointer">
+                                    <input type="radio" name="returnReason" value="Defective/Damaged Product" class="mr-3 h-4 w-4 text-red-500 focus:ring-red-400">
+                                    <span class="text-gray-700 font-medium">Defective/Damaged Product</span>
+                                </label>
+                                <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-red-400 hover:bg-red-50 transition-all duration-200 cursor-pointer">
+                                    <input type="radio" name="returnReason" value="Wrong Item Received" class="mr-3 h-4 w-4 text-red-500 focus:ring-red-400">
+                                    <span class="text-gray-700 font-medium">Wrong Item Received</span>
+                                </label>
+                                <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-red-400 hover:bg-red-50 transition-all duration-200 cursor-pointer">
+                                    <input type="radio" name="returnReason" value="Product Not As Described" class="mr-3 h-4 w-4 text-red-500 focus:ring-red-400">
+                                    <span class="text-gray-700 font-medium">Product Not As Described</span>
+                                </label>
+                                <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-red-400 hover:bg-red-50 transition-all duration-200 cursor-pointer">
+                                    <input type="radio" name="returnReason" value="Other" class="mr-3 h-4 w-4 text-red-500 focus:ring-red-400">
+                                    <span class="text-gray-700 font-medium">Didn't like the product</span>
+                                </label>
+                            </div>
+                        `,
                         showCancelButton: true,
                         confirmButtonText: 'Submit',
                         showLoaderOnConfirm: true,
-                        preConfirm: (reason) => {
-                            if (!reason) {
-                                Swal.showValidationMessage('Please enter a reason')
+                        preConfirm: () => {
+                            const selectedReason = document.querySelector('input[name="returnReason"]:checked')?.value;
+                            if (!selectedReason) {
+                                Swal.showValidationMessage('Please select a reason')
                             }
-                            return reason;
+                            return selectedReason;
                         }
                     }).then((result) => {
                         if (result.isConfirmed) {
