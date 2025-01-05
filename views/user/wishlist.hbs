@@ -11,13 +11,13 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf/notyf.min.css">
   <script src="https://cdn.jsdelivr.net/npm/notyf/notyf.min.js"></script>
 </head>
-<body class="bg-gray-100 font-['Inter']">
+<body class="bg-gray-100 font-['Inter'] min-h-screen flex flex-col">
   {{>header}}
-  <div class="flex flex-col md:flex-row h-screen">
+  <div class="flex-1">
     <!-- wishlist Content -->
-    <div class="flex-1 p-8">
+    <div class="p-8">
       <h1 class="text-2xl font-semibold mb-6">My Wishlist</h1>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {{#if data.length}}
         <!-- Product Card -->
         {{#each data}}
@@ -166,6 +166,7 @@
                 }
 
                 notyf.success('Removed from wishlist');
+                
             } else if (data.redirect) {
                 window.location.href = data.redirect;
             } else {

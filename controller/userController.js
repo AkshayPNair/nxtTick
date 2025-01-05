@@ -1690,6 +1690,14 @@ module.exports={
                     ]
                 });
             
+            let cartCount = 0;
+            let wishlistCount = 0;
+            
+            
+            cartCount = await cart.countDocuments({ userId });
+            
+            wishlistCount = user.wishlist ? user.wishlist.length : 0;
+            
             const processedProducts = user.wishlist.map(product => {
                 let basePrice = Number(product.price);
                 let finalPrice = basePrice;
@@ -1727,7 +1735,9 @@ module.exports={
 
             res.render('user/wishlist', {
                 user,
-                data: processedProducts
+                data: processedProducts,
+                cartCount,
+                wishlistCount
             });
         } catch (error) {
             console.log(error);
