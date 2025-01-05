@@ -153,6 +153,14 @@
                                         {{../status}}
                                     </span>
                                 </p>
+                                {{#if (eq ../paymentStatus 'Failed')}}
+                                    <p class="text-sm">
+                                        <span class="text-gray-500">Payment Status:</span>
+                                        <span class="status-badge bg-red-100 text-red-700">
+                                            Failed
+                                        </span>
+                                    </p>
+                                {{/if}}
                             </div>
                         </div>
                     </div>
