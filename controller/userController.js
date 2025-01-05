@@ -171,8 +171,18 @@ module.exports={
     loadHome: async (req, res) => {
         try {
             const userId = req.session.user;
-            const user = userId ? await userSchema.findById(userId) : null;
-            
+            let user = null;
+            let cartCount = 0;
+            let wishlistCount = 0;
+
+            if (userId) {
+                user = await userSchema.findById(userId);
+                // Get cart count
+                cartCount = await cart.countDocuments({ userId });
+                // Get wishlist count
+                wishlistCount = user.wishlist ? user.wishlist.length : 0;
+            }
+
             // Fetch products with offers populated
             const products = await productSchema.find({ isDeleted: false })
                 .populate('offer')
@@ -271,11 +281,16 @@ module.exports={
             res.render("user/home", {
                 data: Obj,
                 data2: Obj2,
-                user: user
+                user: user,
+                cartCount,
+                wishlistCount,  
+                helpers: {
+                    roundPrice: (price) => Math.round(price)
+                }
             });
         } catch (error) {
             console.log(error);
-            res.status(500).send("Error Occurred");
+            res.status(500).send("Internal Server Error");
         }
     },
     loadproductView: async (req, res) => {
@@ -290,17 +305,24 @@ module.exports={
                     }
                 });
 
-            
             if (!findProduct || findProduct.isDeleted) {
                 return res.redirect('/'); 
             }
 
             const userId = req.session.user;
-            const user = userId ? await userSchema.findById(userId) : null;
+            let user = null;
+            let cartCount = 0;
+            let wishlistCount = 0;
 
-            // Check if product is in user's wishlist
-            const isInWishlist =  user ? user.wishlist.includes(findProduct._id) : false;
-            findProduct.isInWishlist = isInWishlist;
+            if (userId) {
+                user = await userSchema.findById(userId);
+                // Get cart count
+                cartCount = await cart.countDocuments({ userId });
+                // Get wishlist count
+                wishlistCount = user.wishlist ? user.wishlist.length : 0;
+                // Check if product is in user's wishlist
+                findProduct.isInWishlist = user.wishlist.includes(findProduct._id);
+            }
 
             // Ensure price is a number
             findProduct.price = Number(findProduct.price);
@@ -380,7 +402,9 @@ module.exports={
             res.render("user/productView", {
                 data: findProduct,
                 find: Obj,
-                user
+                user,
+                cartCount,
+                wishlistCount  
             });
 
         } catch (error) {
@@ -393,13 +417,22 @@ module.exports={
      loadCart: async (req, res) => {
         try {
             const userId = req.session.user;
+            let cartCount = 0;
+            let wishlistCount = 0;
+            let user = null;
             
             // Check if user is logged in
             if (!userId) {
                 return res.redirect('/user/login'); 
             }
 
-            const user = await userSchema.findById(userId);
+            if (userId) {
+                user = await userSchema.findById(userId);
+                // Get cart count
+                cartCount = await cart.countDocuments({ userId });
+                // Get wishlist count
+                wishlistCount = user.wishlist ? user.wishlist.length : 0;
+            }
             
             // Fetch cart items with populated product and offer information
             const cartItems = await cart.find({ userId })
@@ -472,6 +505,8 @@ module.exports={
                 cartItems: cartDetails, 
                 total,
                 user,
+                cartCount,
+                wishlistCount,
                 helpers: {
                     roundPrice: (price) => Math.round(price),
                     multiply: (price, quantity) => Math.round(price * quantity)
@@ -531,7 +566,12 @@ module.exports={
     
                 existingCartItem.quantity = totalQuantity;
                 await existingCartItem.save();
-                return res.status(200).json({ status: true, message: "Product quantity updated in cart" });
+                const cartCount = await cart.countDocuments({ userId });
+                return res.status(200).json({ 
+                    status: true, 
+                    message: "Product quantity updated in cart",
+                    cartCount 
+                });
             } else {
                 if (requestedQuantity > 4) {
                     return res.status(400).json({
@@ -553,7 +593,12 @@ module.exports={
                     quantity: requestedQuantity,
                 });
                 await newCartItem.save();
-                return res.status(200).json({ status: true, message: " Added to cart successfully!" });
+                const cartCount = await cart.countDocuments({ userId });
+                return res.status(200).json({ 
+                    status: true, 
+                    message: "Added to cart successfully!",
+                    cartCount 
+                });
             }
         } catch (error) {
             console.error("Error adding product to cart:", error);
@@ -671,10 +716,17 @@ module.exports={
         try {
             const userId = req.session.user;
             const user = await userSchema.findById(userId);
+            let cartCount = 0;
+            let wishlistCount = 0;
             
             if (!user) {
                 return res.status(404).send("User not found");
             }
+
+            // Get cart count
+            cartCount = await cart.countDocuments({ userId });
+            // Get wishlist count
+            wishlistCount = user.wishlist ? user.wishlist.length : 0;
 
             // Create a safe user object with default values for undefined properties
             const userData = {
@@ -687,7 +739,11 @@ module.exports={
                 _id: user._id ? user._id.toString() : ''
             };
 
-            res.render('user/profile', { user: userData });
+            res.render('user/profile', { 
+                user: userData,
+                cartCount,
+                wishlistCount
+            });
         } catch (error) {
             console.log(error);
             res.status(500).send("Error occurred");
@@ -718,16 +774,32 @@ module.exports={
             res.status(500).json({ status: false, message: "Error updating profile" });
         }
     },
-    loadAddress:async(req,res)=>{
+    loadAddress: async (req, res) => {
         try {
-            const userId=req.session.user;
-            const user=await userSchema.findById(userId)
-            const addresses=await addressSchema.find({userId}).sort({createdAt:-1})
-            res.render("user/address",{addresses,user});
+            const userId = req.session.user;
+            const user = await userSchema.findById(userId);
+            let cartCount = 0;
+            let wishlistCount = 0;
+            
+            // Get cart count
+            cartCount = await cart.countDocuments({ userId });
+            // Get wishlist count
+            wishlistCount = user.wishlist ? user.wishlist.length : 0;
+
+            const addresses = await addressSchema.find({ userId }).sort({ createdAt: -1 });
+            
+            res.render("user/address", {
+                addresses,
+                user,
+                cartCount,
+                wishlistCount
+            });
         } catch (error) {
             console.log(error);
-            res.status(500).json({ message: 'Failed to retrieve addresses', error: error.message });
-
+            res.status(500).json({ 
+                message: 'Failed to retrieve addresses', 
+                error: error.message 
+            });
         }
     },
     loadCheckout: async (req, res) => {
@@ -1289,7 +1361,14 @@ module.exports={
     loadOrders: async (req, res) => {
         try {
             const userId = req.session.user;
-            const user = await userSchema.findById(userId)
+            const user = await userSchema.findById(userId);
+            let cartCount = 0;
+            let wishlistCount = 0;
+            
+            // Get cart count
+            cartCount = await cart.countDocuments({ userId });
+            // Get wishlist count
+            wishlistCount = user.wishlist ? user.wishlist.length : 0;
             
             // Fetch orders with populated product details including offers
             const orders = await orderSchema.find({ userId })
@@ -1361,7 +1440,9 @@ module.exports={
 
             res.render('user/orders', { 
                 orders: processedOrders, 
-                user 
+                user,
+                cartCount,
+                wishlistCount
             });
 
         } catch (error) {
@@ -1791,6 +1872,14 @@ module.exports={
         try {
             const userId = req.session.user;
             const user = await userSchema.findById(userId);
+            let cartCount = 0;
+            let wishlistCount = 0;
+            
+            // Get cart count
+            cartCount = await cart.countDocuments({ userId });
+            // Get wishlist count
+            wishlistCount = user.wishlist ? user.wishlist.length : 0;
+            
             const wallet = await walletSchema.findOne({ userId }).populate('transactions').sort({ 'transactions.date': -1 }); 
             
             // if wallet does not exist, create one
@@ -1801,13 +1890,23 @@ module.exports={
                     transactions: []
                 });
                 await newWallet.save();
-                return res.render("user/wallet", { user, wallet: newWallet });
+                return res.render("user/wallet", { 
+                    user, 
+                    wallet: newWallet,
+                    cartCount,
+                    wishlistCount 
+                });
             }
 
             // Sort transactions in LIFO order
             wallet.transactions.sort((a, b) => b.date - a.date);
 
-            res.render("user/wallet", { user, wallet });
+            res.render("user/wallet", { 
+                user, 
+                wallet,
+                cartCount,
+                wishlistCount 
+            });
         } catch (error) {
             console.log(error);
             res.status(500).send("Error Occurred", error);
@@ -2092,11 +2191,21 @@ module.exports={
             res.status(500).json({ error: 'Error fetching suggestions' });
         }
     },
-    loadMarvalCategory:async(req,res)=>{
+    loadMarvalCategory: async (req, res) => {
         try {
             const sortOption = req.query.sort || "default"; 
-            const userId= req.session.user;
-            const user= userId ?await userSchema.findById(userId) : null;
+            const userId = req.session.user;
+            let user = null;
+            let cartCount = 0;
+            let wishlistCount = 0;
+
+            if (userId) {
+                user = await userSchema.findById(userId);
+                // Get cart count
+                cartCount = await cart.countDocuments({ userId });
+                // Get wishlist count
+                wishlistCount = user.wishlist ? user.wishlist.length : 0;
+            }
 
             const category = await categorySchema.findOne({ name : /marval/i });
 
@@ -2169,22 +2278,34 @@ module.exports={
             res.render("user/marvalCategory", {
                 data: processedProducts,
                 user,
-                sortOption
+                cartCount,
+                wishlistCount,  
+                sortOption,
             });
         } catch (error) {
             console.log(error);
             res.status(500).send("Error occurred ",error);
         }
     },
-    loadDcComicsCategory:async(req,res)=>{
+    loadDcComicsCategory: async (req, res) => {
         try {
             const sortOption = req.query.sort || "default"; 
-            const userId= req.session.user;
-            const user= userId ?await userSchema.findById(userId) : null;
+            const userId = req.session.user;
+            let user = null;
+            let cartCount = 0;
+            let wishlistCount = 0;  
 
-            const category = await categorySchema.findOne({ name : /dc comics/i });
+            if (userId) {
+                user = await userSchema.findById(userId);
+                // Get cart count
+                cartCount = await cart.countDocuments({ userId });
+                
+                wishlistCount = user.wishlist ? user.wishlist.length : 0;  
+            }
 
-            if(!category){
+            const category = await categorySchema.findOne({ name: /dc comics/i });
+
+            if (!category) {
                 return res.status(404).send("Category not found");
             }
 
@@ -2201,7 +2322,7 @@ module.exports={
                 sortCriteria = { name: -1 }; // alphabetically Z-A
             }
 
-            const products = await productSchema.find({ category: category._id,isDeleted: false })
+            const products = await productSchema.find({ category: category._id, isDeleted: false })
                 .populate('offer')
                 .populate({
                     path: "category",
@@ -2253,22 +2374,34 @@ module.exports={
             res.render("user/dcComicsCategory", {
                 data: processedProducts,
                 user,
-                sortOption
+                sortOption,
+                cartCount,
+                wishlistCount  
             });
         } catch (error) {
             console.log(error);
-            res.status(500).send("Error occurred ",error);
+            res.status(500).send("Error occurred ", error);
         }
     },
-    loadTransformersCategory:async(req,res)=>{
+    loadTransformersCategory: async (req, res) => {
         try {
             const sortOption = req.query.sort || "default"; 
-            const userId= req.session.user;
-            const user= userId ?await userSchema.findById(userId) : null;
+            const userId = req.session.user;
+            let user = null;
+            let cartCount = 0;
+            let wishlistCount = 0;  // Add this line
 
-            const category = await categorySchema.findOne({ name : /transformers/i });
+            if (userId) {
+                user = await userSchema.findById(userId);
+                // Get cart count
+                cartCount = await cart.countDocuments({ userId });
+                // Get wishlist count
+                wishlistCount = user.wishlist ? user.wishlist.length : 0;  // Add this line
+            }
 
-            if(!category){
+            const category = await categorySchema.findOne({ name: /transformers/i });
+
+            if (!category) {
                 return res.status(404).send("Category not found");
             }
 
@@ -2285,7 +2418,7 @@ module.exports={
                 sortCriteria = { name: -1 }; // alphabetically Z-A
             }
 
-            const products = await productSchema.find({ category: category._id,isDeleted: false })
+            const products = await productSchema.find({ category: category._id, isDeleted: false })
                 .populate('offer')
                 .populate({
                     path: "category",
@@ -2337,11 +2470,13 @@ module.exports={
             res.render("user/transformersCategory", {
                 data: processedProducts,
                 user,
-                sortOption
+                sortOption,
+                cartCount,
+                wishlistCount 
             });
         } catch (error) {
             console.log(error);
-            res.status(500).send("Error occurred ",error);
+            res.status(500).send("Error occurred ", error);
         }
     },
     loadLogout: (req, res) => {

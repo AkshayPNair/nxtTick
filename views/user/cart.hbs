@@ -7,6 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/notyf/notyf.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf/notyf.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
     
@@ -230,26 +231,76 @@
 
   <script>
     async function removeFromCart(productId) {
-      try {
-        const response = await fetch('/user/removeFromCart', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ productId: productId }),
+        // Show confirmation using SweetAlert2
+        const result = await Swal.fire({
+            title: '<span class="bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent">Remove Item from Cart?</span>',
+            html: '<p class="text-gray-600 font-medium">This item will be removed from your shopping cart</p>',
+            icon: 'warning',
+            iconColor: '#EF4444',
+            showCancelButton: true,
+            confirmButtonColor: '#EF4444',
+            cancelButtonColor: '#3B82F6',
+            confirmButtonText: '<i class="fas fa-trash-alt mr-2"></i>Remove Item',
+            cancelButtonText: '<i class="fas fa-arrow-left mr-2"></i>Keep Shopping',
+            customClass: {
+                popup: 'rounded-2xl shadow-2xl border border-gray-100',
+                title: 'text-2xl font-bold mb-4',
+                htmlContainer: 'text-base mb-6',
+                confirmButton: 'rounded-xl text-sm px-6 py-3 font-semibold transition-all duration-300 hover:bg-red-600 hover:shadow-lg hover:shadow-red-500/30',
+                cancelButton: 'rounded-xl text-sm px-6 py-3 font-semibold transition-all duration-300 hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/30',
+                actions: 'gap-4'
+            },
+            buttonsStyling: true,
+            showClass: {
+                popup: 'animate__animated animate__fadeInDown animate__faster'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__fadeOutUp animate__faster'
+            },
+            backdrop: `
+                rgba(0,0,0,0.4)
+                url("/images/nyan-cat.gif")
+                left top
+                no-repeat
+            `
         });
 
-        if (response.ok) {
-          location.reload();
-        } else {
-          const errorData = await response.json();
-          alert(errorData.message || 'Error removing item from cart');
+        // If user confirms deletion
+        if (result.isConfirmed) {
+            try {
+                const response = await fetch('/user/removeFromCart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ productId: productId }),
+                });
+
+                if (response.ok) {
+                    sessionStorage.setItem('showNotyf', 'true');
+                    location.reload();
+                } else {
+                    const errorData = await response.json();
+                    notyf.error(errorData.message || 'Error removing item from cart');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                notyf.error('An error occurred while removing the product from the cart.');
+            }
         }
-      } catch (error) {
-        console.error('Error:', error);
-        alert('An error occurred while removing the product from the cart.');
-      }
     }
+
+    // Check for notyf flag on page load
+    window.addEventListener('load', function() {
+        if (sessionStorage.getItem('showNotyf') === 'true') {
+            notyf.success({
+                message: 'Item removed from cart successfully',
+                duration: 2000,
+                dismissible: false
+            });
+            sessionStorage.removeItem('showNotyf');
+        }
+    });
 
   
 

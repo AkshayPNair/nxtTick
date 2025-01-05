@@ -38,12 +38,19 @@
 
 <script>
     // Highlight active sidebar link
-        const currentPath = window.location.pathname;
-        const links = document.querySelectorAll('aside nav ul li a');
-        links.forEach(link => {
-            if (link.getAttribute('href') === currentPath) {
-                link.classList.add('bg-blue-600', 'text-white');
-                link.classList.remove('hover:bg-blue-200');
+    const currentPath = window.location.pathname;
+    const links = document.querySelectorAll('aside nav ul li a');
+    links.forEach(link => {
+        if (link.getAttribute('href') === currentPath) {
+            // Add background and text color classes
+            link.classList.add('bg-blue-600', 'text-white');
+            link.classList.remove('hover:bg-blue-200', 'text-black');
+            
+            // Change the SVG color to white for the selected item
+            const svg = link.querySelector('svg');
+            if (svg) {
+                svg.style.stroke = 'white';
             }
-        });
+        }
+    });
 </script>

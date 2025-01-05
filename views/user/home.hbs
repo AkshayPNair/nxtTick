@@ -501,10 +501,16 @@
                     heartIcon.style.fill = 'red';
                     heartIcon.style.stroke = 'red';
                     notyf.success('Added to wishlist');
+                    setTimeout(()=>{
+                        location.reload();
+                    },1500);
                 } else {
                     heartIcon.style.fill = 'none';
                     heartIcon.style.stroke = 'currentColor';
                     notyf.success('Removed from wishlist');
+                    setTimeout(()=>{
+                        location.reload();
+                    },1500);
                 }
             } else {
                 notyf.error(data.message || 'Something went wrong');

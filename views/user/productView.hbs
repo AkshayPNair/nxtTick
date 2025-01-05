@@ -341,6 +341,9 @@ async function addToCart(productId) {
     
      if (data.status) {
         notyf.success(data.message);
+        setTimeout(()=>{
+          location.reload();
+        },1500)
       } else {
         notyf.error(data.message || "Failed to add product to cart.");
       }
@@ -386,6 +389,9 @@ async function toggleWishlist(button, productId) {
             });
             
             notyf.success(data.message || (button.classList.contains('active') ? 'Added to wishlist' : 'Removed from wishlist'));
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
         } else {
             throw new Error(data.message || 'Failed to update wishlist');
         }

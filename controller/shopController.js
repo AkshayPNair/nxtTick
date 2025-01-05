@@ -1,6 +1,7 @@
 const productSchema=require("../model/productSchema");
 const userSchema=require("../model/userModel");
 const categorySchema = require("../model/categorySchema");
+const cart = require("../model/cartSchema");
 
 module.exports = {
     loadShopPage: async (req, res) => {
@@ -8,8 +9,18 @@ module.exports = {
         const sortOption = req.query.sort || "default"; 
         const categoryFilter = req.query.category || "all";
         const userId = req.session.user;
-        const user = userId ? await userSchema.findById(userId) : null;
-  
+        let user = null;
+        let cartCount = 0;
+        let wishlistCount = 0;
+
+        if (userId) {
+            user = await userSchema.findById(userId);
+            // Get cart count
+            cartCount = await cart.countDocuments({ userId });
+            // Get wishlist count
+            wishlistCount = user.wishlist ? user.wishlist.length : 0;
+        }
+
         // Fetch all categories
         const categories = await categorySchema.find({ isBlock: false });
 
@@ -92,7 +103,9 @@ module.exports = {
           user, 
           sortOption,
           categories,
-          categoryFilter
+          categoryFilter,
+          cartCount,
+          wishlistCount
         });
       } catch (error) {
         console.error("Shop page error:", error);

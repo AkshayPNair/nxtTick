@@ -79,13 +79,23 @@
     <div class="flex items-center space-x-8">
       {{#if user}}
       {{!-- wishlistIcon --}}
-      <a href="/user/wishlist" class="text-gray-600 hover:text-blue-500">
+      <a href="/user/wishlist" class="text-gray-600 hover:text-blue-500 relative">
         <img src="/images/heart.png" class="w-6 h-6" alt=""> 
+        {{#if wishlistCount}}
+          <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
+            {{wishlistCount}}
+          </span>
+        {{/if}}
       </a>
 
       {{!-- cartIcon --}}
-      <a href="/user/cart" class="text-gray-600 hover:text-blue-500">
+      <a href="/user/cart" class="text-gray-600 hover:text-blue-500 relative">
         <img src="/images/cart.png" class="w-6 h-6" alt=""/>
+        {{#if cartCount}}
+          <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
+            {{cartCount}}
+          </span>
+        {{/if}}
       </a>
 
       {{!-- profileIcon --}}
