@@ -49,6 +49,7 @@
             <tbody class="divide-y" id="orderTableBody">
               {{#if orders.length}}
                 {{#each orders}}
+                  {{#if (ne this.paymentStatus "Failed")}}
                   <tr>
                     <td class="py-3 px-4 flex items-center gap-3">
                       <img src="{{this.items.0.product.images.[0]}}" class="w-10 h-10 rounded " alt="Product">
@@ -80,6 +81,7 @@
                       </a>
                     </td>
                   </tr>
+                  {{/if}}
                 {{/each}}
               {{else}}
                 <tr>

@@ -805,7 +805,13 @@ module.exports={
     loadCheckout: async (req, res) => {
         try {
             const userId = req.session.user;
-            const user = await userSchema.findById(userId);
+            const user =   await userSchema.findById(userId);
+
+            let cartCount = 0;
+            let wishlistCount = 0;
+
+            cartCount = await cart.countDocuments({ userId });
+            wishlistCount = user.wishlist ? user.wishlist.length : 0;
             
             // Fetch cart items with populated product and offer information
             const cartItems = await cart.find({ userId })
@@ -877,6 +883,8 @@ module.exports={
                 cartItems: cartDetails,
                 address: addresses,
                 coupons,
+                cartCount,
+                wishlistCount,
                 total: subtotal,
                 finalTotal,
                 wallet: wallet || { balance: 0 },

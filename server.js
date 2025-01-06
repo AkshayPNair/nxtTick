@@ -152,6 +152,10 @@ hbs.registerHelper('calculateSubtotal', function(price, quantity) {
     return price * quantity;
 });
 
+hbs.registerHelper('not', function(value) {
+    return !value;
+});
+
 
 hbs.registerHelper('eq', function (a, b) {
     return a.toString() === b.toString();
