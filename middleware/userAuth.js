@@ -46,6 +46,13 @@ module.exports = {
         } else {
             next();
         }
+    },
+
+    clearCheckoutCoupon: (req, res, next) => {
+        if (req.path !== '/checkout' && req.session.checkoutCoupon) {
+            delete req.session.checkoutCoupon;
+        }
+        next();
     }
 };
   

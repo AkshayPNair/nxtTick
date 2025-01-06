@@ -139,7 +139,9 @@
                 <select id="coupon-code" name="couponCode" class="block w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200">
                   <option value="">Select a coupon</option>
                   {{#each coupons}}
-                    <option value="{{this.couponCode}}">{{this.couponCode}}</option>
+                    <option value="{{this.couponCode}}" {{#if ../sessionCoupon}}{{#if (eq this.couponCode ../sessionCoupon.code)}}selected{{/if}}{{/if}}>
+                        {{this.couponCode}}
+                    </option>
                   {{/each}}
                 </select>
                 <button type="button" onclick="applyCoupon()" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transform hover:scale-[1.02] transition-all duration-200">Apply</button>
@@ -168,22 +170,22 @@
               {{/if}}
             {{/each}}
 
-            <div id="discount-row" class="flex justify-between items-center {{#unless appliedCoupon}}hidden{{/unless}}">
+            <div id="discount-row" class="flex justify-between items-center {{#unless sessionCoupon}}hidden{{/unless}}">
               <span class="text-gray-600">Coupon Discount</span>
               <span id="discount-amount" class="text-green-600 font-semibold">
-                {{#if appliedCoupon}}Rs. {{appliedCoupon.discount}}{{/if}}
+                {{#if sessionCoupon}}Rs. {{sessionCoupon.discount}}{{/if}}
               </span>
             </div>
 
             <div class="flex justify-between items-center pt-4 border-t border-gray-200">
               <span class="text-lg font-semibold">Total</span>
               <span id="final-total" class="text-lg font-bold text-red-600">
-                Rs. {{#if appliedCoupon}}
-                {{appliedCoupon.finalTotal}}
+                Rs. {{#if sessionCoupon}}
+                    {{sessionCoupon.finalTotal}}
                 {{else if hasActiveOffers}}
-                  {{finalTotal}}
+                    {{finalTotal}}
                 {{else}}
-                {{total}}
+                    {{total}}
                 {{/if}}
               </span>
             </div>
@@ -607,6 +609,13 @@
 
   // Call this function initially and whenever the total changes
   updateCODAvailability();
+
+  document.addEventListener('DOMContentLoaded', function() {
+        {{#if sessionCoupon}}
+            document.getElementById('discount-row').classList.remove('hidden');
+            updateCODAvailability();
+        {{/if}}
+    });
   </script>
 </body>
 </html>

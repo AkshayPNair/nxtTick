@@ -8,6 +8,11 @@ const addressController=require("../controller/addressController");
 const productController = require("../controller/productController");
 const shopController=require('../controller/shopController');
 
+
+
+router.use(userAuth.clearCheckoutCoupon);
+
+
 //  checkBlockStatus 
 router.use(userAuth.checkBlockStatus);
 
@@ -136,5 +141,6 @@ router.get('/transformersCategory',userController.loadTransformersCategory);
 
 //logout
 router.get('/logout',userAuth.checkSession,userController.loadLogout)
+
 
 module.exports= router ;

@@ -878,6 +878,9 @@ module.exports={
                 (item.productId.category?.offer && item.productId.category.offer.isActive)
             );
 
+            
+            const sessionCoupon = req.session.checkoutCoupon;
+
             res.render('user/checkout', {
                 user,
                 cartItems: cartDetails,
@@ -889,8 +892,10 @@ module.exports={
                 finalTotal,
                 wallet: wallet || { balance: 0 },
                 hasActiveOffers,
+                sessionCoupon,
                 helpers: {
-                    roundPrice: (price) => Math.round(price)
+                    roundPrice: (price) => Math.round(price),
+                    eq: (v1, v2) => v1 === v2  
                 }
             });
 
@@ -1871,6 +1876,15 @@ module.exports={
                 });
             }
 
+          
+    
+            
+            req.session.checkoutCoupon = {
+                code: couponCode,
+                discount: Math.round(discount),
+                finalTotal: Math.round(finalTotal)
+            };
+
             return res.status(200).json({
                 status: true,
                 message: 'Coupon applied successfully',
@@ -1893,9 +1907,9 @@ module.exports={
             let cartCount = 0;
             let wishlistCount = 0;
             
-            // Get cart count
+            
             cartCount = await cart.countDocuments({ userId });
-            // Get wishlist count
+            
             wishlistCount = user.wishlist ? user.wishlist.length : 0;
             
             const wallet = await walletSchema.findOne({ userId }).populate('transactions').sort({ 'transactions.date': -1 }); 
