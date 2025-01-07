@@ -156,6 +156,10 @@ hbs.registerHelper('not', function(value) {
     return !value;
 });
 
+hbs.registerHelper('sum', function(array, key) {
+    return array.reduce((sum, item) => sum + item[key], 0);
+});
+
 
 hbs.registerHelper('eq', function (a, b) {
     return a.toString() === b.toString();

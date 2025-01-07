@@ -199,7 +199,7 @@
                       </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">{{this.userId.name}}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">₹{{this.items.[0].subtotal}}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">₹{{#with (sum this.items "subtotal")}}{{this}}{{/with}}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       {{#if this.items.[0].product.offer}}
                          <span class="text-green-600 font-medium">{{this.items.[0].product.offer.discountValue}}%</span> 
