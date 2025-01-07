@@ -37,38 +37,55 @@ module.exports={
 
     updateProducts: async(req,res)=>{
         try {
-            const productId=req.params.id;
-            const{productName,description,category,brand,stock,price}=req.body;
+            const productId = req.params.id;
+            const {productName, description, category, brand, stock, price} = req.body;
             
-            const updates = {
-                name: productName,
-                description:description,
-                category:category,
-                brand:brand,
-                stock:stock,
-                price:price,
-                updatedAt: Date.now(),
-              };
+            // Initialize final images array with existing images
+            const existingProduct = await productSchema.findById(productId);
+            let finalImages = [...existingProduct.images];
 
-            if (req.files && req.files.length > 0) {
-                const images = req.files.map((file) => file.path);
-                updates.images = images;
+            // Process each position (1-4)
+            for (let i = 1; i <= 4; i++) {
+                // Check for new uploaded image at this position
+                if (req.files && req.files[`image_${i}`]) {
+                    finalImages[i-1] = req.files[`image_${i}`][0].path;
+                }
+                // Check for existing image at this position
+                else if (req.body[`existingImage_${i}`]) {
+                    finalImages[i-1] = req.body[`existingImage_${i}`];
+                }
+                // If neither exists, set to null or remove
+                else {
+                    finalImages[i-1] = null;
+                }
             }
-             const updateProduct= await productSchema.findByIdAndUpdate(
+
+            // Remove any null values from the array
+            finalImages = finalImages.filter(img => img);
+
+            const updateProduct = await productSchema.findByIdAndUpdate(
                 productId,
-                updates,
-                {new:true}
-             )
+                {
+                    name: productName,
+                    description,
+                    category,
+                    brand,
+                    stock,
+                    price,
+                    images: finalImages,
+                    updatedAt: Date.now()
+                },
+                {new: true}
+            );
 
-            if(!updateProduct){
-                return res.status(404).send("Product not found");
+            if(!updateProduct) {
+                return res.status(404).json({status: false, message: "Product not found"});
             }
 
-            console.log("updateProduct :",updateProduct);
-            return res.status(200).json({ status:true,message:"Product updated Successfully!"})
+            return res.status(200).json({status: true, message: "Product updated Successfully!"});
         } catch (error) {
             console.error(error);
-            res.status(500).json({status:false,message:"Server error"})
+            res.status(500).json({status: false, message: "Server error"});
         }
     },
     

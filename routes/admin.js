@@ -22,7 +22,10 @@ router.post('/addProducts',upload.array('images',4),productController.addProduct
 //edit products
 router.get("/editProducts/:id",adminAuth.checkSession,adminController.loadEditProducts);
 //admin post
-router.post("/editProducts/:id",upload.array('images',4),productController.updateProducts);
+router.post("/editProducts/:id", 
+    upload.fields([{ name: 'image_1', maxCount: 1 },{ name: 'image_2', maxCount: 1 },{ name: 'image_3', maxCount: 1 },{ name: 'image_4', maxCount: 1 }]), 
+    productController.updateProducts
+);
 
 //delete Product
 router.delete("/deleteProduct/:id",adminAuth.checkSession,productController.deleteProduct);

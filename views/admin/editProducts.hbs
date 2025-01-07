@@ -283,65 +283,63 @@
 
     if (!validateForm()) return;
 
-    var formData = new FormData();
+    const formData = new FormData();
+    
+    // Add basic product details
+    formData.append("productId", document.getElementById("productId").value);
+    formData.append("productName", document.getElementById("productName").value);
+    formData.append("description", document.getElementById("description").value);
+    formData.append("category", document.getElementById("category").value);
+    formData.append("brand", document.getElementById("brand").value);
+    formData.append("stock", document.getElementById("stock").value);
+    formData.append("price", document.getElementById("price").value);
 
-    const productId = document.getElementById("productId").value;
-    const productName = document.getElementById("productName").value;
-    const description = document.getElementById("description").value;
-    const category = document.getElementById("category").value;
-    const brand = document.getElementById("brand").value;
-    const stock = document.getElementById("stock").value;
-    const price = document.getElementById("price").value;
-    const images1 = document.getElementById('images1').files[0];
-    const images2 = document.getElementById('images2').files[0];
-    const images3 = document.getElementById('images3').files[0];
-    const images4 = document.getElementById('images4').files[0];
-
-    formData.append("productId", productId);
-    formData.append("productName", productName);
-    formData.append("description", description);
-    formData.append("category", category);
-    formData.append("brand", brand);
-    formData.append("stock", stock);
-    formData.append("price", price);
-
-    if (images1) formData.append("images", images1);
-    if (images2) formData.append("images", images2);
-    if (images3) formData.append("images", images3);
-    if (images4) formData.append("images", images4);
-
-    console.log(formData);
+    // Handle images - track each position separately
+    for (let i = 1; i <= 4; i++) {
+        const input = document.getElementById(`images${i}`);
+        const preview = document.getElementById(`preview${i}`);
+        
+        if (input.files[0]) {
+            // New file uploaded - use the correct field name
+            formData.append(`image_${i}`, input.files[0]);
+        }
+        
+        // If there's an existing image and it hasn't been replaced
+        if (preview.src && !preview.src.includes('blob') && !input.files[0]) {
+            formData.append(`existingImage_${i}`, preview.src);
+        }
+    }
 
     try {
-      const response = await fetch(`/admin/editProducts/${productId}`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (data.status) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Product Updated',
-          text: data.message,
-        }).then(() => {
-          window.location.href = '/admin/allProducts'; 
+        const response = await fetch(`/admin/editProducts/${document.getElementById("productId").value}`, {
+            method: 'POST',
+            body: formData,
         });
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: data.message || 'Something went wrong!',
-        });
-      }
+
+        const data = await response.json();
+
+        if (data.status) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Product Updated',
+                text: data.message,
+            }).then(() => {
+                window.location.href = '/admin/allProducts';
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message || 'Something went wrong!',
+            });
+        }
     } catch (error) {
-      console.error(error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Server Error',
-        text: 'Failed to update product.',
-      });
+        console.error(error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Server Error',
+            text: 'Failed to update product.',
+        });
     }
   });
 
