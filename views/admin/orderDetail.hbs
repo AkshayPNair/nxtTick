@@ -219,7 +219,7 @@ async function updateOrderStatus(orderId, status) {
         document.getElementById('out-for-delivery-date').textContent = formattedDate;
         localStorage.setItem(`outForDeliveryDate_${orderId}`, currentDate);
       } else if (status === 'Delivered') {
-        document.getElementById('delivered-date').textContent = formattedDate;
+        document.getElementById('final-stage-date').textContent = formattedDate;
         localStorage.setItem(`deliveredDate_${orderId}`, currentDate);
       }
 
@@ -364,7 +364,7 @@ window.onload = function() {
     document.getElementById('out-for-delivery-date').textContent = formatDateToDDMMYY(savedOutForDeliveryDate);
   }
   if (savedDeliveredDate) {
-    document.getElementById('delivered-date').textContent = formatDateToDDMMYY(savedDeliveredDate);
+    document.getElementById('final-stage-date').textContent = formatDateToDDMMYY(savedDeliveredDate);
   }
 }
   
