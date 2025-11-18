@@ -1402,9 +1402,29 @@ module.exports={
                 .sort({ createdAt: -1 });
 
             // Process orders to include proper pricing
+            const calculateItemSubtotal = (orderItem) => {
+                const qty = orderItem.quantity || 1;
+                const subtotal = Number(orderItem.subtotal);
+                if (Number.isFinite(subtotal) && subtotal > 0) {
+                    return subtotal;
+                }
+                const fallbackPrice = orderItem.product?.price || 0;
+                return fallbackPrice * qty;
+            };
+
             const processedOrders = orders.map(order => {
+                const hasValidCoupon = !!(order.couponUsed && Number(order.couponUsed.discount) > 0);
+                const totalOrderValue = order.items.reduce((sum, orderItem) => 
+                    sum + calculateItemSubtotal(orderItem), 
+                0);
+
                 const items = order.items.map(item => {
-                    let basePrice = item.subtotal / item.quantity; // Original price per unit
+                    const quantity = item.quantity || 1;
+                    const itemSubtotal = calculateItemSubtotal(item);
+                    let basePrice = itemSubtotal / quantity; // Original price per unit
+                    if (!Number.isFinite(basePrice)) {
+                        basePrice = item.product?.price || 0;
+                    }
                     let finalPrice = basePrice;
                     let activeOffer = null;
 
@@ -1427,27 +1447,26 @@ module.exports={
                         };
                     }
                     // If order used a coupon
-                    else if (order.couponUsed) {
+                    else if (hasValidCoupon && totalOrderValue > 0) {
                         // Calculate individual item's share of the coupon discount
-                        const totalOrderValue = order.items.reduce((sum, orderItem) => 
-                            sum + (orderItem.subtotal), 0);
-                        const itemDiscountShare = (item.subtotal / totalOrderValue) * order.couponUsed.discount;
-                        finalPrice = basePrice - (itemDiscountShare / item.quantity);
+                        const itemDiscountShare = (itemSubtotal / totalOrderValue) * Number(order.couponUsed.discount || 0);
+                        finalPrice = basePrice - (itemDiscountShare / quantity);
                     }
 
                     return {
                         ...item.toObject(),
-                        originalPrice: Math.round(basePrice),
-                        finalPrice: Math.round(finalPrice),
+                        originalPrice: Math.round(basePrice) || 0,
+                        finalPrice: Math.round(finalPrice) || 0,
                         activeOffer,
-                        hasDiscount: activeOffer || order.couponUsed
+                        hasDiscount: !!activeOffer || hasValidCoupon
                     };
                 });
 
                 return {
                     ...order.toObject(),
                     items,
-                    hasCouponDiscount: !!order.couponUsed
+                    hasCouponDiscount: hasValidCoupon,
+                    couponUsed: hasValidCoupon ? order.couponUsed : null
                 };
             });
 
@@ -1491,10 +1510,29 @@ module.exports={
             }
 
             // Process order items to include proper pricing
+            const hasValidCoupon = !!(order.couponUsed && Number(order.couponUsed.discount) > 0);
+            const calculateItemSubtotal = (orderItem) => {
+                const qty = orderItem.quantity || 1;
+                const subtotal = Number(orderItem.subtotal);
+                if (Number.isFinite(subtotal) && subtotal > 0) {
+                    return subtotal;
+                }
+                const fallbackPrice = orderItem.product?.price || 0;
+                return fallbackPrice * qty;
+            };
+            const totalOrderValue = order.items.reduce((sum, orderItem) => 
+                sum + calculateItemSubtotal(orderItem),
+            0);
+
             const processedOrder = {
                 ...order.toObject(),
                 items: order.items.map(item => {
-                    let basePrice = item.subtotal / item.quantity; // Original price per unit
+                    const quantity = item.quantity || 1;
+                    const itemSubtotal = calculateItemSubtotal(item);
+                    let basePrice = itemSubtotal / quantity; // Original price per unit
+                    if (!Number.isFinite(basePrice)) {
+                        basePrice = item.product?.price || 0;
+                    }
                     let finalPrice = basePrice;
                     let activeOffer = null;
 
@@ -1517,25 +1555,23 @@ module.exports={
                         };
                     }
                     // If order used a coupon
-                    else if (order.couponUsed) {
+                    else if (hasValidCoupon && totalOrderValue > 0) {
                         // Calculate individual item's share of the coupon discount
-                         const totalOrderValue = order.items.reduce((sum, orderItem) => 
-                            sum + (orderItem.subtotal), 0);
-                        const itemDiscountShare = (item.subtotal / totalOrderValue) * order.couponUsed.discount;
-                        finalPrice = basePrice - (itemDiscountShare / item.quantity);
+                        const itemDiscountShare = (itemSubtotal / totalOrderValue) * Number(order.couponUsed.discount || 0);
+                        finalPrice = basePrice - (itemDiscountShare / quantity);
                     }
 
                     return {
                         ...item.toObject(),
-                        originalPrice: Math.round(basePrice),
-                        finalPrice: Math.round(finalPrice),
+                        originalPrice: Math.round(basePrice) || 0,
+                        finalPrice: Math.round(finalPrice) || 0,
                         activeOffer,
-                        hasDiscount: activeOffer || order.couponUsed
+                        hasDiscount: !!activeOffer || hasValidCoupon
                     };
                 }),
                 
-                hasCouponDiscount: !!order.couponUsed,
-                couponUsed: order.couponUsed // Add this to pass coupon info to the view
+                hasCouponDiscount: hasValidCoupon,
+                couponUsed: hasValidCoupon ? order.couponUsed : null // Add this to pass coupon info to the view
             };
 
             res.render('user/orderView', { 

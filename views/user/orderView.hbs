@@ -64,7 +64,7 @@
                                 <span class="text-gray-400 line-through text-sm">₹{{multiply this.originalPrice this.quantity}}</span>
                                 <span class="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-sm">{{this.activeOffer.discountValue}}% OFF</span>
                             </div>
-                            {{else if ../couponUsed}}
+                            {{else if ../order.couponUsed}}
                                 <span class="font-semibold text-red-600">₹{{multiply this.finalPrice this.quantity}}</span>
                                 <span class="font-medium text-gray-400 line-through text-sm">₹{{multiply this.originalPrice this.quantity}}</span>
                                 <span class="status-badge rounded-full bg-blue-100 text-blue-700">
@@ -596,7 +596,7 @@
                             '₹{{originalPrice}}',
                             '{{this.activeOffer.discountValue}}% OFF',
                             '₹{{finalPrice}}'
-                        {{else if ../couponUsed}}
+                        {{else if ../order.couponUsed}}
                             '₹{{originalPrice}}',
                             'COUPON APPLIED',
                             '₹{{finalPrice}}'
